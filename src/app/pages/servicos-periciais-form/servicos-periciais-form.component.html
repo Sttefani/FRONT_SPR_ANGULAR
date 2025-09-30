@@ -1,0 +1,92 @@
+<div class="container">
+  <div class="header-actions">
+    <button class="btn-back" (click)="cancelar()">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </button>
+    <h1>{{ isEditMode ? 'Editar Serviço Pericial' : 'Novo Serviço Pericial' }}</h1>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando dados...</p>
+    </div>
+  }
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (!isLoading) {
+    <div class="form-container">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="sigla">
+            <i class="bi bi-tag"></i>
+            Sigla *
+          </label>
+          <input
+            type="text"
+            id="sigla"
+            formControlName="sigla"
+            class="form-control"
+            placeholder="Ex: BAL"
+            maxlength="10"
+            [class.error]="sigla?.invalid && sigla?.touched"
+          >
+          @if (sigla?.invalid && sigla?.touched) {
+            <div class="error-message">
+              @if (sigla?.errors?.['required']) {
+                <span>A sigla é obrigatória.</span>
+              }
+              @if (sigla?.errors?.['maxlength']) {
+                <span>A sigla deve ter no máximo 10 caracteres.</span>
+              }
+            </div>
+          }
+          <small class="hint">Será convertida automaticamente para maiúsculas</small>
+        </div>
+
+        <div class="form-group">
+          <label for="nome">
+            <i class="bi bi-text-left"></i>
+            Nome Completo *
+          </label>
+          <input
+            type="text"
+            id="nome"
+            formControlName="nome"
+            class="form-control"
+            placeholder="Ex: BALÍSTICA FORENSE"
+            maxlength="50"
+            [class.error]="nome?.invalid && nome?.touched"
+          >
+          @if (nome?.invalid && nome?.touched) {
+            <div class="error-message">
+              @if (nome?.errors?.['required']) {
+                <span>O nome é obrigatório.</span>
+              }
+              @if (nome?.errors?.['maxlength']) {
+                <span>O nome deve ter no máximo 50 caracteres.</span>
+              }
+            </div>
+          }
+          <small class="hint">Será convertido automaticamente para maiúsculas</small>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="cancelar()" [disabled]="isSaving">
+            <i class="bi bi-x-circle"></i>
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="form.invalid || isSaving">
+            <i class="bi bi-check-circle"></i>
+            {{ isSaving ? 'Salvando...' : (isEditMode ? 'Atualizar' : 'Criar Serviço') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

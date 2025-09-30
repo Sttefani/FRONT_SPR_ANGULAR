@@ -1,0 +1,101 @@
+<app-header></app-header>
+
+<main class="alterar-senha-main">
+  <div class="alterar-senha-container">
+    <div class="alterar-senha-card">
+      <div class="alterar-senha-header">
+        <h2>Alteração de Senha Obrigatória</h2>
+        <p>Por segurança, você deve alterar sua senha antes de continuar</p>
+      </div>
+
+      <div class="alert-info">
+        <strong>Atenção:</strong> Sua senha foi redefinida pelo administrador.
+        Use seu <strong>CPF (apenas números)</strong> como senha atual e defina uma nova senha segura.
+      </div>
+
+      <form [formGroup]="alterarSenhaForm" (ngSubmit)="onSubmit()" class="alterar-senha-form">
+        <div class="form-group">
+          <label for="old_password">Senha Atual (CPF): *</label>
+          <input
+            type="password"
+            id="old_password"
+            formControlName="old_password"
+            class="form-control"
+            [class.error]="alterarSenhaForm.get('old_password')?.invalid && alterarSenhaForm.get('old_password')?.touched"
+            placeholder="Digite seu CPF (apenas números)">
+          @if (alterarSenhaForm.get('old_password')?.invalid && alterarSenhaForm.get('old_password')?.touched) {
+            <div class="error-message">
+              @if (alterarSenhaForm.get('old_password')?.errors?.['required']) {
+                <small>Senha atual é obrigatória</small>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="new_password">Nova Senha: *</label>
+          <input
+            type="password"
+            id="new_password"
+            formControlName="new_password"
+            class="form-control"
+            [class.error]="alterarSenhaForm.get('new_password')?.invalid && alterarSenhaForm.get('new_password')?.touched"
+            placeholder="Digite sua nova senha (mínimo 6 caracteres)">
+          @if (alterarSenhaForm.get('new_password')?.invalid && alterarSenhaForm.get('new_password')?.touched) {
+            <div class="error-message">
+              @if (alterarSenhaForm.get('new_password')?.errors?.['required']) {
+                <small>Nova senha é obrigatória</small>
+              }
+              @if (alterarSenhaForm.get('new_password')?.errors?.['minlength']) {
+                <small>Nova senha deve ter no mínimo 6 caracteres</small>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="confirm_password">Confirmar Nova Senha: *</label>
+          <input
+            type="password"
+            id="confirm_password"
+            formControlName="confirm_password"
+            class="form-control"
+            [class.error]="alterarSenhaForm.get('confirm_password')?.invalid && alterarSenhaForm.get('confirm_password')?.touched"
+            placeholder="Confirme sua nova senha">
+          @if (alterarSenhaForm.get('confirm_password')?.invalid && alterarSenhaForm.get('confirm_password')?.touched) {
+            <div class="error-message">
+              @if (alterarSenhaForm.get('confirm_password')?.errors?.['required']) {
+                <small>Confirmação é obrigatória</small>
+              }
+              @if (alterarSenhaForm.get('confirm_password')?.errors?.['mismatch']) {
+                <small>Senhas não conferem</small>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn-primary"
+            [disabled]="alterarSenhaForm.invalid || loading">
+            {{ loading ? 'Alterando...' : 'ALTERAR SENHA' }}
+          </button>
+        </div>
+
+        @if (errorMessage) {
+          <div class="error-message">
+            <small>{{ errorMessage }}</small>
+          </div>
+        }
+      </form>
+
+      <div class="info-footer">
+        <p><strong>Dica:</strong> Escolha uma senha segura com pelo menos 6 caracteres,
+        combinando letras, números e símbolos.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<app-footer></app-footer>

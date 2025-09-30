@@ -1,1 +1,48 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global SCSS Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+// Customização tema preto/dourado
+.swal2-popup {
+  background: #ffffff !important;
+  border: 2px solid #DAA520 !important;
+}
+
+.swal2-title {
+  color: #1a202c !important;
+}
+
+.swal2-html-container {
+  color: #4a5568 !important;
+}
+
+.swal2-confirm {
+  background-color: #DAA520 !important;
+  color: #000000 !important;
+  border: 2px solid #DAA520 !important;
+  font-weight: 600 !important;
+
+  &:hover {
+    background-color: #B8860B !important;
+    border-color: #B8860B !important;
+  }
+}
+
+.swal2-cancel {
+  background-color: #ffffff !important;
+  color: #4a5568 !important;
+  border: 2px solid #e2e8f0 !important;
+
+  &:hover {
+    border-color: #cbd5e0 !important;
+  }
+}

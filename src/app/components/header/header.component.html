@@ -1,0 +1,34 @@
+<header class="header">
+  <div class="header-container">
+    <!-- Lado Esquerdo - SPR-CRIMINALÍSTICA -->
+    <div class="header-left">
+      <span class="spr-text">SPR-CRIMINALÍSTICA</span>
+    </div>
+
+    <!-- Centro - Nome do Instituto -->
+    <div class="header-center">
+      <h1 class="institute-name">INSTITUTO DE CRIMINALÍSTICA</h1>
+    </div>
+
+    <!-- Lado Direito - Info do usuário e logout -->
+    <div class="header-right">
+      <div class="user-info">
+        <div class="datetime">{{ currentDateTime }}</div>
+        @if (isLoggedIn) {
+          <div class="user-details">
+            <span class="user-name">{{ currentUser?.nome_completo }}</span>
+            <span class="user-profile">{{ currentUser?.perfil }}</span>
+          </div>
+        }
+      </div>
+      @if (isLoggedIn) {
+        <button
+          class="logout-btn"
+          (click)="logout()"
+          title="Sair do sistema">
+          SAIR
+        </button>
+      }
+    </div>
+  </div>
+</header>

@@ -1,0 +1,33 @@
+<div class="welcome-section">
+  <h1>Bem-vindo, {{ getFirstName(currentUser?.nome_completo) }}!</h1>
+  <p class="user-role">{{ currentUser?.perfil }}</p>
+</div>
+
+<div class="content-area">
+  <div class="info-card">
+    <h2>Sistema SPR-Criminalística</h2>
+    <p>Selecione uma opção no menu lateral para acessar os módulos do sistema.</p>
+
+    <div class="permissions-info">
+      <h4>Suas Permissões:</h4>
+      <ul>
+        @if (isSuperAdmin()) {
+          <li>✅ Acesso total ao sistema</li>
+          <li>✅ Gestão de usuários</li>
+          <li>✅ Aprovação e configuração</li>
+        } @else {
+          <li>✅ Cadastros administrativos (criar/editar)</li>
+          <li>✅ Operações do seu serviço pericial</li>
+          <li>✅ Ocorrências atribuídas a você</li>
+        }
+      </ul>
+    </div>
+
+    <div class="system-info">
+      <small>
+        <strong>Versão:</strong> 1.0.1<br>
+        <strong>Data:</strong> {{ today | date:'dd/MM/yyyy' }}
+      </small>
+    </div>
+  </div>
+</div>

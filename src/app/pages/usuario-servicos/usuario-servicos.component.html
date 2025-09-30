@@ -1,0 +1,101 @@
+<div class="container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <button class="btn-back" (click)="cancelar()">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div class="header-text">
+        <h1>Gerenciar Serviços Periciais</h1>
+        @if (user) {
+          <p class="subtitle">{{ user.nome_completo }} • {{ user.email }}</p>
+        }
+      </div>
+    </div>
+    @if (!isLoading) {
+      <div class="selection-counter">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>{{ totalSelecionados }} serviço(s) selecionado(s)</span>
+      </div>
+    }
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-indicator">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando dados...</p>
+    </div>
+  }
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (!isLoading) {
+    <!-- Busca -->
+    <div class="search-section">
+      <div class="search-container">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Buscar por sigla ou nome do serviço..."
+          class="search-input"
+        >
+        @if (searchTerm) {
+          <button class="clear-search" (click)="searchTerm = ''">
+            <i class="bi bi-x-circle"></i>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Tabela de Serviços -->
+    <div class="services-container">
+      @if (servicosFiltrados.length > 0) {
+        <div class="services-grid">
+          @for (servico of servicosFiltrados; track servico.id) {
+            <label class="service-card" [class.selected]="isSelected(servico.id)">
+              <input
+                type="checkbox"
+                [checked]="isSelected(servico.id)"
+                (change)="toggleServico(servico.id)"
+              >
+              <div class="service-content">
+                <div class="service-sigla">{{ servico.sigla }}</div>
+                <div class="service-nome">{{ servico.nome }}</div>
+              </div>
+              <div class="check-icon">
+                <i class="bi bi-check-circle-fill"></i>
+              </div>
+            </label>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <i class="bi bi-inbox"></i>
+          <p>Nenhum serviço encontrado</p>
+        </div>
+      }
+    </div>
+
+    <div class="actions-bar">
+      <div class="actions-info">
+        <i class="bi bi-info-circle"></i>
+        <span>Selecione os serviços aos quais este usuário terá acesso</span>
+      </div>
+      <div class="actions-buttons">
+        <button type="button" class="btn-secondary" (click)="cancelar()" [disabled]="isSaving">
+          <i class="bi bi-x-circle"></i>
+          Cancelar
+        </button>
+        <button type="button" class="btn-primary" (click)="onSave()" [disabled]="isSaving">
+          <i class="bi bi-check-circle"></i>
+          {{ isSaving ? 'Salvando...' : 'Salvar Alterações' }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

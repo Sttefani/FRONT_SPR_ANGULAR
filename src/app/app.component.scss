@@ -1,0 +1,55 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Configuração do corpo da aplicação */
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+}
+
+/* Conteúdo principal com espaçamento para header e footer */
+.main-content {
+  margin-top: 85px; /* Espaço para o header (70px + padding) */
+  margin-bottom: 55px; /* Espaço para o footer (40px + padding) */
+  min-height: calc(100vh - 140px); /* Altura mínima descontando header e footer */
+  padding: 20px;
+}
+
+/* Exemplo de conteúdo */
+.content-example {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.content-example h2 {
+  color: #333333;
+  margin-bottom: 15px;
+}
+
+.content-example p {
+  color: #666666;
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .main-content {
+    margin-top: 90px; /* Ajuste para header responsivo */
+    margin-bottom: 60px; /* Ajuste para footer responsivo */
+    padding: 15px;
+  }
+
+  .content-example {
+    padding: 15px;
+  }
+}

@@ -1,0 +1,197 @@
+<div class="container">
+  <div class="header-row">
+    <div>
+      <h1>Serviços Periciais</h1>
+      <p class="subtitle">Gerencie os serviços periciais do sistema.</p>
+    </div>
+
+    <div class="actions-header">
+      <button class="btn-primary" (click)="onCreate()">
+        <i class="bi bi-plus-circle"></i>
+        Novo Serviço
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button
+      class="tab"
+      [class.active]="viewMode === 'ativos'"
+      (click)="switchToAtivos()">
+      <i class="bi bi-list-ul"></i>
+      Ativos
+    </button>
+    <button
+      class="tab"
+      [class.active]="viewMode === 'lixeira'"
+      (click)="switchToLixeira()">
+      <i class="bi bi-trash"></i>
+      Lixeira
+    </button>
+  </div>
+
+  <!-- Campo de busca - APENAS para view ativos -->
+  @if (viewMode === 'ativos') {
+    <div class="search-container">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="onSearch()"
+        placeholder="Buscar por sigla ou nome... (pressione Enter)"
+        class="search-input"
+      >
+      @if (searchTerm) {
+        <button class="clear-search" (click)="clearSearch()">
+          <i class="bi bi-x-circle"></i>
+        </button>
+      }
+      <button class="btn-search" (click)="onSearch()">
+        Buscar
+      </button>
+    </div>
+  }
+
+  <!-- Campo de busca - para lixeira (filtro local) -->
+  @if (viewMode === 'lixeira') {
+    <div class="search-container">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Filtrar por sigla ou nome..."
+        class="search-input"
+      >
+      @if (searchTerm) {
+        <button class="clear-search" (click)="searchTerm = ''">
+          <i class="bi bi-x-circle"></i>
+        </button>
+      }
+    </div>
+  }
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  <!-- VIEW ATIVOS -->
+  @if (viewMode === 'ativos') {
+    @if (isLoading) {
+      <div class="loading-indicator">
+        <i class="bi bi-hourglass-split"></i>
+        <p>Carregando serviços...</p>
+      </div>
+    }
+
+    @if (!isLoading && servicos.length > 0) {
+      <div class="table-container">
+        <table class="servicos-table">
+          <thead>
+            <tr>
+              <th>Sigla</th>
+              <th>Nome</th>
+              <th>Criado em</th>
+              <th class="actions-header">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (servico of servicos; track servico.id) {
+              <tr>
+                <td data-label="Sigla" class="sigla-cell">
+                  <span class="sigla-badge">{{ servico.sigla }}</span>
+                </td>
+                <td data-label="Nome">{{ servico.nome }}</td>
+                <td data-label="Criado em">{{ servico.created_at | date:'dd/MM/yyyy' }}</td>
+                <td class="actions-cell" data-label="Ações">
+                  <button class="icon-btn edit" title="Editar" (click)="onEdit(servico.id)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="icon-btn danger" title="Mover para Lixeira" (click)="onDelete(servico)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <!-- Paginação -->
+        <div class="pagination">
+          <div class="page-info">
+            Página {{ currentPage }} de {{ totalPages }} | Total: {{ totalCount }} serviços
+          </div>
+          <div class="pagination-controls">
+            <button (click)="previousPage()" [disabled]="!previousUrl">
+              <i class="bi bi-chevron-left"></i>
+              Anterior
+            </button>
+            <button (click)="nextPage()" [disabled]="!nextUrl">
+              Próxima
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (!isLoading && servicos.length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>{{ searchTerm ? 'Nenhum serviço encontrado' : 'Nenhum serviço cadastrado' }}</p>
+      </div>
+    }
+  }
+
+  <!-- VIEW LIXEIRA -->
+  @if (viewMode === 'lixeira') {
+    @if (isLoadingLixeira) {
+      <div class="loading-indicator">
+        <i class="bi bi-hourglass-split"></i>
+        <p>Carregando lixeira...</p>
+      </div>
+    }
+
+    @if (!isLoadingLixeira && servicosLixeiraFiltrados.length > 0) {
+      <div class="table-container">
+        <table class="servicos-table">
+          <thead>
+            <tr>
+              <th>Sigla</th>
+              <th>Nome</th>
+              <th>Deletado em</th>
+              <th>Deletado por</th>
+              <th class="actions-header">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (servico of servicosLixeiraFiltrados; track servico.id) {
+              <tr>
+                <td data-label="Sigla" class="sigla-cell">
+                  <span class="sigla-badge deleted">{{ servico.sigla }}</span>
+                </td>
+                <td data-label="Nome">{{ servico.nome }}</td>
+                <td data-label="Deletado em">{{ servico.deleted_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td data-label="Deletado por">{{ servico.deleted_by?.nome_completo || 'N/D' }}</td>
+                <td class="actions-cell" data-label="Ações">
+                  <button class="icon-btn restore" title="Restaurar" (click)="onRestore(servico)">
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (!isLoadingLixeira && servicosLixeiraFiltrados.length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-trash"></i>
+        <p>{{ searchTerm ? 'Nenhum serviço encontrado' : 'A lixeira está vazia' }}</p>
+      </div>
+    }
+  }
+</div>

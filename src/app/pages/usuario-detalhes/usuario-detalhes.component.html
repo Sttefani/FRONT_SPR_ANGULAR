@@ -1,0 +1,124 @@
+<div class="container">
+  <div class="header-actions">
+    <button class="btn-back" (click)="voltar()">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </button>
+    <h1>Detalhes do Usuário</h1>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading">
+      <p>Carregando dados do usuário...</p>
+    </div>
+  }
+
+  @if (error) {
+    <div class="error-message">
+      <i class="bi bi-exclamation-triangle"></i>
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  @if (user && !isLoading) {
+    <div class="card-container">
+      <div class="user-card">
+        <div class="card-header">
+          <div class="user-avatar">
+            <i class="bi bi-person-circle"></i>
+          </div>
+          <div class="user-basic-info">
+            <h2>{{ user.nome_completo }}</h2>
+            <span class="status-badge" [ngClass]="user.status.toLowerCase()">
+              {{ user.status }}
+            </span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="info-row">
+            <div class="info-label">
+              <i class="bi bi-envelope"></i>
+              E-mail
+            </div>
+            <div class="info-value">{{ user.email }}</div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">
+              <i class="bi bi-credit-card"></i>
+              CPF
+            </div>
+            <div class="info-value">{{ user.cpf }}</div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">
+              <i class="bi bi-phone"></i>
+              Telefone
+            </div>
+            <div class="info-value">{{ user.telefone_celular || 'Não informado' }}</div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">
+              <i class="bi bi-calendar"></i>
+              Data de Nascimento
+            </div>
+            <div class="info-value">{{ user.data_nascimento || 'Não informado' }}</div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">
+              <i class="bi bi-person-badge"></i>
+              Perfil
+            </div>
+            <div class="info-value">{{ user.perfil || 'Não definido' }}</div>
+          </div>
+       @if (user.servicos_periciais && user.servicos_periciais.length > 0) {
+            <div class="info-row">
+              <div class="info-label">
+                <i class="bi bi-briefcase"></i>
+                Serviços Periciais
+              </div>
+              <div class="info-value">
+                <div class="servicos-list">
+                  @for (servico of user.servicos_periciais; track servico.id) {
+                    <span class="servico-badge">
+                      {{ servico.sigla }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+          <div class="info-row">
+            <div class="info-label">
+              <i class="bi bi-clock-history"></i>
+              Cadastrado em
+            </div>
+            <div class="info-value">{{ user.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">
+              <i class="bi bi-pencil-square"></i>
+              Última atualização
+            </div>
+            <div class="info-value">{{ user.updated_at | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+        </div>
+  <div class="card-footer">
+  <button class="btn-primary" (click)="editar()">
+    <i class="bi bi-pencil"></i>
+    Editar Usuário
+  </button>
+
+  <button class="btn-servicos" (click)="onGerenciarServicos()">
+    <i class="bi bi-bezier2"></i>
+    Gerenciar Serviços
+  </button>
+</div>
+      </div>
+    </div>
+  }
+</div>

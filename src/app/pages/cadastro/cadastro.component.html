@@ -1,0 +1,190 @@
+<app-header></app-header>
+
+<main class="cadastro-main">
+  <div class="cadastro-container">
+    <div class="cadastro-card">
+      <div class="cadastro-header">
+        <h2>SPR-Criminalística</h2>
+        <p>Cadastro de Usuário</p>
+      </div>
+
+      <form [formGroup]="cadastroForm" (ngSubmit)="onSubmit()" class="cadastro-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nome_completo">Nome Completo: *</label>
+            <input
+              type="text"
+              id="nome_completo"
+              formControlName="nome_completo"
+              class="form-control"
+              [class.error]="cadastroForm.get('nome_completo')?.invalid && cadastroForm.get('nome_completo')?.touched"
+              placeholder="Digite seu nome completo">
+            @if (cadastroForm.get('nome_completo')?.invalid && cadastroForm.get('nome_completo')?.touched) {
+              <div class="error-message">
+                @if (cadastroForm.get('nome_completo')?.errors?.['required']) {
+                  <small>Nome completo é obrigatório</small>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">E-mail: *</label>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              class="form-control"
+              [class.error]="cadastroForm.get('email')?.invalid && cadastroForm.get('email')?.touched"
+              placeholder="Digite seu e-mail">
+            @if (cadastroForm.get('email')?.invalid && cadastroForm.get('email')?.touched) {
+              <div class="error-message">
+                @if (cadastroForm.get('email')?.errors?.['required']) {
+                  <small>E-mail é obrigatório</small>
+                }
+                @if (cadastroForm.get('email')?.errors?.['email']) {
+                  <small>E-mail inválido</small>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="cpf">CPF: *</label>
+            <input
+              type="text"
+              id="cpf"
+              formControlName="cpf"
+              class="form-control"
+              [class.error]="cadastroForm.get('cpf')?.invalid && cadastroForm.get('cpf')?.touched"
+              placeholder="00000000000 (apenas números)"
+              maxlength="11"
+              (input)="onCpfInput($event)">
+            @if (cadastroForm.get('cpf')?.invalid && cadastroForm.get('cpf')?.touched) {
+              <div class="error-message">
+                @if (cadastroForm.get('cpf')?.errors?.['required']) {
+                  <small>CPF é obrigatório</small>
+                }
+                @if (cadastroForm.get('cpf')?.errors?.['pattern']) {
+                  <small>CPF deve conter apenas números</small>
+                }
+                @if (cadastroForm.get('cpf')?.errors?.['minlength']) {
+                  <small>CPF deve ter 11 dígitos</small>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="form-group half">
+            <label for="data_nascimento">Data de Nascimento:</label>
+            <input
+              type="date"
+              id="data_nascimento"
+              formControlName="data_nascimento"
+              class="form-control">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="telefone_celular">Telefone Celular:</label>
+            <input
+              type="tel"
+              id="telefone_celular"
+              formControlName="telefone_celular"
+              class="form-control"
+              [class.error]="cadastroForm.get('telefone_celular')?.invalid && cadastroForm.get('telefone_celular')?.touched"
+              placeholder="00000000000 (apenas números)"
+              maxlength="11"
+              (input)="onTelefoneInput($event)">
+            @if (cadastroForm.get('telefone_celular')?.invalid && cadastroForm.get('telefone_celular')?.touched) {
+              <div class="error-message">
+                @if (cadastroForm.get('telefone_celular')?.errors?.['pattern']) {
+                  <small>Telefone deve conter apenas números</small>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="password">Senha: *</label>
+            <input
+              type="password"
+              id="password"
+              formControlName="password"
+              class="form-control"
+              [class.error]="cadastroForm.get('password')?.invalid && cadastroForm.get('password')?.touched"
+              placeholder="Mínimo 6 caracteres">
+            @if (cadastroForm.get('password')?.invalid && cadastroForm.get('password')?.touched) {
+              <div class="error-message">
+                @if (cadastroForm.get('password')?.errors?.['required']) {
+                  <small>Senha é obrigatória</small>
+                }
+                @if (cadastroForm.get('password')?.errors?.['minlength']) {
+                  <small>Senha deve ter no mínimo 6 caracteres</small>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="form-group half">
+            <label for="confirmPassword">Confirmar Senha: *</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              class="form-control"
+              [class.error]="cadastroForm.get('confirmPassword')?.invalid && cadastroForm.get('confirmPassword')?.touched"
+              placeholder="Confirme a senha">
+            @if (cadastroForm.get('confirmPassword')?.invalid && cadastroForm.get('confirmPassword')?.touched) {
+              <div class="error-message">
+                @if (cadastroForm.get('confirmPassword')?.errors?.['required']) {
+                  <small>Confirmação é obrigatória</small>
+                }
+                @if (cadastroForm.get('confirmPassword')?.errors?.['mismatch']) {
+                  <small>Senhas não conferem</small>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            routerLink="/login">
+            VOLTAR
+          </button>
+
+          <button
+            type="submit"
+            class="btn-primary"
+            [disabled]="cadastroForm.invalid || loading">
+            {{ loading ? 'Cadastrando...' : 'CADASTRAR' }}
+          </button>
+        </div>
+
+        @if (successMessage) {
+          <div class="success-message">
+            <small>{{ successMessage }}</small>
+          </div>
+        }
+
+        @if (errorMessage) {
+          <div class="error-message">
+            <small>{{ errorMessage }}</small>
+          </div>
+        }
+      </form>
+    </div>
+  </div>
+</main>
+
+<app-footer></app-footer>

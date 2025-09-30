@@ -1,0 +1,60 @@
+<div class="container">
+  <h1>Aprovação de Cadastros</h1>
+  <p class="subtitle">Abaixo estão os usuários que se cadastraram e aguardam sua aprovação.</p>
+
+  @if (isLoading) {
+    <div class="loading-indicator">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando usuários pendentes...</p>
+    </div>
+  }
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (!isLoading && pendingUsers.length === 0) {
+    <div class="no-users-card">
+      <i class="bi bi-check-circle"></i>
+      <p>Não há nenhum usuário pendente de aprovação no momento.</p>
+    </div>
+  }
+
+  @if (!isLoading && pendingUsers.length > 0) {
+    <div class="table-container">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>Nome Completo</th>
+            <th>E-mail</th>
+            <th>CPF</th>
+            <th>Data de Cadastro</th>
+            <th class="actions-header">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of pendingUsers; track user.id) {
+            <tr>
+              <td data-label="Nome">{{ user.nome_completo }}</td>
+              <td data-label="E-mail">{{ user.email }}</td>
+              <td data-label="CPF">{{ user.cpf }}</td>
+              <td data-label="Data de Cadastro">{{ user.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="actions-cell" data-label="Ações">
+                <button class="btn-approve" (click)="onApprove(user.id)">
+                  <i class="bi bi-check-circle"></i>
+                  Aprovar
+                </button>
+                <button class="btn-reject" (click)="onReject(user.id)">
+                  <i class="bi bi-x-circle"></i>
+                  Reprovar
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

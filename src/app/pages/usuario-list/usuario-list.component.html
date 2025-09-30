@@ -1,0 +1,101 @@
+<div class="container">
+  <div class="header-row">
+    <div>
+      <h1>Gerenciamento de Usuários</h1>
+      <p class="subtitle">Visualize, edite e gerencie os usuários do sistema.</p>
+    </div>
+
+    <div class="filter-container">
+      <label for="statusFilter">Filtrar por status:</label>
+      <select id="statusFilter" [(ngModel)]="statusFilter" (change)="onStatusFilterChange()" class="filter-select">
+        <option value="todos">Todos</option>
+        <option value="ativo">Ativos</option>
+        <option value="pendente">Pendentes</option>
+        <option value="inativo">Inativos</option>
+      </select>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-indicator"><p>Carregando usuários...</p></div>
+  }
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (!isLoading && userList.length > 0) {
+    <div class="table-container">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>Nome Completo</th>
+            <th>E-mail</th>
+            <th>Status</th>
+            <th>Perfil</th>
+            <th class="actions-header">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of userList; track user.id) {
+            <tr>
+              <td data-label="Nome">{{ user.nome_completo }}</td>
+              <td data-label="E-mail">{{ user.email }}</td>
+              <td data-label="Status">
+                <span class="status-badge" [ngClass]="user.status.toLowerCase()">
+                  {{ user.status }}
+                </span>
+              </td>
+              <td data-label="Perfil">{{ user.perfil || 'N/D' }}</td>
+              <td class="actions-cell" data-label="Ações">
+                @if (user.status === 'INATIVO') {
+                  <button class="icon-btn reactivate" title="Reativar" (click)="onReactivate(user)">
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                } @else {
+                  <button class="icon-btn view" title="Ver Detalhes" (click)="onViewDetails(user.id)">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="icon-btn edit" title="Editar" (click)="onEdit(user.id)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="icon-btn reset" title="Resetar Senha" (click)="onResetPassword(user)">
+                    <i class="bi bi-key"></i>
+                  </button>
+                  <button class="icon-btn danger" title="Mover para a Lixeira" (click)="onDelete(user)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <div class="page-info">
+          Página {{ currentPage }} de {{ totalPages }} | Total: {{ totalCount }} usuários
+        </div>
+        <div class="pagination-controls">
+          <button (click)="previousPage()" [disabled]="!previousUrl">
+            <i class="bi bi-chevron-left"></i>
+            Anterior
+          </button>
+          <button (click)="nextPage()" [disabled]="!nextUrl">
+            Próxima
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading && userList.length === 0) {
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <p>Nenhum usuário encontrado</p>
+    </div>
+  }
+</div>

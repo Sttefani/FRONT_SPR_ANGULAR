@@ -1,0 +1,152 @@
+.header {
+  background-color: #000000;
+  color: #ffffff;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding: 42px 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 70px;
+  display: flex;
+  align-items: center;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Lado Esquerdo - SPR-CRIMINALÍSTICA */
+.header-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.spr-text {
+  color: #DAA520; /* Cor mostarda/dourada da PF */
+  font-weight: bold;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+/* Centro - Nome do Instituto */
+.header-center {
+  flex: 2;
+  text-align: center;
+}
+
+.institute-name {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Lado Direito - Info do usuário */
+.header-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.datetime {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.user-name {
+  color: #DAA520;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.user-profile {
+  color: #ffffff;
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Botão Logout */
+.logout-btn {
+  background-color: #DAA520;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.logout-btn:hover {
+  background-color: #B8860B;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(218, 165, 32, 0.3);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .header {
+    padding: 10px 15px;
+    height: auto;
+    min-height: 60px;
+  }
+
+  .header-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .header-left,
+  .header-center,
+  .header-right {
+    flex: none;
+  }
+
+  .institute-name {
+    font-size: 18px;
+  }
+
+  .spr-text {
+    font-size: 16px;
+  }
+
+  .user-info {
+    align-items: center;
+  }
+}

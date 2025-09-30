@@ -1,0 +1,82 @@
+<div class="container">
+  <div class="header-actions">
+    <button class="btn-back" (click)="voltar()">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </button>
+    <h1>Editar Usuário</h1>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading">
+      <p>Carregando dados do usuário...</p>
+    </div>
+  }
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (user && !isLoading) {
+    <div class="form-container">
+      <div class="user-info-header">
+        <i class="bi bi-person-circle"></i>
+        <div>
+          <h2>{{ user.nome_completo }}</h2>
+          <p>{{ user.email }}</p>
+        </div>
+      </div>
+
+      <form [formGroup]="editForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="status">
+            <i class="bi bi-circle-fill"></i>
+            Status
+          </label>
+          <select id="status" formControlName="status" class="form-control">
+            @for (option of statusOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+        <label for="telefone">
+          <i class="bi bi-phone"></i>
+          Telefone Celular
+        </label>
+        <input
+          type="tel"
+          id="telefone"
+          formControlName="telefone_celular"
+          class="form-control"
+          placeholder="(00) 00000-0000"
+        >
+      </div>
+
+        <div class="form-group">
+          <label for="perfil">
+            <i class="bi bi-person-badge"></i>
+            Perfil
+          </label>
+          <select id="perfil" formControlName="perfil" class="form-control">
+            @for (option of perfilOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="cancelar()" [disabled]="isSaving">
+            <i class="bi bi-x-circle"></i>
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="editForm.invalid || isSaving">
+            <i class="bi bi-check-circle"></i>
+            {{ isSaving ? 'Salvando...' : 'Salvar Alterações' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>
