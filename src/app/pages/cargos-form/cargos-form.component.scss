@@ -6,7 +6,6 @@
   --background-color: #f7fafc;
   --card-background-color: #ffffff;
   --border-color: #e2e8f0;
-  --success-color: #28a745;
   --danger-color: #dc3545;
 }
 
@@ -90,7 +89,7 @@
   &.success {
     background-color: #d4edda;
     color: #155724;
-    border-color: var(--success-color);
+    border-color: #28a745;
   }
 
   &.error {
@@ -233,12 +232,6 @@
 @media (max-width: 768px) {
   .container {
     padding: 1rem;
-
-    .header-actions {
-      h1 {
-        font-size: 1.4rem;
-      }
-    }
   }
 
   .form-actions {

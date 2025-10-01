@@ -2,26 +2,25 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CidadeService, Cidade } from '../../services/cidade.service';
+import { CargoService, Cargo } from '../../services/cargo.service';
 import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-cidades-list',
+  selector: 'app-cargos-list',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './cidades-list.component.html',
-  styleUrls: ['./cidades-list.component.scss']
+  templateUrl: './cargos-list.component.html',
+  styleUrls: ['./cargos-list.component.scss']
 })
-export class CidadesListComponent implements OnInit {
-  cidades: Cidade[] = [];
-  cidadesLixeira: Cidade[] = [];
+export class CargosListComponent implements OnInit {
+  cargos: Cargo[] = [];
+  cargosLixeira: Cargo[] = [];
   isLoading = true;
   isLoadingLixeira = false;
   message = '';
   messageType: 'success' | 'error' = 'success';
 
-  // Paginação
   currentPage = 1;
   totalCount = 0;
   pageSize = 7;
@@ -34,36 +33,36 @@ export class CidadesListComponent implements OnInit {
   isSuperAdmin = false;
 
   constructor(
-    private cidadeService: CidadeService,
+    private cargoService: CargoService,
     private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.isSuperAdmin = this.authService.isSuperAdmin();
-    this.loadCidades();
+    this.loadCargos();
   }
 
-  loadCidades(url?: string): void {
+  loadCargos(url?: string): void {
     this.isLoading = true;
 
     const request = url
-      ? this.cidadeService.getByUrl(url)
-      : this.cidadeService.getAll(this.searchTerm);
+      ? this.cargoService.getByUrl(url)
+      : this.cargoService.getAll(this.searchTerm);
 
     request.subscribe({
       next: (response) => {
-        this.cidades = response.results;
+        this.cargos = response.results;
         this.totalCount = response.count;
         this.nextUrl = response.next;
         this.previousUrl = response.previous;
         this.isLoading = false;
       },
       error: (err: any) => {
-        console.error('Erro ao carregar cidades:', err);
-        this.message = 'Erro ao carregar cidades.';
+        console.error('Erro ao carregar cargos:', err);
+        this.message = 'Erro ao carregar cargos.';
         this.messageType = 'error';
-        this.cidades = [];
+        this.cargos = [];
         this.isLoading = false;
       }
     });
@@ -71,16 +70,16 @@ export class CidadesListComponent implements OnInit {
 
   loadLixeira(): void {
     this.isLoadingLixeira = true;
-    this.cidadeService.getLixeira().subscribe({
+    this.cargoService.getLixeira().subscribe({
       next: (data) => {
-        this.cidadesLixeira = data;
+        this.cargosLixeira = data;
         this.isLoadingLixeira = false;
       },
       error: (err: any) => {
         console.error('Erro ao carregar lixeira:', err);
         this.message = 'Erro ao carregar a lixeira.';
         this.messageType = 'error';
-        this.cidadesLixeira = [];
+        this.cargosLixeira = [];
         this.isLoadingLixeira = false;
       }
     });
@@ -88,7 +87,7 @@ export class CidadesListComponent implements OnInit {
 
   onSearch(): void {
     this.currentPage = 1;
-    this.loadCidades();
+    this.loadCargos();
   }
 
   clearSearch(): void {
@@ -96,12 +95,12 @@ export class CidadesListComponent implements OnInit {
     this.onSearch();
   }
 
-  get cidadesLixeiraFiltradas(): Cidade[] {
+  get cargosLixeiraFiltrados(): Cargo[] {
     if (!this.searchTerm.trim()) {
-      return this.cidadesLixeira;
+      return this.cargosLixeira;
     }
     const term = this.searchTerm.toLowerCase();
-    return this.cidadesLixeira.filter(c => c.nome.toLowerCase().includes(term));
+    return this.cargosLixeira.filter(c => c.nome.toLowerCase().includes(term));
   }
 
   get totalPages(): number {
@@ -111,14 +110,14 @@ export class CidadesListComponent implements OnInit {
   nextPage(): void {
     if (this.nextUrl) {
       this.currentPage++;
-      this.loadCidades(this.nextUrl);
+      this.loadCargos(this.nextUrl);
     }
   }
 
   previousPage(): void {
     if (this.previousUrl) {
       this.currentPage--;
-      this.loadCidades(this.previousUrl);
+      this.loadCargos(this.previousUrl);
     }
   }
 
@@ -126,7 +125,7 @@ export class CidadesListComponent implements OnInit {
     this.viewMode = 'ativos';
     this.searchTerm = '';
     this.currentPage = 1;
-    this.loadCidades();
+    this.loadCargos();
   }
 
   switchToLixeira(): void {
@@ -136,28 +135,28 @@ export class CidadesListComponent implements OnInit {
   }
 
   onCreate(): void {
-    this.router.navigate(['/gabinete-virtual/cadastros/cidades/novo']);
+    this.router.navigate(['/gabinete-virtual/cadastros/cargos/novo']);
   }
 
   onEdit(id: number): void {
-    this.router.navigate(['/gabinete-virtual/cadastros/cidades', id, 'editar']);
+    this.router.navigate(['/gabinete-virtual/cadastros/cargos', id, 'editar']);
   }
 
-  onDelete(cidade: Cidade): void {
+  onDelete(cargo: Cargo): void {
     Swal.fire({
       title: 'Confirmar exclusão',
-      text: `Tem certeza que deseja mover "${cidade.nome}" para a lixeira?`,
+      text: `Tem certeza que deseja mover "${cargo.nome}" para a lixeira?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sim, deletar',
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.cidadeService.delete(cidade.id).subscribe({
+        this.cargoService.delete(cargo.id).subscribe({
           next: () => {
-            this.message = `Cidade "${cidade.nome}" movida para a lixeira.`;
+            this.message = `Cargo "${cargo.nome}" movido para a lixeira.`;
             this.messageType = 'success';
-            this.loadCidades();
+            this.loadCargos();
           },
           error: (err: any) => {
             console.error('Erro ao deletar:', err);
@@ -169,31 +168,32 @@ export class CidadesListComponent implements OnInit {
     });
   }
 
-  onRestore(cidade: Cidade): void {
+  onRestore(cargo: Cargo): void {
     Swal.fire({
-      title: 'Restaurar cidade',
-      text: `Restaurar "${cidade.nome}"?`,
+      title: 'Restaurar cargo',
+      text: `Restaurar "${cargo.nome}"?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sim, restaurar',
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.cidadeService.restaurar(cidade.id).subscribe({
+        this.cargoService.restaurar(cargo.id).subscribe({
           next: () => {
-            this.message = `Cidade "${cidade.nome}" restaurada com sucesso.`;
+            this.message = `Cargo "${cargo.nome}" restaurado com sucesso.`;
             this.messageType = 'success';
-            this.cidadesLixeira = this.cidadesLixeira.filter(c => c.id !== cidade.id);
+            this.cargosLixeira = this.cargosLixeira.filter(c => c.id !== cargo.id);
           },
           error: (err: any) => {
             console.error('Erro ao restaurar:', err);
-            this.message = 'Erro ao restaurar a cidade.';
+            this.message = 'Erro ao restaurar o cargo.';
             this.messageType = 'error';
           }
         });
       }
     });
   }
+
   getFirstName(fullName: string | undefined): string {
     if (!fullName) return 'N/D';
     return fullName.split(' ')[0];

@@ -18,7 +18,9 @@
         } @else {
           <li>✅ Cadastros administrativos (criar/editar)</li>
           <li>✅ Operações do seu serviço pericial</li>
-          <li>✅ Ocorrências atribuídas a você</li>
+          @if (isPerito()) {
+            <li>✅ Ocorrências atribuídas a você</li>
+          }
         }
       </ul>
     </div>

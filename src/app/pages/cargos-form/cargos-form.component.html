@@ -3,7 +3,7 @@
     <button class="btn-back" (click)="cancelar()">
       <i class="bi bi-arrow-left"></i> Voltar
     </button>
-    <h1>{{ isEditMode ? 'Editar Cidade' : 'Nova Cidade' }}</h1>
+    <h1>{{ isEditMode ? 'Editar Cargo' : 'Novo Cargo' }}</h1>
   </div>
 
   @if (isLoading) {
@@ -24,22 +24,22 @@
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <div class="form-group">
           <label for="nome">
-            <i class="bi bi-geo-alt"></i>
-            Nome da Cidade *
+            <i class="bi bi-briefcase"></i>
+            Nome do Cargo *
           </label>
           <input
             type="text"
             id="nome"
             formControlName="nome"
             class="form-control"
-            placeholder="Ex: SALVADOR"
+            placeholder="Ex: DELEGADO DE POLÍCIA"
             maxlength="100"
             [class.error]="nome?.invalid && nome?.touched"
           >
           @if (nome?.invalid && nome?.touched) {
             <div class="error-message">
               @if (nome?.errors?.['required']) {
-                <span>O nome da cidade é obrigatório.</span>
+                <span>O nome do cargo é obrigatório.</span>
               }
               @if (nome?.errors?.['maxlength']) {
                 <span>O nome deve ter no máximo 100 caracteres.</span>

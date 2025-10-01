@@ -1,14 +1,14 @@
 <div class="container">
   <div class="header-row">
     <div>
-      <h1>Gerenciamento de Cidades</h1>
-      <p class="subtitle">Cadastre e gerencie as cidades do sistema.</p>
+      <h1>Gerenciamento de Cargos</h1>
+      <p class="subtitle">Cadastre e gerencie os cargos do sistema.</p>
     </div>
 
     <div class="actions-header">
       <button class="btn-primary" (click)="onCreate()">
         <i class="bi bi-plus-circle"></i>
-        Nova Cidade
+        Novo Cargo
       </button>
     </div>
   </div>
@@ -32,7 +32,6 @@
     }
   </div>
 
-  <!-- Busca APENAS para view ativos -->
   @if (viewMode === 'ativos') {
     <div class="search-container">
       <i class="bi bi-search"></i>
@@ -54,7 +53,6 @@
     </div>
   }
 
-  <!-- Busca para lixeira (filtro local) -->
   @if (viewMode === 'lixeira') {
     <div class="search-container">
       <i class="bi bi-search"></i>
@@ -82,51 +80,49 @@
     @if (isLoading) {
       <div class="loading-indicator">
         <i class="bi bi-hourglass-split"></i>
-        <p>Carregando cidades...</p>
+        <p>Carregando cargos...</p>
       </div>
     }
 
-    @if (!isLoading && cidades.length > 0) {
+    @if (!isLoading && cargos.length > 0) {
       <div class="table-container">
-        <!-- Tabela de Ativos -->
         <table class="data-table">
           <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Cadastrado em</th>
-            <th>Cadastrado por</th>  <!-- ← ADICIONE -->
-            <th>Atualizado em</th>
-            <th>Atualizado por</th>  <!-- ← ADICIONE -->
-            <th class="actions-header">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (cidade of cidades; track cidade.id) {
             <tr>
-              <td data-label="Nome" class="nome-cell">{{ cidade.nome }}</td>
-              <td data-label="Cadastrado em">{{ cidade.created_at | date:'dd/MM/yyyy' }}</td>
-              <td data-label="Cadastrado por">{{ getFirstName(cidade.created_by?.nome_completo) }}</td>
-              <td data-label="Atualizado em">{{ cidade.updated_at | date:'dd/MM/yyyy HH:mm' }}</td>
-              <td data-label="Atualizado por">{{ getFirstName(cidade.updated_by?.nome_completo) }}</td>
-              <td class="actions-cell" data-label="Ações">
-                <button class="icon-btn edit" title="Editar" (click)="onEdit(cidade.id)">
-                  <i class="bi bi-pencil"></i>
-                </button>
-                @if (isSuperAdmin) {
-                  <button class="icon-btn danger" title="Mover para Lixeira" (click)="onDelete(cidade)">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                }
-              </td>
+              <th>Nome</th>
+              <th>Cadastrado em</th>
+              <th>Cadastrado por</th>
+              <th>Atualizado em</th>
+              <th>Atualizado por</th>
+              <th class="actions-header">Ações</th>
             </tr>
-          }
-        </tbody>
+          </thead>
+          <tbody>
+            @for (cargo of cargos; track cargo.id) {
+              <tr>
+                <td data-label="Nome" class="nome-cell">{{ cargo.nome }}</td>
+                <td data-label="Cadastrado em">{{ cargo.created_at | date:'dd/MM/yyyy' }}</td>
+                <td data-label="Cadastrado por">{{ getFirstName(cargo.created_by?.nome_completo) }}</td>
+                <td data-label="Atualizado em">{{ cargo.updated_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td data-label="Atualizado por">{{ getFirstName(cargo.updated_by?.nome_completo) }}</td>
+                <td class="actions-cell" data-label="Ações">
+                  <button class="icon-btn edit" title="Editar" (click)="onEdit(cargo.id)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  @if (isSuperAdmin) {
+                    <button class="icon-btn danger" title="Mover para Lixeira" (click)="onDelete(cargo)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
         </table>
 
-        <!-- Paginação -->
         <div class="pagination">
           <div class="page-info">
-            Página {{ currentPage }} de {{ totalPages }} | Total: {{ totalCount }} cidades
+            Página {{ currentPage }} de {{ totalPages }} | Total: {{ totalCount }} cargos
           </div>
           <div class="pagination-controls">
             <button (click)="previousPage()" [disabled]="!previousUrl">
@@ -142,10 +138,10 @@
       </div>
     }
 
-    @if (!isLoading && cidades.length === 0) {
+    @if (!isLoading && cargos.length === 0) {
       <div class="empty-state">
         <i class="bi bi-inbox"></i>
-        <p>{{ searchTerm ? 'Nenhuma cidade encontrada' : 'Nenhuma cidade cadastrada' }}</p>
+        <p>{{ searchTerm ? 'Nenhum cargo encontrado' : 'Nenhum cargo cadastrado' }}</p>
       </div>
     }
   }
@@ -158,7 +154,7 @@
       </div>
     }
 
-    @if (!isLoadingLixeira && cidadesLixeiraFiltradas.length > 0) {
+    @if (!isLoadingLixeira && cargosLixeiraFiltrados.length > 0) {
       <div class="table-container">
         <table class="data-table">
           <thead>
@@ -170,13 +166,13 @@
             </tr>
           </thead>
           <tbody>
-            @for (cidade of cidadesLixeiraFiltradas; track cidade.id) {
+            @for (cargo of cargosLixeiraFiltrados; track cargo.id) {
               <tr>
-                <td data-label="Nome" class="nome-cell deleted">{{ cidade.nome }}</td>
-                <td data-label="Deletado em">{{ cidade.deleted_at | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td data-label="Deletado por">{{ cidade.deleted_by?.nome_completo || 'N/D' }}</td>
+                <td data-label="Nome" class="nome-cell deleted">{{ cargo.nome }}</td>
+                <td data-label="Deletado em">{{ cargo.deleted_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td data-label="Deletado por">{{ cargo.deleted_by?.nome_completo || 'N/D' }}</td>
                 <td class="actions-cell" data-label="Ações">
-                  <button class="icon-btn restore" title="Restaurar" (click)="onRestore(cidade)">
+                  <button class="icon-btn restore" title="Restaurar" (click)="onRestore(cargo)">
                     <i class="bi bi-arrow-clockwise"></i>
                   </button>
                 </td>
@@ -187,10 +183,10 @@
       </div>
     }
 
-    @if (!isLoadingLixeira && cidadesLixeiraFiltradas.length === 0) {
+    @if (!isLoadingLixeira && cargosLixeiraFiltrados.length === 0) {
       <div class="empty-state">
         <i class="bi bi-trash"></i>
-        <p>{{ searchTerm ? 'Nenhuma cidade encontrada' : 'A lixeira está vazia' }}</p>
+        <p>{{ searchTerm ? 'Nenhum cargo encontrado' : 'A lixeira está vazia' }}</p>
       </div>
     }
   }

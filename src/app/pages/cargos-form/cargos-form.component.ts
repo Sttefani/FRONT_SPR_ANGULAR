@@ -2,20 +2,20 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CidadeService, Cidade } from '../../services/cidade.service';
+import { CargoService, Cargo } from '../../services/cargo.service';
 import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-cidades-form',
+  selector: 'app-cargos-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './cidades-form.component.html',
-  styleUrls: ['./cidades-form.component.scss']
+  templateUrl: './cargos-form.component.html',
+  styleUrls: ['./cargos-form.component.scss']
 })
-export class CidadesFormComponent implements OnInit {
+export class CargosFormComponent implements OnInit {
   form!: FormGroup;
   isEditMode = false;
-  cidadeId: number | null = null;
+  cargoId: number | null = null;
   isLoading = false;
   isSaving = false;
   message = '';
@@ -25,7 +25,7 @@ export class CidadesFormComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private cidadeService: CidadeService
+    private cargoService: CargoService
   ) {
     this.initForm();
   }
@@ -34,8 +34,8 @@ export class CidadesFormComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditMode = true;
-      this.cidadeId = Number(id);
-      this.loadCidade(this.cidadeId);
+      this.cargoId = Number(id);
+      this.loadCargo(this.cargoId);
     }
   }
 
@@ -45,18 +45,18 @@ export class CidadesFormComponent implements OnInit {
     });
   }
 
-  loadCidade(id: number): void {
+  loadCargo(id: number): void {
     this.isLoading = true;
-    this.cidadeService.getById(id).subscribe({
-      next: (cidade) => {
+    this.cargoService.getById(id).subscribe({
+      next: (cargo) => {
         this.form.patchValue({
-          nome: cidade.nome
+          nome: cargo.nome
         });
         this.isLoading = false;
       },
       error: (err: any) => {
-        console.error('Erro ao carregar cidade:', err);
-        this.message = 'Erro ao carregar dados da cidade.';
+        console.error('Erro ao carregar cargo:', err);
+        this.message = 'Erro ao carregar dados do cargo.';
         this.messageType = 'error';
         this.isLoading = false;
       }
@@ -73,26 +73,26 @@ export class CidadesFormComponent implements OnInit {
     const formData = this.form.value;
 
     const request = this.isEditMode
-      ? this.cidadeService.update(this.cidadeId!, formData)
-      : this.cidadeService.create(formData);
+      ? this.cargoService.update(this.cargoId!, formData)
+      : this.cargoService.create(formData);
 
     request.subscribe({
-      next: (cidade) => {
-        const action = this.isEditMode ? 'atualizada' : 'cadastrada';
+      next: (cargo) => {
+        const action = this.isEditMode ? 'atualizado' : 'cadastrado';
 
         Swal.fire({
           title: 'Sucesso!',
-          text: `Cidade "${cidade.nome}" ${action} com sucesso.`,
+          text: `Cargo "${cargo.nome}" ${action} com sucesso.`,
           icon: 'success',
           confirmButtonText: 'Ok'
         }).then(() => {
-          this.router.navigate(['/gabinete-virtual/cadastros/cidades']);
+          this.router.navigate(['/gabinete-virtual/cadastros/cargos']);
         });
       },
       error: (err: any) => {
         console.error('Erro ao salvar:', err);
 
-        let errorMsg = 'Erro ao salvar a cidade.';
+        let errorMsg = 'Erro ao salvar o cargo.';
         if (err.error?.nome) {
           errorMsg = err.error.nome[0];
         }
@@ -114,7 +114,7 @@ export class CidadesFormComponent implements OnInit {
       cancelButtonText: 'Continuar editando'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.router.navigate(['/gabinete-virtual/cadastros/cidades']);
+        this.router.navigate(['/gabinete-virtual/cadastros/cargos']);
       }
     });
   }

@@ -82,7 +82,37 @@ export const routes: Routes = [
         path: 'gerencia/usuarios/:id/servicos',
         loadComponent: () => import('./pages/usuario-servicos/usuario-servicos.component').then(m => m.UsuarioServicosComponent),
         canActivate: [AuthGuard, superAdminGuard]
-}
+      },
+      {
+      path: 'cadastros/cidades',
+      loadComponent: () => import('./pages/cidades-list/cidades-list.component').then(m => m.CidadesListComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/cidades/novo',
+      loadComponent: () => import('./pages/cidades-form/cidades-form.component').then(m => m.CidadesFormComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/cidades/:id/editar',
+      loadComponent: () => import('./pages/cidades-form/cidades-form.component').then(m => m.CidadesFormComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/cargos',
+      loadComponent: () => import('./pages/cargos-list/cargos-list.component').then(m => m.CargosListComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/cargos/novo',
+      loadComponent: () => import('./pages/cargos-form/cargos-form.component').then(m => m.CargosFormComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/cargos/:id/editar',
+      loadComponent: () => import('./pages/cargos-form/cargos-form.component').then(m => m.CargosFormComponent),
+      canActivate: [AuthGuard]
+    },
     ]
   },
   // =====================================================================
