@@ -74,4 +74,7 @@ getAllUsers(statusFilter: string = 'todos'): Observable<any> {
 resetPasswordToCpf(userId: number): Observable<any> {
   return this.http.post(`${this.baseUrl}/usuarios/${userId}/resetar-senha-cpf/`, {});
 }
+getAllForDropdown(): Observable<User[]> {
+  return this.http.get<User[]>(`${this.baseUrl}/usuarios/dropdown/`);
+}
 }

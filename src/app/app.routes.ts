@@ -113,6 +113,51 @@ export const routes: Routes = [
       loadComponent: () => import('./pages/cargos-form/cargos-form.component').then(m => m.CargosFormComponent),
       canActivate: [AuthGuard]
     },
+    {
+      path: 'cadastros/autoridades',
+      loadComponent: () => import('./pages/autoridades-list/autoridades-list.component').then(m => m.AutoridadesListComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/autoridades/novo',
+      loadComponent: () => import('./pages/autoridades-form/autoridades-form.component').then(m => m.AutoridadesFormComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/autoridades/:id/editar',
+      loadComponent: () => import('./pages/autoridades-form/autoridades-form.component').then(m => m.AutoridadesFormComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/unidades-demandantes',
+      loadComponent: () => import('./pages/unidades-demandantes-list/unidades-demandantes-list.component').then(m => m.UnidadesDemandantesListComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/unidades-demandantes/novo',
+      loadComponent: () => import('./pages/unidades-demandantes-form/unidades-demandantes-form.component').then(m => m.UnidadesDemandantesFormComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/unidades-demandantes/:id/editar',
+      loadComponent: () => import('./pages/unidades-demandantes-form/unidades-demandantes-form.component').then(m => m.UnidadesDemandantesFormComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+  path: 'cadastros/procedimentos',
+  loadComponent: () => import('./pages/procedimentos-list/procedimentos-list.component').then(m => m.ProcedimentosListComponent),
+  canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/procedimentos/novo',
+      loadComponent: () => import('./pages/procedimentos-form/procedimentos-form.component').then(m => m.ProcedimentosFormComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/procedimentos/:id/editar',
+      loadComponent: () => import('./pages/procedimentos-form/procedimentos-form.component').then(m => m.ProcedimentosFormComponent),
+      canActivate: [AuthGuard]
+    },
     ]
   },
   // =====================================================================

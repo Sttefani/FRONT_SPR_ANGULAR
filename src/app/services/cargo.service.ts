@@ -75,4 +75,7 @@ export class CargoService {
   restaurar(id: number): Observable<Cargo> {
     return this.http.post<Cargo>(`${this.baseUrl}/cargos/${id}/restaurar/`, {});
   }
+  getAllForDropdown(): Observable<Cargo[]> {
+  return this.http.get<Cargo[]>(`${this.baseUrl}/cargos/dropdown/`);
+}
 }

@@ -75,4 +75,7 @@ export class CidadeService {
   restaurar(id: number): Observable<Cidade> {
     return this.http.post<Cidade>(`${this.baseUrl}/cidades/${id}/restaurar/`, {});
   }
+  getAllForDropdown(): Observable<Cidade[]> {
+  return this.http.get<Cidade[]>(`${this.baseUrl}/cidades/dropdown/`);
+}
 }

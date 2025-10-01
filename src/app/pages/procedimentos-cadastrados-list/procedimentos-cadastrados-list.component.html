@@ -1,0 +1,205 @@
+<div class="container">
+  <div class="header-row">
+    <div>
+      <h1>Gerenciamento de Procedimentos Cadastrados</h1>
+      <p class="subtitle">Cadastre e gerencie os procedimentos em andamento (APF, IP, BO, etc.).</p>
+    </div>
+
+    <div class="actions-header">
+      <button class="btn-primary" (click)="onCreate()">
+        <i class="bi bi-plus-circle"></i>
+        Novo Procedimento
+      </button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button
+      class="tab"
+      [class.active]="viewMode === 'ativos'"
+      (click)="switchToAtivos()">
+      <i class="bi bi-list-ul"></i>
+      Ativos
+    </button>
+    @if (isSuperAdmin) {
+      <button
+        class="tab"
+        [class.active]="viewMode === 'lixeira'"
+        (click)="switchToLixeira()">
+        <i class="bi bi-trash"></i>
+        Lixeira
+      </button>
+    }
+  </div>
+
+  @if (viewMode === 'ativos') {
+    <div class="search-container">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="onSearch()"
+        placeholder="Buscar por tipo, número ou ano... (pressione Enter)"
+        class="search-input"
+      >
+      @if (searchTerm) {
+        <button class="clear-search" (click)="clearSearch()">
+          <i class="bi bi-x-circle"></i>
+        </button>
+      }
+      <button class="btn-search" (click)="onSearch()">
+        Buscar
+      </button>
+    </div>
+  }
+
+  @if (viewMode === 'lixeira') {
+    <div class="search-container">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Filtrar por tipo, número ou ano..."
+        class="search-input"
+      >
+      @if (searchTerm) {
+        <button class="clear-search" (click)="searchTerm = ''">
+          <i class="bi bi-x-circle"></i>
+        </button>
+      }
+    </div>
+  }
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (viewMode === 'ativos') {
+    @if (isLoading) {
+      <div class="loading-indicator">
+        <i class="bi bi-hourglass-split"></i>
+        <p>Carregando procedimentos...</p>
+      </div>
+    }
+
+    @if (!isLoading && procedimentos.length > 0) {
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Número Completo</th>
+              <th>Número</th>
+              <th>Ano</th>
+              <th>Cadastrado em</th>
+              <th>Cadastrado por</th>
+              <th>Atualizado em</th>
+              <th>Atualizado por</th>
+              <th class="actions-header">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (procedimento of procedimentos; track procedimento.id) {
+              <tr>
+                <td data-label="Tipo" class="tipo-cell">{{ procedimento.tipo_procedimento.sigla }}</td>
+                <td data-label="Número Completo" class="numero-completo-cell">{{ procedimento.numero_completo }}</td>
+                <td data-label="Número">{{ procedimento.numero }}</td>
+                <td data-label="Ano">{{ procedimento.ano }}</td>
+                <td data-label="Cadastrado em">{{ procedimento.created_at | date:'dd/MM/yyyy' }}</td>
+                <td data-label="Cadastrado por">{{ getFirstName(procedimento.created_by?.nome_completo) }}</td>
+                <td data-label="Atualizado em">{{ procedimento.updated_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td data-label="Atualizado por">{{ getFirstName(procedimento.updated_by?.nome_completo) }}</td>
+                <td class="actions-cell" data-label="Ações">
+                  <button class="icon-btn edit" title="Editar" (click)="onEdit(procedimento.id)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  @if (isSuperAdmin) {
+                    <button class="icon-btn danger" title="Mover para Lixeira" (click)="onDelete(procedimento)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="pagination">
+          <div class="page-info">
+            Página {{ currentPage }} de {{ totalPages }} | Total: {{ totalCount }} procedimentos
+          </div>
+          <div class="pagination-controls">
+            <button (click)="previousPage()" [disabled]="!previousUrl">
+              <i class="bi bi-chevron-left"></i>
+              Anterior
+            </button>
+            <button (click)="nextPage()" [disabled]="!nextUrl">
+              Próxima
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (!isLoading && procedimentos.length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>{{ searchTerm ? 'Nenhum procedimento encontrado' : 'Nenhum procedimento cadastrado' }}</p>
+      </div>
+    }
+  }
+
+  @if (viewMode === 'lixeira') {
+    @if (isLoadingLixeira) {
+      <div class="loading-indicator">
+        <i class="bi bi-hourglass-split"></i>
+        <p>Carregando lixeira...</p>
+      </div>
+    }
+
+    @if (!isLoadingLixeira && procedimentosLixeiraFiltrados.length > 0) {
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Número Completo</th>
+              <th>Número</th>
+              <th>Ano</th>
+              <th>Deletado em</th>
+              <th>Deletado por</th>
+              <th class="actions-header">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (procedimento of procedimentosLixeiraFiltrados; track procedimento.id) {
+              <tr>
+                <td data-label="Tipo" class="tipo-cell deleted">{{ procedimento.tipo_procedimento.sigla }}</td>
+                <td data-label="Número Completo" class="numero-completo-cell deleted">{{ procedimento.numero_completo }}</td>
+                <td data-label="Número" class="deleted">{{ procedimento.numero }}</td>
+                <td data-label="Ano" class="deleted">{{ procedimento.ano }}</td>
+                <td data-label="Deletado em">{{ procedimento.deleted_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td data-label="Deletado por">{{ procedimento.deleted_by?.nome_completo || 'N/D' }}</td>
+                <td class="actions-cell" data-label="Ações">
+                  <button class="icon-btn restore" title="Restaurar" (click)="onRestore(procedimento)">
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (!isLoadingLixeira && procedimentosLixeiraFiltrados.length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-trash"></i>
+        <p>{{ searchTerm ? 'Nenhum procedimento encontrado' : 'A lixeira está vazia' }}</p>
+      </div>
+    }
+  }
+</div>
