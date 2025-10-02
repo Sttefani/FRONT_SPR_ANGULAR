@@ -45,10 +45,13 @@ export class AutoridadeService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(search?: string): Observable<PaginatedResponse> {
+  getAll(search?: string, cargo?: number): Observable<PaginatedResponse> {
     let params = new HttpParams();
     if (search) {
       params = params.set('search', search);
+    }
+    if (cargo) {
+      params = params.set('cargo', cargo.toString());
     }
     return this.http.get<PaginatedResponse>(`${this.baseUrl}/autoridades/`, { params });
   }
@@ -80,7 +83,4 @@ export class AutoridadeService {
   restaurar(id: number): Observable<Autoridade> {
     return this.http.post<Autoridade>(`${this.baseUrl}/autoridades/${id}/restaurar/`, {});
   }
-  getAllForDropdown(): Observable<Autoridade[]> {
-  return this.http.get<Autoridade[]>(`${this.baseUrl}/autoridades/dropdown/`);
-}
 }

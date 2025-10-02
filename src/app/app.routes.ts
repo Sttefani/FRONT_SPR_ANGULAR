@@ -158,6 +158,21 @@ export const routes: Routes = [
       loadComponent: () => import('./pages/procedimentos-form/procedimentos-form.component').then(m => m.ProcedimentosFormComponent),
       canActivate: [AuthGuard]
     },
+    {
+  path: 'cadastros/procedimentos-cadastrados',
+  loadComponent: () => import('./pages/procedimentos-cadastrados-list/procedimentos-cadastrados-list.component').then(m => m.ProcedimentosCadastradosListComponent),
+  canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/procedimentos-cadastrados/novo',
+      loadComponent: () => import('./pages/procedimentos-cadastrados-form/procedimentos-cadastrados-form.component').then(m => m.ProcedimentosCadastradosFormComponent),
+      canActivate: [AuthGuard]
+    },
+    {
+      path: 'cadastros/procedimentos-cadastrados/:id/editar',
+      loadComponent: () => import('./pages/procedimentos-cadastrados-form/procedimentos-cadastrados-form.component').then(m => m.ProcedimentosCadastradosFormComponent),
+      canActivate: [AuthGuard]
+    },
     ]
   },
   // =====================================================================
