@@ -1,11 +1,11 @@
 import { Routes } from '@angular/router';
 
-// Seus Guards existentes
+// Guards
 import { AuthGuard } from './guards/auth.guard';
 import { PasswordChangeGuard } from './guards/password-change.guard';
-
-// Nosso novo Guard, agora importado e pronto para uso
 import { superAdminGuard } from './guards/super-admin.guard';
+import { TiposDocumentoListComponent } from './pages/tipos-documento-list/tipos-documento-list.component';
+import { TiposDocumentoFormComponent } from './pages/tipos-documento-form/tipos-documento-form.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -24,45 +24,44 @@ export const routes: Routes = [
   },
 
   // =====================================================================
-  // AQUI ESTÁ A ARQUITETURA FINAL DO NOSSO DASHBOARD
+  // LAYOUT PRINCIPAL DO DASHBOARD
   // =====================================================================
   {
     path: 'gabinete-virtual',
-    // 1. Carrega o componente de Layout (a "moldura")
     loadComponent: () => import('./pages/gabinete-virtual/gabinete-virtual.component').then(m => m.GabineteVirtualComponent),
-    // 2. Protege o layout e todas as páginas filhas com o AuthGuard
     canActivate: [AuthGuard],
-    // 3. Define as páginas que serão carregadas DENTRO do <router-outlet>
     children: [
       {
-        // Rota padrão: /gabinete-virtual -> carrega a tela de boas-vindas
         path: '',
         loadComponent: () => import('./pages/dashboard-inicial/dashboard-inicial.component').then(m => m.DashboardInicialComponent)
       },
+      // --- Gerência (SuperAdmin) ---
       {
-        path: 'gerencia/usuarios', // A URL que o usuário verá
+        path: 'gerencia/usuarios',
         loadComponent: () => import('./pages/usuario-list/usuario-list.component').then(m => m.UsuarioListComponent),
-        canActivate: [superAdminGuard] // Protegida pelo mesmo guard
-      },
-      {
-        // Rota de aprovação: /gabinete-virtual/gerencia/aprovacao
-        path: 'gerencia/aprovacao',
-        loadComponent: () => import('./pages/aprovacao-usuarios/aprovacao-usuarios.component').then(m => m.AprovacaoUsuariosComponent),
-        // 4. Adiciona o SuperAdminGuard para proteger SÓ ESTA PÁGINA
         canActivate: [superAdminGuard]
       },
-
+      {
+        path: 'gerencia/aprovacao',
+        loadComponent: () => import('./pages/aprovacao-usuarios/aprovacao-usuarios.component').then(m => m.AprovacaoUsuariosComponent),
+        canActivate: [superAdminGuard]
+      },
       {
         path: 'gerencia/usuarios/:id/detalhes',
         loadComponent: () => import('./pages/usuario-detalhes/usuario-detalhes.component').then(m => m.UsuarioDetalhesComponent),
         canActivate: [AuthGuard, superAdminGuard]
       },
-
       {
         path: 'gerencia/usuarios/:id/editar',
         loadComponent: () => import('./pages/usuario-editar/usuario-editar.component').then(m => m.UsuarioEditarComponent),
         canActivate: [AuthGuard, superAdminGuard]
       },
+      {
+        path: 'gerencia/usuarios/:id/servicos',
+        loadComponent: () => import('./pages/usuario-servicos/usuario-servicos.component').then(m => m.UsuarioServicosComponent),
+        canActivate: [AuthGuard, superAdminGuard]
+      },
+      // --- Cadastros ---
       {
         path: 'servicos-periciais',
         loadComponent: () => import('./pages/servicos-periciais-list/servicos-periciais-list.component').then(m => m.ServicosPericiaisListComponent),
@@ -79,104 +78,145 @@ export const routes: Routes = [
         canActivate: [AuthGuard, superAdminGuard]
       },
       {
-        path: 'gerencia/usuarios/:id/servicos',
-        loadComponent: () => import('./pages/usuario-servicos/usuario-servicos.component').then(m => m.UsuarioServicosComponent),
-        canActivate: [AuthGuard, superAdminGuard]
+        path: 'cadastros/cidades',
+        loadComponent: () => import('./pages/cidades-list/cidades-list.component').then(m => m.CidadesListComponent),
+        canActivate: [AuthGuard]
       },
       {
-      path: 'cadastros/cidades',
-      loadComponent: () => import('./pages/cidades-list/cidades-list.component').then(m => m.CidadesListComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/cidades/novo',
-      loadComponent: () => import('./pages/cidades-form/cidades-form.component').then(m => m.CidadesFormComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/cidades/:id/editar',
-      loadComponent: () => import('./pages/cidades-form/cidades-form.component').then(m => m.CidadesFormComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/cargos',
-      loadComponent: () => import('./pages/cargos-list/cargos-list.component').then(m => m.CargosListComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/cargos/novo',
-      loadComponent: () => import('./pages/cargos-form/cargos-form.component').then(m => m.CargosFormComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/cargos/:id/editar',
-      loadComponent: () => import('./pages/cargos-form/cargos-form.component').then(m => m.CargosFormComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/autoridades',
-      loadComponent: () => import('./pages/autoridades-list/autoridades-list.component').then(m => m.AutoridadesListComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/autoridades/novo',
-      loadComponent: () => import('./pages/autoridades-form/autoridades-form.component').then(m => m.AutoridadesFormComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/autoridades/:id/editar',
-      loadComponent: () => import('./pages/autoridades-form/autoridades-form.component').then(m => m.AutoridadesFormComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/unidades-demandantes',
-      loadComponent: () => import('./pages/unidades-demandantes-list/unidades-demandantes-list.component').then(m => m.UnidadesDemandantesListComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/unidades-demandantes/novo',
-      loadComponent: () => import('./pages/unidades-demandantes-form/unidades-demandantes-form.component').then(m => m.UnidadesDemandantesFormComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/unidades-demandantes/:id/editar',
-      loadComponent: () => import('./pages/unidades-demandantes-form/unidades-demandantes-form.component').then(m => m.UnidadesDemandantesFormComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-  path: 'cadastros/procedimentos',
-  loadComponent: () => import('./pages/procedimentos-list/procedimentos-list.component').then(m => m.ProcedimentosListComponent),
-  canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/procedimentos/novo',
-      loadComponent: () => import('./pages/procedimentos-form/procedimentos-form.component').then(m => m.ProcedimentosFormComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/procedimentos/:id/editar',
-      loadComponent: () => import('./pages/procedimentos-form/procedimentos-form.component').then(m => m.ProcedimentosFormComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-  path: 'cadastros/procedimentos-cadastrados',
-  loadComponent: () => import('./pages/procedimentos-cadastrados-list/procedimentos-cadastrados-list.component').then(m => m.ProcedimentosCadastradosListComponent),
-  canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/procedimentos-cadastrados/novo',
-      loadComponent: () => import('./pages/procedimentos-cadastrados-form/procedimentos-cadastrados-form.component').then(m => m.ProcedimentosCadastradosFormComponent),
-      canActivate: [AuthGuard]
-    },
-    {
-      path: 'cadastros/procedimentos-cadastrados/:id/editar',
-      loadComponent: () => import('./pages/procedimentos-cadastrados-form/procedimentos-cadastrados-form.component').then(m => m.ProcedimentosCadastradosFormComponent),
-      canActivate: [AuthGuard]
-    },
+        path: 'cadastros/cidades/novo',
+        loadComponent: () => import('./pages/cidades-form/cidades-form.component').then(m => m.CidadesFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/cidades/:id/editar',
+        loadComponent: () => import('./pages/cidades-form/cidades-form.component').then(m => m.CidadesFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/cargos',
+        loadComponent: () => import('./pages/cargos-list/cargos-list.component').then(m => m.CargosListComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/cargos/novo',
+        loadComponent: () => import('./pages/cargos-form/cargos-form.component').then(m => m.CargosFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/cargos/:id/editar',
+        loadComponent: () => import('./pages/cargos-form/cargos-form.component').then(m => m.CargosFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/autoridades',
+        loadComponent: () => import('./pages/autoridades-list/autoridades-list.component').then(m => m.AutoridadesListComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/autoridades/novo',
+        loadComponent: () => import('./pages/autoridades-form/autoridades-form.component').then(m => m.AutoridadesFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/autoridades/:id/editar',
+        loadComponent: () => import('./pages/autoridades-form/autoridades-form.component').then(m => m.AutoridadesFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/unidades-demandantes',
+        loadComponent: () => import('./pages/unidades-demandantes-list/unidades-demandantes-list.component').then(m => m.UnidadesDemandantesListComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/unidades-demandantes/novo',
+        loadComponent: () => import('./pages/unidades-demandantes-form/unidades-demandantes-form.component').then(m => m.UnidadesDemandantesFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/unidades-demandantes/:id/editar',
+        loadComponent: () => import('./pages/unidades-demandantes-form/unidades-demandantes-form.component').then(m => m.UnidadesDemandantesFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/procedimentos',
+        loadComponent: () => import('./pages/procedimentos-list/procedimentos-list.component').then(m => m.ProcedimentosListComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/procedimentos/novo',
+        loadComponent: () => import('./pages/procedimentos-form/procedimentos-form.component').then(m => m.ProcedimentosFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/procedimentos/:id/editar',
+        loadComponent: () => import('./pages/procedimentos-form/procedimentos-form.component').then(m => m.ProcedimentosFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/procedimentos-cadastrados',
+        loadComponent: () => import('./pages/procedimentos-cadastrados-list/procedimentos-cadastrados-list.component').then(m => m.ProcedimentosCadastradosListComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/procedimentos-cadastrados/novo',
+        loadComponent: () => import('./pages/procedimentos-cadastrados-form/procedimentos-cadastrados-form.component').then(m => m.ProcedimentosCadastradosFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/procedimentos-cadastrados/:id/editar',
+        loadComponent: () => import('./pages/procedimentos-cadastrados-form/procedimentos-cadastrados-form.component').then(m => m.ProcedimentosCadastradosFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/classificacoes',
+        loadComponent: () => import('./pages/classificacoes-list/classificacoes-list.component').then(m => m.ClassificacoesListComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/classificacoes/novo',
+        loadComponent: () => import('./pages/classificacoes-form/classificacoes-form.component').then(m => m.ClassificacoesFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/classificacoes/:id/editar',
+        loadComponent: () => import('./pages/classificacoes-form/classificacoes-form.component').then(m => m.ClassificacoesFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/exames',
+        loadComponent: () => import('./pages/exames-list/exames-list.component').then(m => m.ExamesListComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/exames/novo',
+        loadComponent: () => import('./pages/exames-form/exames-form.component').then(m => m.ExamesFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/exames/:id/editar',
+        loadComponent: () => import('./pages/exames-form/exames-form.component').then(m => m.ExamesFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/tipos-documento',
+        component: TiposDocumentoListComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/tipos-documento/novo',
+        component: TiposDocumentoFormComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'cadastros/tipos-documento/:id/editar',
+        component: TiposDocumentoFormComponent,
+        canActivate: [AuthGuard]
+      },
     ]
   },
   // =====================================================================
 
-  // Rota "catch-all": se nenhuma rota acima corresponder, redireciona para o login
+  // Rota "catch-all" para páginas não encontradas
   { path: '**', redirectTo: '/login' }
 ];
+

@@ -1,0 +1,66 @@
+<div class="container">
+  <div class="header-actions">
+    <button class="btn-back" (click)="cancelar()">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </button>
+    <h1>{{ isEditMode ? 'Editar Tipo de Documento' : 'Novo Tipo de Documento' }}</h1>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando dados...</p>
+    </div>
+  }
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (!isLoading) {
+    <div class="form-container">
+      <form [formGroup]="tipoDocumentoForm" (ngSubmit)="onSubmit()">
+
+        <div class="form-group">
+          <label for="nome">
+            <i class="bi bi-file-text"></i>
+            Nome do Tipo de Documento *
+          </label>
+          <input
+            type="text"
+            id="nome"
+            formControlName="nome"
+            class="form-control"
+            placeholder="Ex: OFÍCIO, GUIA DE EXAME, ORDEM JUDICIAL"
+            maxlength="100"
+            [class.error]="nome?.invalid && nome?.touched"
+          >
+          @if (nome?.invalid && nome?.touched) {
+            <div class="error-message">
+              @if (nome?.errors?.['required']) {
+                <span>O nome é obrigatório.</span>
+              }
+              @if (nome?.errors?.['maxlength']) {
+                <span>O nome deve ter no máximo 100 caracteres.</span>
+              }
+            </div>
+          }
+          <small class="hint">Será convertido automaticamente para maiúsculas</small>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="cancelar()" [disabled]="isSaving">
+            <i class="bi bi-x-circle"></i>
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="tipoDocumentoForm.invalid || isSaving">
+            <i class="bi bi-check-circle"></i>
+            {{ isSaving ? 'Salvando...' : (isEditMode ? 'Atualizar' : 'Cadastrar') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

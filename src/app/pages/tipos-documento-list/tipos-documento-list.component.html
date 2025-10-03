@@ -1,0 +1,170 @@
+<div class="container">
+  <div class="header-row">
+    <div>
+      <h1>Gerenciamento de Tipos de Documento</h1>
+      <p class="subtitle">Gerencie os tipos de documentos que podem gerar perícias (Ofícios, Guias, Ordens Judiciais, etc.).</p>
+    </div>
+
+    <div class="actions-header">
+      <button class="btn-primary" (click)="onCreate()">
+        <i class="bi bi-plus-circle"></i>
+        Novo Tipo
+      </button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button
+      class="tab"
+      [class.active]="viewMode === 'ativos'"
+      (click)="switchToAtivos()">
+      <i class="bi bi-list-ul"></i>
+      Ativos
+    </button>
+    @if (isSuperAdmin) {
+      <button
+        class="tab"
+        [class.active]="viewMode === 'lixeira'"
+        (click)="switchToLixeira()">
+        <i class="bi bi-trash"></i>
+        Lixeira
+      </button>
+    }
+  </div>
+
+  <div class="search-container">
+    <i class="bi bi-search"></i>
+    <input
+      type="text"
+      [(ngModel)]="searchTerm"
+      (keyup.enter)="onSearch()"
+      placeholder="Buscar tipo de documento..."
+      class="search-input"
+    >
+    @if (searchTerm) {
+      <button class="clear-search" (click)="searchTerm = ''; onSearch()">
+        <i class="bi bi-x-circle"></i>
+      </button>
+    }
+  </div>
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (viewMode === 'ativos') {
+    @if (isLoading) {
+      <div class="loading-indicator">
+        <i class="bi bi-hourglass-split"></i>
+        <p>Carregando tipos de documento...</p>
+      </div>
+    }
+
+    @if (!isLoading && tiposDocumentoFiltrados.length > 0) {
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Cadastrado em</th>
+              <th>Cadastrado por</th>
+              <th>Atualizado em</th>
+              <th>Atualizado por</th>
+              <th class="actions-header">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tipo of tiposDocumentoFiltrados; track tipo.id) {
+              <tr>
+                <td data-label="Nome" class="nome-cell">{{ tipo.nome }}</td>
+                <td data-label="Cadastrado em">{{ tipo.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td data-label="Cadastrado por">{{ getFirstName(tipo.created_by?.nome_completo) }}</td>
+                <td data-label="Atualizado em">{{ tipo.updated_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td data-label="Atualizado por">{{ getFirstName(tipo.updated_by?.nome_completo) }}</td>
+                <td class="actions-cell" data-label="Ações">
+                  <button class="icon-btn edit" title="Editar" (click)="onEdit(tipo.id)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  @if (isSuperAdmin) {
+                    <button class="icon-btn danger" title="Mover para Lixeira" (click)="onDelete(tipo)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <div class="page-info">
+          Mostrando {{ tiposDocumentoFiltrados.length }} de {{ count }} registro(s)
+        </div>
+        <div class="pagination-controls">
+          <button (click)="goToPreviousPage()" [disabled]="!previousUrl" title="Página Anterior">
+            <i class="bi bi-chevron-left"></i> Anterior
+          </button>
+          <span class="page-number">Página {{ currentPage }} de {{ totalPages }}</span>
+          <button (click)="goToNextPage()" [disabled]="!nextUrl" title="Próxima Página">
+            Próxima <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (!isLoading && tiposDocumentoFiltrados.length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>{{ searchTerm ? 'Nenhum tipo de documento encontrado' : 'Nenhum tipo de documento cadastrado' }}</p>
+      </div>
+    }
+  }
+
+  @if (viewMode === 'lixeira') {
+    @if (isLoadingLixeira) {
+      <div class="loading-indicator">
+        <i class="bi bi-hourglass-split"></i>
+        <p>Carregando lixeira...</p>
+      </div>
+    }
+
+    @if (!isLoadingLixeira && tiposDocumentoLixeiraFiltrados.length > 0) {
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Deletado em</th>
+              <th>Deletado por</th>
+              <th class="actions-header">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tipo of tiposDocumentoLixeiraFiltrados; track tipo.id) {
+              <tr>
+                <td data-label="Nome" class="nome-cell deleted">{{ tipo.nome }}</td>
+                <td data-label="Deletado em">{{ tipo.deleted_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td data-label="Deletado por">{{ tipo.deleted_by?.nome_completo || 'N/D' }}</td>
+                <td class="actions-cell" data-label="Ações">
+                  <button class="icon-btn restore" title="Restaurar" (click)="onRestore(tipo)">
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (!isLoadingLixeira && tiposDocumentoLixeiraFiltrados.length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-trash"></i>
+        <p>{{ searchTerm ? 'Nenhum tipo de documento encontrado' : 'A lixeira está vazia' }}</p>
+      </div>
+    }
+  }
+</div>

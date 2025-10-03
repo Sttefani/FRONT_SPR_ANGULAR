@@ -148,12 +148,13 @@
 
 /* Área de Conteúdo Principal */
 .main-content-area {
-  margin-left: 280px; /* Compensa a sidebar fixa */
+  margin-left: 280px;
   width: calc(100% - 280px);
   height: 100%;
   padding: 30px;
   background: #ffffff;
-  overflow: hidden;
+  overflow-y: auto;  // ← MUDOU (era hidden)
+  overflow-x: hidden; // ← ADICIONE
   display: flex;
   flex-direction: column;
 }

@@ -1,15 +1,32 @@
 <div class="container">
   <div class="header-row">
     <div>
-      <h1>Gerenciamento de Classificações de Ocorrências</h1>
-      <p class="subtitle">Organize classificações em grupos e subgrupos hierárquicos.</p>
+      <h1>Gerenciamento de Exames</h1>
+      <p class="subtitle">Organize exames por serviço pericial em grupos hierárquicos.</p>
     </div>
 
     <div class="actions-header">
       <button class="btn-primary" (click)="onCreate()">
         <i class="bi bi-plus-circle"></i>
-        Nova Classificação
+        Novo Exame
       </button>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <div class="filter-group">
+      <label for="servico-filter">Filtrar por Serviço Pericial:</label>
+      <select
+        id="servico-filter"
+        [(ngModel)]="servicoPericialFiltro"
+        (change)="onServicoChange()"
+        class="filter-select"
+      >
+        <option [value]="null">Todos os Serviços</option>
+        @for (servico of servicosPericiais; track servico.id) {
+          <option [value]="servico.id">{{ servico.nome }}</option>
+        }
+      </select>
     </div>
   </div>
 
@@ -57,27 +74,24 @@
     @if (isLoading) {
       <div class="loading-indicator">
         <i class="bi bi-hourglass-split"></i>
-        <p>Carregando classificações...</p>
+        <p>Carregando exames...</p>
       </div>
     }
 
-    @if (!isLoading && classificacoesFiltradas.length > 0) {
-      <div class="classificacoes-tree">
+    @if (!isLoading && examesFiltrados.length > 0) {
+      <div class="exames-tree">
         @for (grupo of gruposPrincipais; track grupo.id) {
           <div class="grupo-card">
             <div class="grupo-header">
               <div class="grupo-info">
                 <span class="grupo-codigo">{{ grupo.codigo }}</span>
                 <span class="grupo-nome">{{ grupo.nome }}</span>
+                <span class="badge-servico">{{ grupo.servico_pericial.nome }}</span>
                 <span class="badge-grupo">Grupo Principal</span>
               </div>
               <div class="grupo-meta">
-                <!-- ===== ALTERAÇÃO AQUI ===== -->
-                <small>Cadastrado em: {{ grupo.created_at | date:'dd/MM/yyyy' }} por: {{ getFirstName(grupo.created_by?.nome_completo) }}</small>
-                @if (hasBeenUpdated(grupo)) {
-                  <small>Atualizado em: {{ grupo.updated_at | date:'dd/MM/yyyy' }} por: {{ getFirstName(grupo.updated_by?.nome_completo) }}</small>
-                }
-                <!-- ===== FIM DA ALTERAÇÃO ===== -->
+                <small>Cadastrado em: {{ grupo.created_at | date:'dd/MM/yyyy' }}</small>
+                <small>Por: {{ getFirstName(grupo.created_by?.nome_completo) }}</small>
               </div>
               <div class="grupo-actions">
                 <button class="icon-btn edit" title="Editar" (click)="onEdit(grupo.id)">
@@ -91,31 +105,27 @@
               </div>
             </div>
 
-            @if (getSubgrupos(grupo.id).length > 0) {
-              <div class="subgrupos-list">
-                @for (subgrupo of getSubgrupos(grupo.id); track subgrupo.id) {
-                  <div class="subgrupo-item">
-                    <div class="subgrupo-connector"></div>
-                    <div class="subgrupo-content">
-                      <div class="subgrupo-info">
-                        <span class="subgrupo-codigo">{{ subgrupo.codigo }}</span>
-                        <span class="subgrupo-nome">{{ subgrupo.nome }}</span>
-                        <span class="badge-subgrupo">Subgrupo</span>
+            @if (getSubExames(grupo.id).length > 0) {
+              <div class="subexames-list">
+                @for (subexame of getSubExames(grupo.id); track subexame.id) {
+                  <div class="subexame-item">
+                    <div class="subexame-connector"></div>
+                    <div class="subexame-content">
+                      <div class="subexame-info">
+                        <span class="subexame-codigo">{{ subexame.codigo }}</span>
+                        <span class="subexame-nome">{{ subexame.nome }}</span>
+                        <span class="badge-subexame">Sub-exame</span>
                       </div>
-                      <div class="subgrupo-meta">
-                        <!-- ===== ALTERAÇÃO AQUI ===== -->
-                        <small>Cadastrado em: {{ subgrupo.created_at | date:'dd/MM/yyyy' }} por: {{ getFirstName(subgrupo.created_by?.nome_completo) }}</small>
-                        @if (hasBeenUpdated(subgrupo)) {
-                          <small>Atualizado em: {{ subgrupo.updated_at | date:'dd/MM/yyyy' }} por: {{ getFirstName(subgrupo.updated_by?.nome_completo) }}</small>
-                        }
-                        <!-- ===== FIM DA ALTERAÇÃO ===== -->
+                      <div class="subexame-meta">
+                        <small>Cadastrado em: {{ subexame.created_at | date:'dd/MM/yyyy' }}</small>
+                        <small>Por: {{ getFirstName(subexame.created_by?.nome_completo) }}</small>
                       </div>
-                      <div class="subgrupo-actions">
-                        <button class="icon-btn edit" title="Editar" (click)="onEdit(subgrupo.id)">
+                      <div class="subexame-actions">
+                        <button class="icon-btn edit" title="Editar" (click)="onEdit(subexame.id)">
                           <i class="bi bi-pencil"></i>
                         </button>
                         @if (isSuperAdmin) {
-                          <button class="icon-btn danger" title="Mover para Lixeira" (click)="onDelete(subgrupo)">
+                          <button class="icon-btn danger" title="Mover para Lixeira" (click)="onDelete(subexame)">
                             <i class="bi bi-trash"></i>
                           </button>
                         }
@@ -130,10 +140,10 @@
       </div>
     }
 
-    @if (!isLoading && classificacoesFiltradas.length === 0) {
+    @if (!isLoading && examesFiltrados.length === 0) {
       <div class="empty-state">
         <i class="bi bi-inbox"></i>
-        <p>{{ searchTerm ? 'Nenhuma classificação encontrada' : 'Nenhuma classificação cadastrada' }}</p>
+        <p>{{ searchTerm ? 'Nenhum exame encontrado' : 'Nenhum exame cadastrado' }}</p>
       </div>
     }
   }
@@ -146,13 +156,14 @@
       </div>
     }
 
-    @if (!isLoadingLixeira && classificacoesLixeiraFiltradas.length > 0) {
+    @if (!isLoadingLixeira && examesLixeiraFiltrados.length > 0) {
       <div class="table-container">
         <table class="data-table">
           <thead>
             <tr>
               <th>Código</th>
               <th>Nome</th>
+              <th>Serviço</th>
               <th>Grupo Pai</th>
               <th>Deletado em</th>
               <th>Deletado por</th>
@@ -160,15 +171,16 @@
             </tr>
           </thead>
           <tbody>
-            @for (classificacao of classificacoesLixeiraFiltradas; track classificacao.id) {
+            @for (exame of examesLixeiraFiltrados; track exame.id) {
               <tr>
-                <td data-label="Código" class="codigo-cell deleted">{{ classificacao.codigo }}</td>
-                <td data-label="Nome" class="deleted">{{ classificacao.nome }}</td>
-                <td data-label="Grupo Pai">{{ classificacao.parent?.nome || 'Grupo Principal' }}</td>
-                <td data-label="Deletado em">{{ classificacao.deleted_at | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td data-label="Deletado por">{{ classificacao.deleted_by?.nome_completo || 'N/D' }}</td>
+                <td data-label="Código" class="codigo-cell deleted">{{ exame.codigo }}</td>
+                <td data-label="Nome" class="deleted">{{ exame.nome }}</td>
+                <td data-label="Serviço">{{ exame.servico_pericial.nome }}</td>
+                <td data-label="Grupo Pai">{{ exame.parent?.nome || 'Grupo Principal' }}</td>
+                <td data-label="Deletado em">{{ exame.deleted_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td data-label="Deletado por">{{ exame.deleted_by?.nome_completo || 'N/D' }}</td>
                 <td class="actions-cell" data-label="Ações">
-                  <button class="icon-btn restore" title="Restaurar" (click)="onRestore(classificacao)">
+                  <button class="icon-btn restore" title="Restaurar" (click)="onRestore(exame)">
                     <i class="bi bi-arrow-clockwise"></i>
                   </button>
                 </td>
@@ -179,10 +191,10 @@
       </div>
     }
 
-    @if (!isLoadingLixeira && classificacoesLixeiraFiltradas.length === 0) {
+    @if (!isLoadingLixeira && examesLixeiraFiltrados.length === 0) {
       <div class="empty-state">
         <i class="bi bi-trash"></i>
-        <p>{{ searchTerm ? 'Nenhuma classificação encontrada' : 'A lixeira está vazia' }}</p>
+        <p>{{ searchTerm ? 'Nenhum exame encontrado' : 'A lixeira está vazia' }}</p>
       </div>
     }
   }
