@@ -78,4 +78,5 @@ export class CargoService {
   getAllForDropdown(): Observable<Cargo[]> {
   return this.http.get<Cargo[]>(`${this.baseUrl}/cargos/dropdown/`);
 }
+
 }

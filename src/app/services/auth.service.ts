@@ -51,23 +51,36 @@ export class AuthService {
   }
 
   private checkCurrentUser(): void {
-    const token = this.getToken();
+  const token = this.getToken();
+
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
+
+      // VALIDAR SE TOKEN NÃO EXPIROU
+      const isExpired = payload.exp <= Date.now() / 1000;
+      if (isExpired) {
+        console.warn('Token expirado, fazendo logout automático');
+        this.logout();
+        return;
+      }
+
       const userData = {
         id: payload.user_id,
         nome_completo: payload.nome_completo || 'Usuário',
         email: payload.email || '',
         perfil: payload.perfil || 'PERITO',
         deve_alterar_senha: payload.deve_alterar_senha || false,
-        is_superuser: payload.is_superuser || false  // ← ADICIONE ESTA LINHA
+        is_superuser: payload.is_superuser || false
       };
       this.currentUserSubject.next(userData);
     } catch (error) {
       console.error('Erro ao decodificar token:', error);
       this.logout();
     }
+  } else {
+    // GARANTIR QUE EMITE NULL SE NÃO TEM TOKEN
+    this.currentUserSubject.next(null);
   }
 }
 

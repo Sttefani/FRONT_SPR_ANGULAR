@@ -1,0 +1,407 @@
+<div class="container">
+  <div class="header-form">
+    <div>
+      <h1>{{ isEditMode ? 'Editar Ocorrência' : 'Nova Ocorrência' }}</h1>
+      <p class="subtitle">{{ isEditMode ? 'Atualize os dados da ocorrência' : 'Siga as etapas para registrar uma nova ocorrência' }}</p>
+    </div>
+    <button class="btn-cancel" (click)="cancelar()">
+      <i class="bi bi-x-circle"></i> Cancelar
+    </button>
+  </div>
+
+  <!-- ETAPA 1: Tem Procedimento? -->
+  @if (etapaAtual === 'procedimento-check' && !isEditMode) {
+    <div class="wizard-step">
+      <div class="question-card">
+        <div class="question-icon">
+          <i class="bi bi-question-circle"></i>
+        </div>
+        <h2>A ocorrência que você vai registrar possui um procedimento vinculado?</h2>
+        <p class="question-subtitle">Procedimentos como Inquérito Policial (IP), Auto de Prisão em Flagrante (APF), etc.</p>
+
+        <div class="button-group-large">
+          <button class="btn-choice yes" (click)="onTemProcedimentoSim()">
+            <i class="bi bi-check-circle"></i>
+            <span>Sim, possui procedimento</span>
+          </button>
+          <button class="btn-choice no" (click)="onTemProcedimentoNao()">
+            <i class="bi bi-x-circle"></i>
+            <span>Não possui</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ETAPA 2: Buscar/Cadastrar Procedimento -->
+  @if (etapaAtual === 'busca-procedimento') {
+    <div class="wizard-step">
+      <div class="search-card">
+        <div class="card-header-info">
+          <i class="bi bi-search"></i>
+          <div>
+            <h2>Buscar Procedimento</h2>
+            <p>Verifique se o procedimento já está cadastrado no sistema</p>
+          </div>
+        </div>
+
+        <form [formGroup]="buscaProcedimentoForm" class="search-form">
+          <div class="form-row-compact">
+            <div class="form-group">
+              <label>Tipo *</label>
+              <select formControlName="tipo_procedimento_id" class="form-control-sm">
+                <option value="">Selecione</option>
+                @for (tipo of tiposProcedimento; track tipo.id) {
+                  <option [value]="tipo.id">{{ tipo.sigla }} - {{ tipo.nome }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Número *</label>
+              <input type="text" formControlName="numero" class="form-control-sm" placeholder="Ex: 123">
+            </div>
+
+            <div class="form-group">
+              <label>Ano *</label>
+              <input type="number" formControlName="ano" class="form-control-sm" [value]="2025">
+            </div>
+
+            <button type="button" class="btn-search" (click)="buscarProcedimento()" [disabled]="loadingProcedimentos">
+              @if (loadingProcedimentos) {
+                <i class="bi bi-hourglass-split"></i>
+              } @else {
+                <i class="bi bi-search"></i>
+              }
+              Buscar
+            </button>
+          </div>
+        </form>
+
+        @if (procedimentoVinculado) {
+          <div class="procedimento-vinculado">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Procedimento vinculado: <strong>{{ procedimentoVinculado.tipo_procedimento.sigla }} {{ procedimentoVinculado.numero }}/{{ procedimentoVinculado.ano }}</strong></span>
+          </div>
+        }
+
+        <div class="action-buttons">
+          <button class="btn-secondary-sm" (click)="etapaAtual = 'procedimento-check'">
+            <i class="bi bi-arrow-left"></i> Voltar
+          </button>
+          <button class="btn-primary-sm" (click)="irParaFormulario()">
+            Continuar <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ETAPA 3: Formulário Principal -->
+  @if (etapaAtual === 'formulario') {
+    @if (isLoading) {
+      <div class="loading">
+        <i class="bi bi-hourglass-split"></i>
+        <p>Carregando dados...</p>
+      </div>
+    }
+
+    @if (!isLoading) {
+      <form [formGroup]="ocorrenciaForm" (ngSubmit)="onSubmit()">
+
+        <!-- Procedimento Vinculado (se houver) -->
+        @if (procedimentoVinculado) {
+          <div class="info-banner">
+            <i class="bi bi-link-45deg"></i>
+            <span>Procedimento: <strong>{{ procedimentoVinculado.tipo_procedimento.sigla }} {{ procedimentoVinculado.numero }}/{{ procedimentoVinculado.ano }}</strong></span>
+            <button type="button" class="btn-change" (click)="voltarParaBusca()">
+              <i class="bi bi-pencil"></i> Alterar
+            </button>
+          </div>
+        }
+
+        <!-- SEÇÃO: Identificação -->
+        <div class="form-section">
+          <div class="section-header" (click)="toggleSecao('identificacao')">
+            <div>
+              <i class="bi bi-building"></i>
+              <h3>Identificação da Ocorrência</h3>
+            </div>
+            <i class="bi" [ngClass]="secoesAbertas.identificacao ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+          </div>
+
+          @if (secoesAbertas.identificacao) {
+            <div class="section-content">
+              <div class="form-row">
+                <div class="form-group required">
+                  <label>Serviço Pericial</label>
+                  <select formControlName="servico_pericial_id" class="form-control">
+                    <option value="">Selecione</option>
+                    @for (servico of servicosPericiais; track servico.id) {
+                      <option [value]="servico.id">{{ servico.sigla }} - {{ servico.nome }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="form-group required">
+                  <label>Unidade Demandante</label>
+                  <select formControlName="unidade_demandante_id" class="form-control" [disabled]="loadingUnidades">
+                    <option value="">{{ loadingUnidades ? 'Carregando...' : 'Selecione' }}</option>
+                    @for (unidade of unidadesDemandantes; track unidade.id) {
+                      <option [value]="unidade.id">{{ unidade.sigla }} - {{ unidade.nome }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group required">
+                  <label>Cargo</label>
+                  <select
+                    [(ngModel)]="cargoSelecionado"
+                    [ngModelOptions]="{standalone: true}"
+                    (change)="onCargoChange()"
+                    class="form-control"
+                    [disabled]="loadingCargos">
+                    <option value="">{{ loadingCargos ? 'Carregando...' : 'Selecione o cargo' }}</option>
+                    @for (cargo of cargos; track cargo.id) {
+                      <option [value]="cargo.id">{{ cargo.nome }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="form-group required">
+                  <label>Autoridade Requisitante</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="autoridadeBusca"
+                    [ngModelOptions]="{standalone: true}"
+                    (input)="buscarAutoridades()"
+                    [disabled]="!cargoSelecionado"
+                    class="form-control"
+                    placeholder="Digite o nome da autoridade"
+                  >
+
+                  @if (mostrarResultadosAutoridade && autoridades.length > 0) {
+                    <div class="autocomplete-results">
+                      @for (autoridade of autoridades; track autoridade.id) {
+                        <div class="autocomplete-item" (click)="selecionarAutoridade(autoridade)">
+                          {{ autoridade.nome }} ({{ autoridade.cargo.nome }})
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  @if (autoridadeSelecionada) {
+                    <div class="selected-badge">
+                      ✓ {{ autoridadeSelecionada.nome }}
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group required">
+                  <label>Classificação</label>
+                  <select formControlName="classificacao_id" class="form-control" [disabled]="loadingClassificacoes">
+                    <option value="">{{ loadingClassificacoes ? 'Carregando...' : 'Selecione' }}</option>
+                    @for (classificacao of classificacoes; track classificacao.id) {
+                      <option [value]="classificacao.id">{{ classificacao.codigo }} - {{ classificacao.nome }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- SEÇÃO: Local do Fato -->
+        <div class="form-section">
+          <div class="section-header" (click)="toggleSecao('local')">
+            <div>
+              <i class="bi bi-geo-alt"></i>
+              <h3>Local e Data do Fato</h3>
+            </div>
+            <i class="bi" [ngClass]="secoesAbertas.local ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+          </div>
+
+          @if (secoesAbertas.local) {
+            <div class="section-content">
+              <div class="form-row">
+                <div class="form-group required">
+                  <label>Data do Fato</label>
+                  <input
+                    type="date"
+                    formControlName="data_fato"
+                    class="form-control"
+                    [readonly]="isEditMode"
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label>Hora do Fato</label>
+                  <input
+                    type="time"
+                    formControlName="hora_fato"
+                    class="form-control"
+                    [readonly]="isEditMode"
+                  >
+                </div>
+
+                <div class="form-group required">
+                  <label>Cidade</label>
+                  <select formControlName="cidade_id" class="form-control" [disabled]="loadingCidades">
+                    <option value="">{{ loadingCidades ? 'Carregando...' : 'Selecione' }}</option>
+                    @for (cidade of cidades; track cidade.id) {
+                      <option [value]="cidade.id">{{ cidade.nome }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- SEÇÃO: Documentação -->
+        <div class="form-section">
+          <div class="section-header" (click)="toggleSecao('documentacao')">
+            <div>
+              <i class="bi bi-file-earmark-text"></i>
+              <h3>Documentação (Opcional)</h3>
+            </div>
+            <i class="bi" [ngClass]="secoesAbertas.documentacao ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+          </div>
+
+          @if (secoesAbertas.documentacao) {
+            <div class="section-content">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Tipo de Documento</label>
+                  <select formControlName="tipo_documento_origem_id" class="form-control">
+                    <option value="">Selecione</option>
+                    @for (tipo of tiposDocumento; track tipo.id) {
+                      <option [value]="tipo.id">{{ tipo.nome }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Número do Documento</label>
+                  <input type="text" formControlName="numero_documento_origem" class="form-control" placeholder="Ex: 123/2025">
+                </div>
+
+                <div class="form-group">
+                  <label>Data do Documento</label>
+                  <input type="date" formControlName="data_documento_origem" class="form-control">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Processo SEI</label>
+                  <input type="text" formControlName="processo_sei_numero" class="form-control" placeholder="Ex: 12345.678910/2025-11">
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- SEÇÃO: Atribuição de Perito -->
+        <div class="form-section">
+          <div class="section-header" (click)="toggleSecao('atribuicao')">
+            <div>
+              <i class="bi bi-person-badge"></i>
+              <h3>Atribuição de Perito (Opcional)</h3>
+            </div>
+            <i class="bi" [ngClass]="secoesAbertas.atribuicao ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+          </div>
+
+          @if (secoesAbertas.atribuicao) {
+            <div class="section-content">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Perito</label>
+                  <select formControlName="perito_atribuido_id" class="form-control">
+                    <option value="">Atribuir posteriormente</option>
+                    @for (perito of peritos; track perito.id) {
+                      <option [value]="perito.id">{{ perito.nome_completo }}</option>
+                    }
+                  </select>
+                  <small class="form-hint">Deixe em branco para atribuir depois</small>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- SEÇÃO: Exames -->
+        <div class="form-section">
+          <div class="section-header" (click)="toggleSecao('exames')">
+            <div>
+              <i class="bi bi-clipboard-pulse"></i>
+              <h3>Exames Solicitados ({{ examesSelecionados.length }})</h3>
+            </div>
+            <i class="bi" [ngClass]="secoesAbertas.exames ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+          </div>
+
+          @if (secoesAbertas.exames) {
+            <div class="section-content">
+              <button type="button" class="btn-add-exame" (click)="abrirModalExames()">
+                <i class="bi bi-plus-circle"></i> Adicionar Exames
+              </button>
+
+              @if (examesSelecionados.length > 0) {
+                <div class="exames-list">
+                  @for (exame of examesSelecionados; track exame.id) {
+                    <div class="exame-tag">
+                      <span><strong>{{ exame.codigo }}</strong> - {{ exame.nome }}</span>
+                      <button type="button" class="btn-remove-exame" (click)="removerExame(exame)">
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="text-muted-small">Nenhum exame selecionado</p>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- SEÇÃO: Observações -->
+        <div class="form-section">
+          <div class="section-header" (click)="toggleSecao('observacoes')">
+            <div>
+              <i class="bi bi-chat-left-text"></i>
+              <h3>Histórico / Observações</h3>
+            </div>
+            <i class="bi" [ngClass]="secoesAbertas.observacoes ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+          </div>
+
+          @if (secoesAbertas.observacoes) {
+            <div class="section-content">
+              <div class="form-group">
+                <textarea formControlName="historico" class="form-control-textarea" rows="5" placeholder="Descreva o histórico ou observações relevantes sobre a ocorrência..."></textarea>
+                <small class="form-hint">Este campo pode ser editado dentro de 72 horas após o cadastro</small>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="form-actions">
+          <button type="button" class="btn-cancel-form" (click)="cancelar()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-submit" [disabled]="isSaving || ocorrenciaForm.invalid">
+            @if (isSaving) {
+              <i class="bi bi-hourglass-split"></i> Salvando...
+            } @else {
+              <i class="bi bi-check-circle"></i> {{ isEditMode ? 'Atualizar' : 'Cadastrar' }} Ocorrência
+            }
+          </button>
+        </div>
+      </form>
+    }
+  }
+</div>

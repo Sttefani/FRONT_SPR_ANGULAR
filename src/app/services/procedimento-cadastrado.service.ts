@@ -83,4 +83,12 @@ export class ProcedimentoCadastradoService {
   restaurar(id: number): Observable<ProcedimentoCadastrado> {
     return this.http.post<ProcedimentoCadastrado>(`${this.baseUrl}/procedimentos-cadastrados/${id}/restaurar/`, {});
   }
+  buscar(tipoProcedimentoId: number, numero: string, ano: number): Observable<any[]> {
+  let params = new HttpParams()
+    .set('tipo_procedimento', tipoProcedimentoId.toString())
+    .set('numero', numero)
+    .set('ano', ano.toString());
+
+  return this.http.get<any[]>(`${this.baseUrl}/procedimentos-cadastrados/`, { params });
+}
 }

@@ -4,6 +4,7 @@ import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
 import { PasswordChangeGuard } from './guards/password-change.guard';
 import { superAdminGuard } from './guards/super-admin.guard';
+import { perfilGuard } from './guards/perfil.guard';
 import { TiposDocumentoListComponent } from './pages/tipos-documento-list/tipos-documento-list.component';
 import { TiposDocumentoFormComponent } from './pages/tipos-documento-form/tipos-documento-form.component';
 
@@ -22,6 +23,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/alterar-senha/alterar-senha.component').then(m => m.AlterarSenhaComponent),
     canActivate: [AuthGuard, PasswordChangeGuard]
   },
+  {
+    path: 'acesso-negado',
+    loadComponent: () => import('./pages/acesso-negado/acesso-negado.component').then(m => m.AcessoNegadoComponent)
+  },
 
   // =====================================================================
   // LAYOUT PRINCIPAL DO DASHBOARD
@@ -35,7 +40,10 @@ export const routes: Routes = [
         path: '',
         loadComponent: () => import('./pages/dashboard-inicial/dashboard-inicial.component').then(m => m.DashboardInicialComponent)
       },
-      // --- Gerência (SuperAdmin) ---
+
+      // =====================================================================
+      // GERÊNCIA (SUPER ADMIN)
+      // =====================================================================
       {
         path: 'gerencia/usuarios',
         loadComponent: () => import('./pages/usuario-list/usuario-list.component').then(m => m.UsuarioListComponent),
@@ -61,7 +69,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/usuario-servicos/usuario-servicos.component').then(m => m.UsuarioServicosComponent),
         canActivate: [AuthGuard, superAdminGuard]
       },
-      // --- Cadastros ---
+
+      // =====================================================================
+      // SERVIÇOS PERICIAIS
+      // =====================================================================
       {
         path: 'servicos-periciais',
         loadComponent: () => import('./pages/servicos-periciais-list/servicos-periciais-list.component').then(m => m.ServicosPericiaisListComponent),
@@ -77,6 +88,35 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/servicos-periciais-form/servicos-periciais-form.component').then(m => m.ServicosPericiaisFormComponent),
         canActivate: [AuthGuard, superAdminGuard]
       },
+
+      // =====================================================================
+      // OCORRÊNCIAS
+      // =====================================================================
+      {
+        path: 'operacional/ocorrencias',
+        loadComponent: () => import('./pages/ocorrencias-list/ocorrencias-list.component').then(m => m.OcorrenciasListComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'operacional/ocorrencias/novo',
+        loadComponent: () => import('./pages/ocorrencias-form/ocorrencias-form.component').then(m => m.OcorrenciasFormComponent),
+        canActivate: [perfilGuard],
+        data: { requiredPerfis: ['PERITO', 'OPERACIONAL'] }
+      },
+      {
+        path: 'operacional/ocorrencias/:id',
+        loadComponent: () => import('./pages/ocorrencias-detalhes/ocorrencias-detalhes.component').then(m => m.OcorrenciasDetalhesComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'operacional/ocorrencias/:id/editar',
+        loadComponent: () => import('./pages/ocorrencias-form/ocorrencias-form.component').then(m => m.OcorrenciasFormComponent),
+        canActivate: [AuthGuard]
+      },
+
+      // =====================================================================
+      // CADASTROS AUXILIARES
+      // =====================================================================
       {
         path: 'cadastros/cidades',
         loadComponent: () => import('./pages/cidades-list/cidades-list.component').then(m => m.CidadesListComponent),
@@ -211,7 +251,7 @@ export const routes: Routes = [
         path: 'cadastros/tipos-documento/:id/editar',
         component: TiposDocumentoFormComponent,
         canActivate: [AuthGuard]
-      },
+      }
     ]
   },
   // =====================================================================
@@ -219,4 +259,3 @@ export const routes: Routes = [
   // Rota "catch-all" para páginas não encontradas
   { path: '**', redirectTo: '/login' }
 ];
-

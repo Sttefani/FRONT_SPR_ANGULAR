@@ -82,5 +82,5 @@ export class AutoridadeService {
 
   restaurar(id: number): Observable<Autoridade> {
     return this.http.post<Autoridade>(`${this.baseUrl}/autoridades/${id}/restaurar/`, {});
-  }
+}
 }

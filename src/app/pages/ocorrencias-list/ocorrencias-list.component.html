@@ -1,0 +1,221 @@
+<div class="container">
+  <!-- Header com filtros integrados -->
+  <div class="header-with-filters">
+    <div class="title-section">
+      <h1>Gerenciamento de Ocorrências</h1>
+      <p class="subtitle">Registre e acompanhe todas as ocorrências periciais.</p>
+
+      @if (isPerito || isOperacional) {
+        <button class="btn-primary" (click)="onCreate()">
+          <i class="bi bi-plus-circle"></i> Nova Ocorrência
+        </button>
+      }
+    </div>
+
+    @if (viewMode !== 'lixeira') {
+      <div class="filters-compact">
+        <div class="filters-grid">
+          <input type="text" [(ngModel)]="numeroOcorrenciaBusca" placeholder="Número Exato" class="input-compact">
+
+          <select [(ngModel)]="peritoFiltro" class="select-compact">
+            <option [value]="null">Perito: Todos</option>
+            @for (perito of peritos; track perito.id) {
+              <option [value]="perito.id">{{ perito.nome_completo }}</option>
+            }
+          </select>
+
+          <select [(ngModel)]="statusFiltro" class="select-compact">
+            <option value="">Status: Todos</option>
+            <option value="AGUARDANDO_PERITO">Aguardando</option>
+            <option value="EM_ANALISE">Em Análise</option>
+            <option value="FINALIZADA">Finalizada</option>
+          </select>
+
+          <select [(ngModel)]="servicoPericialFiltro" class="select-compact">
+            <option [value]="null">Serviço: Todos</option>
+            @for (servico of servicosPericiais; track servico.id) {
+              <option [value]="servico.id">{{ servico.sigla }}</option>
+            }
+          </select>
+
+          <input type="date" [(ngModel)]="dataInicio" class="input-compact" placeholder="Data Início">
+          <input type="date" [(ngModel)]="dataFim" class="input-compact" placeholder="Data Fim">
+
+          <button class="btn-buscar" (click)="buscarOcorrencias()">
+            <i class="bi bi-search"></i> Buscar
+          </button>
+          <button class="btn-limpar" (click)="limparFiltros()">
+            <i class="bi bi-x-circle"></i> Limpar
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="tabs">
+    <button class="tab" [class.active]="viewMode === 'todas'" (click)="switchToTodas()">
+      <i class="bi bi-list-ul"></i> Todas
+    </button>
+    <button class="tab" [class.active]="viewMode === 'pendentes'" (click)="switchToPendentes()">
+      <i class="bi bi-hourglass-split"></i> Pendentes
+    </button>
+    <button class="tab" [class.active]="viewMode === 'finalizadas'" (click)="switchToFinalizadas()">
+      <i class="bi bi-check-circle"></i> Finalizadas
+    </button>
+    @if (isSuperAdmin) {
+      <button class="tab" [class.active]="viewMode === 'lixeira'" (click)="switchToLixeira()">
+        <i class="bi bi-trash"></i> Lixeira
+      </button>
+    }
+  </div>
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  <!-- Resto do código da tabela permanece igual -->
+  @if (viewMode !== 'lixeira') {
+    @if (isLoading) {
+      <div class="loading-indicator">
+        <i class="bi bi-hourglass-split"></i>
+        <p>Carregando ocorrências...</p>
+      </div>
+    }
+
+    @if (!isLoading && ocorrencias.length > 0) {
+      <div class="table-container">
+        <table class="data-table">
+          <!-- Mantém a estrutura da tabela igual -->
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Status</th>
+              <th>Serviço</th>
+              <th>Unidade</th>
+              <th>Perito</th>
+              <th>Data Fato</th>
+              <th>Prazo</th>
+              <th class="actions-header">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ocorrencia of ocorrencias; track ocorrencia.id) {
+              <tr>
+                <td data-label="Número" class="numero-cell">
+                  <strong>{{ ocorrencia.numero_ocorrencia }}</strong>
+                </td>
+                <td data-label="Status">
+                  <span class="badge-status" [ngClass]="getStatusClass(ocorrencia.status)">
+                    {{ getStatusLabel(ocorrencia.status) }}
+                  </span>
+                </td>
+                <td data-label="Serviço">{{ ocorrencia.servico_pericial.sigla }}</td>
+                <td data-label="Unidade">{{ ocorrencia.unidade_demandante.sigla }}</td>
+                <td data-label="Perito">
+                  @if (ocorrencia.perito_atribuido) {
+                    {{ getFirstName(ocorrencia.perito_atribuido.nome_completo) }}
+                  } @else {
+                    <span class="text-muted">Não atribuído</span>
+                  }
+                </td>
+                <td data-label="Data Fato">{{ ocorrencia.data_fato | date:'dd/MM/yyyy' }}</td>
+                <td data-label="Prazo">
+                  <span class="badge-prazo" [ngClass]="getPrazoClass(ocorrencia.status_prazo)">
+                    {{ ocorrencia.dias_prazo }}
+                  </span>
+                </td>
+                <td class="actions-cell" data-label="Ações">
+                  <button class="icon-btn view" title="Ver Detalhes" (click)="onView(ocorrencia.id)">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  @if (podeEditar(ocorrencia)) {
+                    <button class="icon-btn edit" title="Editar" (click)="onEdit(ocorrencia.id)">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                  }
+                  @if (isSuperAdmin) {
+                    <button class="icon-btn danger" title="Deletar" (click)="onDelete(ocorrencia)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <div class="page-info">
+          Mostrando {{ ocorrencias.length }} de {{ count }} registro(s)
+        </div>
+        <div class="pagination-controls">
+          <button (click)="goToPreviousPage()" [disabled]="!previousUrl">
+            <i class="bi bi-chevron-left"></i> Anterior
+          </button>
+          <span class="page-number">Página {{ currentPage }} de {{ totalPages }}</span>
+          <button (click)="goToNextPage()" [disabled]="!nextUrl">
+            Próxima <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (!isLoading && ocorrencias.length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>{{ searchTerm || statusFiltro || servicoPericialFiltro ? 'Nenhuma ocorrência encontrada' : 'Nenhuma ocorrência cadastrada' }}</p>
+      </div>
+    }
+  }
+
+  <!-- Lixeira mantém igual -->
+  @if (viewMode === 'lixeira') {
+    @if (isLoadingLixeira) {
+      <div class="loading-indicator">
+        <i class="bi bi-hourglass-split"></i>
+        <p>Carregando lixeira...</p>
+      </div>
+    }
+
+    @if (!isLoadingLixeira && ocorrenciasLixeira.length > 0) {
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Serviço</th>
+              <th>Unidade</th>
+              <th>Deletado em</th>
+              <th class="actions-header">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ocorrencia of ocorrenciasLixeira; track ocorrencia.id) {
+              <tr>
+                <td data-label="Número" class="deleted">{{ ocorrencia.numero_ocorrencia }}</td>
+                <td data-label="Serviço" class="deleted">{{ ocorrencia.servico_pericial.sigla }}</td>
+                <td data-label="Unidade" class="deleted">{{ ocorrencia.unidade_demandante.sigla }}</td>
+                <td data-label="Deletado em">{{ ocorrencia.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td class="actions-cell" data-label="Ações">
+                  <button class="icon-btn restore" title="Restaurar" (click)="onRestore(ocorrencia)">
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (!isLoadingLixeira && ocorrenciasLixeira.length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-trash"></i>
+        <p>A lixeira está vazia</p>
+      </div>
+    }
+  }
+</div>

@@ -80,4 +80,5 @@ export class UnidadeDemandanteService {
   restaurar(id: number): Observable<UnidadeDemandante> {
     return this.http.post<UnidadeDemandante>(`${this.baseUrl}/unidades-demandantes/${id}/restaurar/`, {});
   }
+
 }

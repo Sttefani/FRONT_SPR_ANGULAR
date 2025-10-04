@@ -1,0 +1,254 @@
+<div class="container">
+  @if (isLoading) {
+    <div class="loading">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando detalhes...</p>
+    </div>
+  }
+
+  @if (!isLoading && ocorrencia) {
+    <div class="header-detalhes">
+      <div>
+        <button class="btn-back" (click)="onVoltar()">
+          <i class="bi bi-arrow-left"></i> Voltar
+        </button>
+        <h1>{{ ocorrencia.numero_ocorrencia }}</h1>
+        <span class="badge-status-large" [ngClass]="getStatusClass(ocorrencia.status)">
+          {{ getStatusLabel(ocorrencia.status) }}
+        </span>
+      </div>
+
+      <div class="actions-group">
+        <button class="btn-secondary" (click)="onImprimirPDF()" title="Imprimir PDF">
+          <i class="bi bi-printer"></i>
+        </button>
+
+        @if (podeEditar()) {
+          <button class="btn-edit" (click)="onEditar()">
+            <i class="bi bi-pencil"></i> Editar
+          </button>
+        } @else {
+          <!-- Badge informativo quando não pode editar -->
+          @if (ocorrencia.esta_finalizada) {
+            <div class="badge-bloqueio finalizada" title="Ocorrência finalizada - Solicite reabertura ao administrador">
+              <i class="bi bi-lock-fill"></i>
+              <span>Finalizada</span>
+            </div>
+          } @else if (ocorrencia.perito_atribuido) {
+            <div class="badge-bloqueio atribuida" title="Apenas {{ ocorrencia.perito_atribuido.nome_completo }} pode editar">
+              <i class="bi bi-person-lock"></i>
+              <span>Atribuída</span>
+            </div>
+          }
+        }
+
+        @if (podeFinalizar()) {
+          <button class="btn-success" (click)="onFinalizar()">
+            <i class="bi bi-check-circle"></i> Finalizar
+          </button>
+        }
+        @if (podeReabrir()) {
+          <button class="btn-warning" (click)="onReabrir()">
+            <i class="bi bi-arrow-clockwise"></i> Reabrir
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (message) {
+      <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+        {{ message }}
+      </div>
+    }
+
+    <div class="detalhes-grid">
+      <!-- Card Serviço e Unidade -->
+      <div class="info-card">
+        <h3><i class="bi bi-building"></i> Identificação</h3>
+        <div class="info-row">
+          <span class="label">Serviço:</span>
+          <span class="value">{{ ocorrencia.servico_pericial.sigla }} - {{ ocorrencia.servico_pericial.nome }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Unidade:</span>
+          <span class="value">{{ ocorrencia.unidade_demandante.sigla }} - {{ ocorrencia.unidade_demandante.nome }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Autoridade:</span>
+          <span class="value">{{ ocorrencia.autoridade.nome }} ({{ ocorrencia.autoridade.cargo.nome }})</span>
+        </div>
+      </div>
+
+      <!-- Card Fato -->
+      <div class="info-card">
+        <h3><i class="bi bi-calendar-event"></i> Dados do Fato</h3>
+        <div class="info-row">
+          <span class="label">Data:</span>
+          <span class="value">{{ ocorrencia.data_fato | date:'dd/MM/yyyy' }}</span>
+        </div>
+        @if (ocorrencia.hora_fato) {
+          <div class="info-row">
+            <span class="label">Hora:</span>
+            <span class="value">{{ ocorrencia.hora_fato }}</span>
+          </div>
+        }
+        <div class="info-row">
+          <span class="label">Cidade:</span>
+          <span class="value">{{ ocorrencia.cidade.nome }} - {{ ocorrencia.cidade.estado }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Classificação:</span>
+          <span class="value">{{ ocorrencia.classificacao.codigo }} - {{ ocorrencia.classificacao.nome }}</span>
+        </div>
+      </div>
+
+      <!-- Card Procedimento -->
+      <div class="info-card">
+        <h3><i class="bi bi-file-earmark-text"></i> Procedimento</h3>
+        @if (ocorrencia.procedimento_cadastrado) {
+          <div class="info-row">
+            <span class="label">Tipo:</span>
+            <span class="value">{{ ocorrencia.procedimento_cadastrado.tipo_procedimento.sigla }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Número:</span>
+            <span class="value">{{ ocorrencia.procedimento_cadastrado.numero }}/{{ ocorrencia.procedimento_cadastrado.ano }}</span>
+          </div>
+        } @else {
+          <span class="text-muted">Não informado</span>
+        }
+        @if (ocorrencia.tipo_documento_origem) {
+          <div class="info-row">
+            <span class="label">Documento:</span>
+            <span class="value">{{ ocorrencia.tipo_documento_origem.nome }}</span>
+          </div>
+        }
+        @if (ocorrencia.numero_documento_origem) {
+          <div class="info-row">
+            <span class="label">Nº Doc:</span>
+            <span class="value">{{ ocorrencia.numero_documento_origem }}</span>
+          </div>
+        }
+        @if (ocorrencia.processo_sei_numero) {
+          <div class="info-row">
+            <span class="label">SEI:</span>
+            <span class="value">{{ ocorrencia.processo_sei_numero }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Card Perito -->
+      <div class="info-card">
+        <h3><i class="bi bi-person-badge"></i> Atribuição</h3>
+        @if (ocorrencia.perito_atribuido) {
+          <div class="info-row">
+            <span class="label">Perito:</span>
+            <span class="value">{{ ocorrencia.perito_atribuido.nome_completo }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Email:</span>
+            <span class="value">{{ ocorrencia.perito_atribuido.email }}</span>
+          </div>
+        } @else {
+          <span class="badge-alert">Aguardando atribuição de perito</span>
+        }
+      </div>
+
+      <!-- Card Datas -->
+      <div class="info-card">
+        <h3><i class="bi bi-clock-history"></i> Cronologia</h3>
+        <div class="info-row">
+          <span class="label">Registrado:</span>
+          <span class="value">{{ ocorrencia.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Por:</span>
+          <span class="value">{{ ocorrencia.created_by?.nome_completo || 'N/D' }}</span>
+        </div>
+        @if (ocorrencia.updated_at !== ocorrencia.created_at) {
+          <div class="info-row">
+            <span class="label">Atualizado:</span>
+            <span class="value">{{ ocorrencia.updated_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Card Finalização -->
+      @if (ocorrencia.esta_finalizada) {
+        <div class="info-card finalizado">
+          <h3><i class="bi bi-shield-check"></i> Finalização</h3>
+          <div class="info-row">
+            <span class="label">Finalizado por:</span>
+            <span class="value">{{ ocorrencia.finalizada_por?.nome_completo }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Data:</span>
+            <span class="value">{{ ocorrencia.data_finalizacao | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Assinatura:</span>
+            <span class="value">{{ ocorrencia.data_assinatura_finalizacao | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">IP:</span>
+            <span class="value">{{ ocorrencia.ip_assinatura_finalizacao }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Exames Solicitados -->
+    @if (ocorrencia.exames_solicitados && ocorrencia.exames_solicitados.length > 0) {
+      <div class="info-card full-width">
+        <h3><i class="bi bi-clipboard-pulse"></i> Exames Solicitados ({{ ocorrencia.exames_solicitados.length }})</h3>
+        <div class="exames-grid">
+          @for (exame of ocorrencia.exames_solicitados; track exame.id) {
+            <div class="exame-chip">
+              <span class="exame-codigo">{{ exame.codigo }}</span>
+              <span class="exame-nome">{{ exame.nome }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Histórico -->
+    @if (ocorrencia.historico) {
+      <div class="info-card full-width">
+        <h3><i class="bi bi-chat-left-text"></i> Histórico / Observações</h3>
+        <div class="historico-content">
+          {{ ocorrencia.historico }}
+        </div>
+        @if (ocorrencia.historico_ultima_edicao) {
+          <small class="text-muted">Última edição: {{ ocorrencia.historico_ultima_edicao | date:'dd/MM/yyyy HH:mm' }}</small>
+        }
+      </div>
+    }
+
+    <!-- Reabertura Info -->
+    @if (ocorrencia.reaberta_por) {
+      <div class="info-card full-width alerta">
+        <h3><i class="bi bi-exclamation-triangle"></i> Informações de Reabertura</h3>
+        <div class="info-row">
+          <span class="label">Reaberta por:</span>
+          <span class="value">{{ ocorrencia.reaberta_por.nome_completo }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Data:</span>
+          <span class="value">{{ ocorrencia.data_reabertura | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Motivo:</span>
+          <span class="value">{{ ocorrencia.motivo_reabertura }}</span>
+        </div>
+      </div>
+    }
+  }
+
+  @if (!isLoading && !ocorrencia) {
+    <div class="empty-state">
+      <i class="bi bi-exclamation-circle"></i>
+      <p>Ocorrência não encontrada.</p>
+    </div>
+  }
+</div>

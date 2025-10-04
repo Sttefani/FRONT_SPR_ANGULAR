@@ -19,18 +19,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(private authService: AuthService) { }
 
   ngOnInit(): void {
+  this.updateDateTime();
+  setInterval(() => {
     this.updateDateTime();
-    // Atualiza a data/hora a cada segundo
-    setInterval(() => {
-      this.updateDateTime();
-    }, 1000);
+  }, 1000);
 
-    // Assina as mudanças do usuário atual
-    this.userSubscription = this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-      this.isLoggedIn = !!user;
-    });
-  }
+  // DEBUG - Verificar estado inicial
+  console.log('=== HEADER INICIOU ===');
+  console.log('Token existe:', !!localStorage.getItem('access_token'));
+  console.log('Usuário logado (service):', this.authService.isLoggedIn());
+
+  this.userSubscription = this.authService.currentUser$.subscribe(user => {
+    console.log('Observable currentUser$ emitiu:', user);
+    this.currentUser = user;
+    this.isLoggedIn = !!user;
+    console.log('isLoggedIn agora é:', this.isLoggedIn);
+  });
+}
 
   ngOnDestroy(): void {
     this.userSubscription.unsubscribe();
