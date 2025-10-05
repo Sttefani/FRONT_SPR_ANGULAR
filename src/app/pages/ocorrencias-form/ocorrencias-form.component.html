@@ -228,7 +228,7 @@
           @if (secoesAbertas.local) {
             <div class="section-content">
               <div class="form-row">
-                <div class="form-group required">
+                <div class="form-group">
                   <label>Data do Fato</label>
                   <input
                     type="date"
@@ -404,4 +404,14 @@
       </form>
     }
   }
+  <!-- Modal de Seleção de Exames -->
+  <app-exame-selector-modal
+    [isOpen]="modalExamesAberto"
+    [examesDisponiveis]="examesDisponiveis"
+    [examesPreSelecionados]="examesSelecionados"
+    (onConfirm)="onExamesConfirmados($event)"
+    (onClose)="modalExamesAberto = false"
+  ></app-exame-selector-modal>
+
 </div>
+

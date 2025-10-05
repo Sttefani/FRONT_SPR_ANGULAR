@@ -103,39 +103,63 @@
       </div>
 
       <!-- Card Procedimento -->
-      <div class="info-card">
-        <h3><i class="bi bi-file-earmark-text"></i> Procedimento</h3>
-        @if (ocorrencia.procedimento_cadastrado) {
-          <div class="info-row">
-            <span class="label">Tipo:</span>
-            <span class="value">{{ ocorrencia.procedimento_cadastrado.tipo_procedimento.sigla }}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Número:</span>
-            <span class="value">{{ ocorrencia.procedimento_cadastrado.numero }}/{{ ocorrencia.procedimento_cadastrado.ano }}</span>
-          </div>
-        } @else {
-          <span class="text-muted">Não informado</span>
-        }
-        @if (ocorrencia.tipo_documento_origem) {
-          <div class="info-row">
-            <span class="label">Documento:</span>
-            <span class="value">{{ ocorrencia.tipo_documento_origem.nome }}</span>
-          </div>
-        }
-        @if (ocorrencia.numero_documento_origem) {
-          <div class="info-row">
-            <span class="label">Nº Doc:</span>
-            <span class="value">{{ ocorrencia.numero_documento_origem }}</span>
-          </div>
-        }
-        @if (ocorrencia.processo_sei_numero) {
-          <div class="info-row">
-            <span class="label">SEI:</span>
-            <span class="value">{{ ocorrencia.processo_sei_numero }}</span>
-          </div>
-        }
+<div class="info-card">
+  <div class="card-header-with-action">
+    <h3><i class="bi bi-file-earmark-text"></i> Procedimento</h3>
+
+    <!-- Botão de vincular só aparece se NÃO tem procedimento e pode editar -->
+    @if (!ocorrencia.procedimento_cadastrado && podeEditar()) {
+      <button class="btn-link-procedimento" (click)="abrirModalVincularProcedimento()">
+        <i class="bi bi-link"></i> Vincular
+      </button>
+    }
+  </div>
+
+  @if (ocorrencia.procedimento_cadastrado) {
+    <div class="procedimento-vinculado">
+      <div class="procedimento-info">
+        <div class="info-row">
+          <span class="label">Tipo:</span>
+          <span class="value">{{ ocorrencia.procedimento_cadastrado.tipo_procedimento.sigla }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Número:</span>
+          <span class="value">{{ ocorrencia.procedimento_cadastrado.numero }}/{{ ocorrencia.procedimento_cadastrado.ano }}</span>
+        </div>
       </div>
+
+      <!-- Apenas super admin pode desvincular -->
+      <!-- Botão de desvincular -->
+      @if (podeGerenciarProcedimento()) {
+        <button class="btn-danger-sm" (click)="desvincularProcedimento()" title="Desvincular procedimento">
+          <i class="bi bi-x-circle"></i>
+        </button>
+      }
+    </div>
+  } @else {
+    <span class="text-muted">Nenhum procedimento vinculado</span>
+  }
+
+  <!-- Documento origem continua igual -->
+  @if (ocorrencia.tipo_documento_origem) {
+    <div class="info-row">
+      <span class="label">Documento:</span>
+      <span class="value">{{ ocorrencia.tipo_documento_origem.nome }}</span>
+    </div>
+  }
+  @if (ocorrencia.numero_documento_origem) {
+    <div class="info-row">
+      <span class="label">Nº Doc:</span>
+      <span class="value">{{ ocorrencia.numero_documento_origem }}</span>
+    </div>
+  }
+  @if (ocorrencia.processo_sei_numero) {
+    <div class="info-row">
+      <span class="label">SEI:</span>
+      <span class="value">{{ ocorrencia.processo_sei_numero }}</span>
+    </div>
+  }
+</div>
 
       <!-- Card Perito -->
       <div class="info-card">

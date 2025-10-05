@@ -112,6 +112,9 @@
                 <td data-label="Atualizado em">{{ procedimento.updated_at | date:'dd/MM/yyyy HH:mm' }}</td>
                 <td data-label="Atualizado por">{{ getFirstName(procedimento.updated_by?.nome_completo) }}</td>
                 <td class="actions-cell" data-label="Ações">
+                  <button class="icon-btn view" title="Ver Ocorrências Vinculadas" (click)="verDetalhes(procedimento.id)">
+                    <i class="bi bi-list-ul"></i>
+                  </button>
                   <button class="icon-btn edit" title="Editar" (click)="onEdit(procedimento.id)">
                     <i class="bi bi-pencil"></i>
                   </button>

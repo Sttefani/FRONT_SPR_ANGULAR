@@ -52,9 +52,9 @@ export class TipoDocumentoService {
     return this.http.get<PaginatedResponse>(url);
   }
 
-  getAllForDropdown(): Observable<TipoDocumento[]> {
-    return this.http.get<TipoDocumento[]>(`${this.baseUrl}/tipos-documento/`);
-  }
+  getAllForDropdown(): Observable<any[]> {
+  return this.http.get<any[]>(`${this.baseUrl}/tipos-documento/dropdown/`);
+}
 
   getById(id: number): Observable<TipoDocumento> {
     return this.http.get<TipoDocumento>(`${this.baseUrl}/tipos-documento/${id}/`);

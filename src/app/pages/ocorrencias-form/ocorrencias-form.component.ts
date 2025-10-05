@@ -16,6 +16,8 @@ import { ProcedimentoService } from '../../services/procedimento.service';
 import { ExameService } from '../../services/exame.service';
 import { CargoService } from '../../services/cargo.service';
 import { AuthService } from '../../services/auth.service';
+import { UsuarioService } from '../../services/usuario.service';
+import { ExameSelectorModalComponent } from './exame-selector-modal.component';
 
 // Interfaces adequadas
 interface UnidadeDemandante {
@@ -66,7 +68,7 @@ interface Exame {
 @Component({
   selector: 'app-ocorrencias-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, ExameSelectorModalComponent],
   templateUrl: './ocorrencias-form.component.html',
   styleUrls: ['./ocorrencias-form.component.scss']
 })
@@ -143,7 +145,8 @@ export class OcorrenciasFormComponent implements OnInit {
     private cargoService: CargoService,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private usuarioService: UsuarioService, // ADICIONE ESTA LINHA
   ) {
     this.initForms();
   }
@@ -172,7 +175,7 @@ ngOnInit(): void {
       autoridade_id: [null, Validators.required],
       cidade_id: [null, Validators.required],
       classificacao_id: [null, Validators.required],
-      data_fato: ['', Validators.required],
+      data_fato: [''],
       hora_fato: [''],
       procedimento_cadastrado_id: [null],
       tipo_documento_origem_id: [null],
@@ -188,6 +191,7 @@ ngOnInit(): void {
     this.loadServicos();
     this.loadTiposProcedimento();
     this.loadTiposDocumento();
+    this.loadPeritos(); // ADICIONE AQUI
   }
 
   loadServicos(): void {
@@ -299,12 +303,34 @@ ngOnInit(): void {
   }
 
   loadTiposDocumento(): void {
+  console.log('🔍 INICIANDO loadTiposDocumento');
+  console.log('Service:', this.tipoDocumentoService);
+
   this.tipoDocumentoService.getAllForDropdown().subscribe({
-    next: (data: TipoDocumento[]) => {
-      console.log('📄 Tipos de documento carregados:', data); // DEBUG
-      this.tiposDocumento = data;
+    next: (data: any) => {
+      console.log('📄 RESPOSTA RECEBIDA:', data);
+      console.log('É array?', Array.isArray(data));
+      console.log('Quantidade:', data?.length);
+
+      this.tiposDocumento = data || [];
+      console.log('tiposDocumento agora:', this.tiposDocumento);
     },
-    error: (err: any) => console.error('Erro ao carregar tipos documento:', err)
+    error: (err: any) => {
+      console.error('❌ ERRO:', err);
+      console.error('Status:', err.status);
+      console.error('URL:', err.url);
+    }
+  });
+}
+loadPeritos(): void {
+  this.usuarioService.getPeritosList().subscribe({
+    next: (data: any) => {
+      this.peritos = data;
+      console.log('👨‍🔬 Peritos carregados:', this.peritos.length);
+    },
+    error: (err: any) => {
+      console.error('Erro ao carregar peritos:', err);
+    }
   });
 }
 
@@ -325,68 +351,81 @@ ngOnInit(): void {
   }
 
   // WIZARD - Etapa 2
-  buscarProcedimento(): void {
-    if (this.buscaProcedimentoForm.invalid) {
-      this.buscaProcedimentoForm.markAllAsTouched();
-      return;
-    }
-
-    const { tipo_procedimento_id, numero, ano } = this.buscaProcedimentoForm.value;
-
-    this.loadingProcedimentos = true;
-    this.procedimentoCadastradoService.buscar(tipo_procedimento_id, numero, ano).subscribe({
-      next: (procedimentos: any[]) => {
-        this.loadingProcedimentos = false;
-        if (procedimentos && procedimentos.length > 0) {
-          this.procedimentoEncontrado = true;
-          this.procedimentoVinculado = procedimentos[0];
-
-          Swal.fire({
-            title: 'Procedimento Encontrado!',
-            html: `
-              <p><strong>${this.procedimentoVinculado.tipo_procedimento.sigla}</strong></p>
-              <p>Nº ${this.procedimentoVinculado.numero}/${this.procedimentoVinculado.ano}</p>
-              <p>Deseja vincular sua ocorrência a este procedimento?</p>
-            `,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sim, vincular',
-            cancelButtonText: 'Não'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              this.ocorrenciaForm.patchValue({
-                procedimento_cadastrado_id: this.procedimentoVinculado.id
-              });
-              this.irParaFormulario();
-            }
-          });
-        } else {
-          this.procedimentoEncontrado = false;
-          Swal.fire({
-            title: 'Procedimento não encontrado',
-            text: 'Deseja cadastrar este procedimento agora?',
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonText: 'Sim, cadastrar',
-            cancelButtonText: 'Pular'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              this.cadastrarProcedimento();
-            } else {
-              this.irParaFormulario();
-            }
-          });
-        }
-      },
-      error: (err: any) => {
-        console.error('Erro ao buscar:', err);
-        this.loadingProcedimentos = false;
-        this.message = 'Erro ao buscar procedimento.';
-        this.messageType = 'error';
-      }
-    });
+ buscarProcedimento(): void {
+  if (this.buscaProcedimentoForm.invalid) {
+    this.buscaProcedimentoForm.markAllAsTouched();
+    return;
   }
 
+  const { tipo_procedimento_id, numero, ano } = this.buscaProcedimentoForm.value;
+
+  this.loadingProcedimentos = true;
+
+  this.procedimentoCadastradoService.verificarExistente(tipo_procedimento_id, numero, ano).subscribe({
+    next: (response: any) => {
+      this.loadingProcedimentos = false;
+
+      if (response.exists) {
+        // PROCEDIMENTO JÁ EXISTE - OBRIGAR VINCULAÇÃO
+        this.procedimentoVinculado = response.procedimento;
+
+        Swal.fire({
+          title: 'Procedimento já cadastrado!',
+          html: `
+            <p>Já existe um procedimento <strong>${this.procedimentoVinculado.tipo_procedimento.sigla}</strong>
+            com o número <strong>${this.procedimentoVinculado.numero}/${this.procedimentoVinculado.ano}</strong>
+            cadastrado no sistema.</p>
+            <p><strong>Vincule sua ocorrência a este procedimento.</strong></p>
+          `,
+          icon: 'info',
+          showCancelButton: true,
+          confirmButtonText: 'Vincular',
+          cancelButtonText: 'Continuar sem procedimento',
+          allowOutsideClick: false
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // VINCULAR O PROCEDIMENTO EXISTENTE
+            this.ocorrenciaForm.patchValue({
+              procedimento_cadastrado_id: this.procedimentoVinculado.id
+            });
+            this.irParaFormulario();
+          } else {
+            // CONTINUAR SEM PROCEDIMENTO
+            this.procedimentoVinculado = null;
+            this.ocorrenciaForm.patchValue({
+              procedimento_cadastrado_id: null
+            });
+            this.irParaFormulario();
+          }
+        });
+      } else {
+        // PROCEDIMENTO NÃO EXISTE - OFERECE CADASTRAR
+        this.procedimentoEncontrado = false;
+
+        Swal.fire({
+          title: 'Procedimento não encontrado',
+          text: 'Este procedimento não está cadastrado. Deseja cadastrá-lo agora?',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Sim, cadastrar',
+          cancelButtonText: 'Continuar sem procedimento'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.cadastrarProcedimento();
+          } else {
+            this.procedimentoVinculado = null;
+            this.irParaFormulario();
+          }
+        });
+      }
+    },
+    error: (err: any) => {
+      console.error('Erro ao verificar:', err);
+      this.loadingProcedimentos = false;
+      Swal.fire('Erro', 'Erro ao verificar procedimento.', 'error');
+    }
+  });
+}
   cadastrarProcedimento(): void {
     const { tipo_procedimento_id, numero, ano } = this.buscaProcedimentoForm.value;
 
@@ -434,45 +473,70 @@ ngOnInit(): void {
     this.secoesAbertas[secao] = true;
   }
 
-  loadOcorrencia(id: number): void {
+loadOcorrencia(id: number): void {
   this.isLoading = true;
   this.ocorrenciaService.getById(id).subscribe({
     next: (ocorrencia: any) => {
-      // Validações de permissão (mantenha como está)
-      if (ocorrencia.esta_finalizada && !this.authService.isSuperAdmin()) {
-        Swal.fire({
-          title: 'Ocorrência Finalizada',
-          text: 'Esta ocorrência está finalizada e não pode ser editada.',
-          icon: 'warning',
-          confirmButtonText: 'Voltar'
-        }).then(() => {
-          this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
-        });
-        return;
-      }
-
       const user = this.authService.getCurrentUser();
       const isAdminOrSuper = this.authService.isSuperAdmin() || user?.perfil === 'ADMINISTRATIVO';
 
-      if (ocorrencia.perito_atribuido && !isAdminOrSuper) {
-        if (user?.id !== ocorrencia.perito_atribuido.id) {
+      // VERIFICAÇÃO 1: Se foi REABERTA, pode editar (ignora finalização)
+      if (ocorrencia.reaberta_por) {
+        // Só valida se é o perito responsável (se houver perito atribuído)
+        if (ocorrencia.perito_atribuido && !isAdminOrSuper) {
+          if (Number(user?.id) !== Number(ocorrencia.perito_atribuido.id)) {
+            Swal.fire({
+              title: 'Acesso Negado',
+              text: 'Esta ocorrência está atribuída a outro perito.',
+              icon: 'error',
+              confirmButtonText: 'Voltar'
+            }).then(() => {
+              this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+            });
+            return;
+          }
+        }
+        // Se passou, continua carregando normalmente
+      } else {
+        // VERIFICAÇÃO 2: Se NÃO foi reaberta, verifica se está finalizada
+        const jaFinalizada = ocorrencia.esta_finalizada === true ||
+                             !!ocorrencia.finalizada_por ||
+                             !!ocorrencia.data_finalizacao;
+
+        if (jaFinalizada && !this.authService.isSuperAdmin()) {
           Swal.fire({
-            title: 'Acesso Negado',
-            text: 'Esta ocorrência está atribuída a outro perito.',
-            icon: 'error',
+            title: 'Ocorrência Finalizada',
+            text: 'Esta ocorrência está finalizada e não pode ser editada.',
+            icon: 'warning',
             confirmButtonText: 'Voltar'
           }).then(() => {
             this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
           });
           return;
         }
+
+        // VERIFICAÇÃO 3: Valida permissão de perito (se não for finalizada)
+        if (ocorrencia.perito_atribuido && !isAdminOrSuper) {
+          if (Number(user?.id) !== Number(ocorrencia.perito_atribuido.id)) {
+            Swal.fire({
+              title: 'Acesso Negado',
+              text: 'Esta ocorrência está atribuída a outro perito.',
+              icon: 'error',
+              confirmButtonText: 'Voltar'
+            }).then(() => {
+              this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+            });
+            return;
+          }
+        }
       }
 
-      // ===== CARREGAR DROPDOWNS PRIMEIRO =====
+      // ===== CARREGAR DROPDOWNS =====
       this.loadUnidades();
       this.loadCargos();
       this.loadCidades();
       this.loadClassificacoes();
+      this.loadPeritos();
 
       // ===== AUTORIDADE: Carregar cargo e autoridades =====
       if (ocorrencia.autoridade) {
@@ -480,11 +544,9 @@ ngOnInit(): void {
         this.autoridadeSelecionada = ocorrencia.autoridade;
         this.autoridadeBusca = ocorrencia.autoridade.nome;
 
-        // Carregar autoridades deste cargo
-        this.autoridadeService.getAll('', this.cargoSelecionado).subscribe({
+        this.autoridadeService.getAll('', this.cargoSelecionado ?? undefined).subscribe({
           next: (response: any) => {
             this.autoridades = response.results || [];
-            console.log('✅ Autoridades carregadas:', this.autoridades);
           },
           error: (err: any) => console.error('Erro ao carregar autoridades:', err)
         });
@@ -528,37 +590,43 @@ ngOnInit(): void {
     }
   });
 }
-  abrirModalExames(): void {
-    const servicoId = this.ocorrenciaForm.get('servico_pericial_id')?.value;
-    if (!servicoId) {
-      Swal.fire('Atenção', 'Selecione primeiro o serviço pericial.', 'warning');
-      return;
+  modalExamesAberto = false;
+
+abrirModalExames(): void {
+  console.log('🔵 CLICOU EM ADICIONAR EXAMES');
+
+  const servicoId = this.ocorrenciaForm.get('servico_pericial_id')?.value;
+
+  console.log('🔍 Serviço ID:', servicoId);
+
+  if (!servicoId) {
+    console.log('❌ SEM SERVIÇO SELECIONADO');
+    Swal.fire('Atenção', 'Selecione primeiro o serviço pericial.', 'warning');
+    return;
+  }
+
+  console.log('✅ Buscando exames...');
+
+  this.exameService.getAll(servicoId).subscribe({
+    next: (exames: Exame[]) => {
+      console.log('📋 Exames recebidos:', exames);
+      console.log('📋 Quantidade:', exames.length);
+      this.examesDisponiveis = exames;
+      console.log('🔵 Abrindo modal...');
+      this.modalExamesAberto = true;
+      console.log('🔵 modalExamesAberto:', this.modalExamesAberto);
+    },
+    error: (err: any) => {
+      console.error('❌ Erro ao carregar exames:', err);
+      Swal.fire('Erro', 'Não foi possível carregar os exames.', 'error');
     }
+  });
+}
 
-    this.exameService.getAll(servicoId).subscribe({
-      next: (exames: Exame[]) => {
-        this.examesDisponiveis = exames;
-        this.mostrarSelecaoExames();
-      },
-      error: (err: any) => {
-        console.error('Erro:', err);
-      }
-    });
-  }
-
-  mostrarSelecaoExames(): void {
-    const examesHtml = this.examesDisponiveis
-      .map(e => `<div><input type="checkbox" id="exame-${e.id}" value="${e.id}"> ${e.codigo} - ${e.nome}</div>`)
-      .join('');
-
-    Swal.fire({
-      title: 'Selecionar Exames',
-      html: examesHtml,
-      showCancelButton: true,
-      confirmButtonText: 'Confirmar',
-      width: '600px'
-    });
-  }
+onExamesConfirmados(exames: Exame[]): void {
+  this.examesSelecionados = exames;
+  this.modalExamesAberto = false;
+}
 
   removerExame(exame: Exame): void {
     this.examesSelecionados = this.examesSelecionados.filter(e => e.id !== exame.id);

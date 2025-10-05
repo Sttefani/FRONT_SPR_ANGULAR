@@ -203,4 +203,7 @@ export class ProcedimentosCadastradosListComponent implements OnInit {
     if (!fullName) return 'N/D';
     return fullName.split(' ')[0];
   }
+  verDetalhes(id: number): void {
+  this.router.navigate(['/gabinete-virtual/cadastros/procedimentos-cadastrados', id]);
+}
 }

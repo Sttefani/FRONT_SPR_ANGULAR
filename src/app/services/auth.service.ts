@@ -71,7 +71,8 @@ export class AuthService {
         email: payload.email || '',
         perfil: payload.perfil || 'PERITO',
         deve_alterar_senha: payload.deve_alterar_senha || false,
-        is_superuser: payload.is_superuser || false
+        is_superuser: payload.is_superuser || false,
+        servicos_periciais: payload.servicos_periciais || [] // ← ADICIONAR
       };
       this.currentUserSubject.next(userData);
     } catch (error) {
@@ -79,9 +80,9 @@ export class AuthService {
       this.logout();
     }
   } else {
-    // GARANTIR QUE EMITE NULL SE NÃO TEM TOKEN
     this.currentUserSubject.next(null);
   }
+
 }
 
  login(credentials: LoginRequest): Observable<LoginResponse> {
@@ -101,7 +102,8 @@ export class AuthService {
             email: payload.email || credentials.email,
             perfil: payload.perfil || 'PERITO',
             deve_alterar_senha: payload.deve_alterar_senha || false,
-            is_superuser: payload.is_superuser || false  // ← LINHA ADICIONADA
+            is_superuser: payload.is_superuser || false,
+            servicos_periciais: payload.servicos_periciais || [] // ← ADICIONAR
           };
 
           // Atualiza o usuário atual

@@ -73,4 +73,8 @@ export class ClassificacaoOcorrenciaService {
   restaurar(id: number): Observable<ClassificacaoOcorrencia> {
     return this.http.post<ClassificacaoOcorrencia>(`${this.baseUrl}/classificacoes/${id}/restaurar/`, {});
   }
+
+  getAllForDropdown(): Observable<any[]> {
+  return this.http.get<any[]>(`${this.baseUrl}/classificacoes/dropdown/`);  // ✅ CORRETO
+}
 }

@@ -36,29 +36,28 @@ export class UsuarioServicosComponent implements OnInit {
   }
 
   loadData(userId: number): void {
-    this.isLoading = true;
+  this.isLoading = true;
 
-    Promise.all([
-      this.usuarioService.getUserById(userId).toPromise(),
-      this.servicoPericialService.getAll().toPromise()
-    ]).then(([user, servicosResponse]) => {
-      this.user = user!;
-      this.servicos = servicosResponse!.results;
+  Promise.all([
+    this.usuarioService.getUserById(userId).toPromise(),
+    this.servicoPericialService.getAllForDropdown().toPromise() // ← MUDANÇA AQUI
+  ]).then(([user, servicosArray]) => { // ← E AQUI
+    this.user = user!;
+    this.servicos = servicosArray || []; // ← E AQUI (já é array direto)
 
-      // Marca os serviços já vinculados
-      this.servicosSelecionados = new Set(
-        this.user.servicos_periciais?.map(s => s.id) || []
-      );
+    // Marca os serviços já vinculados
+    this.servicosSelecionados = new Set(
+      this.user.servicos_periciais?.map(s => s.id) || []
+    );
 
-      this.isLoading = false;
-    }).catch((err: any) => {
-      console.error('Erro ao carregar dados:', err);
-      this.message = 'Erro ao carregar dados.';
-      this.messageType = 'error';
-      this.isLoading = false;
-    });
-  }
-
+    this.isLoading = false;
+  }).catch((err: any) => {
+    console.error('Erro ao carregar dados:', err);
+    this.message = 'Erro ao carregar dados.';
+    this.messageType = 'error';
+    this.isLoading = false;
+  });
+}
   get servicosFiltrados(): ServicoPericial[] {
     if (!this.searchTerm.trim()) {
       return this.servicos;

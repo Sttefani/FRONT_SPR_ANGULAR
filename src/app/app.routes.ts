@@ -208,6 +208,11 @@ export const routes: Routes = [
         canActivate: [AuthGuard]
       },
       {
+        path: 'cadastros/procedimentos-cadastrados/:id',
+        loadComponent: () => import('./pages/procedimentos-detalhes/procedimentos-detalhes.component').then(m => m.ProcedimentosDetalhesComponent),
+        canActivate: [AuthGuard]
+      },
+      {
         path: 'cadastros/classificacoes',
         loadComponent: () => import('./pages/classificacoes-list/classificacoes-list.component').then(m => m.ClassificacoesListComponent),
         canActivate: [AuthGuard]

@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OcorrenciaService, Ocorrencia } from '../../services/ocorrencia.service';
 import { AuthService } from '../../services/auth.service';
+import { ProcedimentoService } from '../../services/procedimento.service'; // ← ADICIONAR
+import { ProcedimentoCadastradoService } from '../../services/procedimento-cadastrado.service'; // ← ADICIONAR
 import Swal from 'sweetalert2';
 
 @Component({
@@ -26,11 +28,15 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   isOperacional = false;
   currentUserId: number | null = null;
 
+  tiposProcedimento: any[] = []; // ← ADICIONAR
+
   constructor(
     private ocorrenciaService: OcorrenciaService,
     private authService: AuthService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private procedimentoService: ProcedimentoService, // ← ADICIONAR
+    private procedimentoCadastradoService: ProcedimentoCadastradoService // ← ADICIONAR
   ) {}
 
   ngOnInit(): void {
@@ -45,6 +51,7 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     if (id) {
       this.ocorrenciaId = Number(id);
       this.loadOcorrencia(this.ocorrenciaId);
+      this.loadTiposProcedimento(); // ← ADICIONAR
     }
   }
 
@@ -64,14 +71,148 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     });
   }
 
+  // ========== MÉTODOS NOVOS PARA PROCEDIMENTO ==========
+
+  loadTiposProcedimento(): void {
+    this.procedimentoService.getAllForDropdown().subscribe({
+      next: (data) => {
+        this.tiposProcedimento = data;
+      },
+      error: (err) => console.error('Erro ao carregar tipos:', err)
+    });
+  }
+
+  abrirModalVincularProcedimento(): void {
+    Swal.fire({
+      title: 'Vincular Procedimento',
+      html: `
+        <div style="text-align: left; padding: 10px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Procedimento *</label>
+          <select id="swal-tipo" class="swal2-input" style="width: 100%; margin-bottom: 15px;">
+            <option value="">Selecione</option>
+            ${this.tiposProcedimento.map(t => `<option value="${t.id}">${t.sigla} - ${t.nome}</option>`).join('')}
+          </select>
+
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Número *</label>
+          <input id="swal-numero" class="swal2-input" placeholder="Ex: 123" style="width: 100%; margin-bottom: 15px;">
+
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Ano *</label>
+          <input id="swal-ano" type="number" class="swal2-input" value="${new Date().getFullYear()}" style="width: 100%;">
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Buscar',
+      cancelButtonText: 'Cancelar',
+      width: '500px',
+      preConfirm: () => {
+        const tipo = (document.getElementById('swal-tipo') as HTMLSelectElement).value;
+        const numero = (document.getElementById('swal-numero') as HTMLInputElement).value;
+        const ano = (document.getElementById('swal-ano') as HTMLInputElement).value;
+
+        if (!tipo || !numero || !ano) {
+          Swal.showValidationMessage('Preencha todos os campos');
+          return false;
+        }
+
+        return { tipo: Number(tipo), numero, ano: Number(ano) };
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.buscarEVincularProcedimento(result.value);
+      }
+    });
+  }
+
+  buscarEVincularProcedimento(dados: any): void {
+    this.procedimentoCadastradoService.verificarExistente(dados.tipo, dados.numero, dados.ano).subscribe({
+      next: (response: any) => {
+        if (response.exists) {
+          Swal.fire({
+            title: 'Procedimento Encontrado',
+            html: `
+              <p>Vincular este procedimento à ocorrência?</p>
+              <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                <strong>${response.procedimento.tipo_procedimento.sigla}</strong><br>
+                Nº ${response.procedimento.numero}/${response.procedimento.ano}
+              </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, vincular',
+            cancelButtonText: 'Cancelar'
+          }).then((confirmResult) => {
+            if (confirmResult.isConfirmed) {
+              this.vincularProcedimento(response.procedimento.id);
+            }
+          });
+        } else {
+          Swal.fire({
+            title: 'Procedimento não encontrado',
+            text: 'Este procedimento não existe no sistema. Cadastre-o primeiro.',
+            icon: 'warning',
+            confirmButtonText: 'Ok'
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Erro ao buscar:', err);
+        Swal.fire('Erro', 'Erro ao buscar procedimento.', 'error');
+      }
+    });
+  }
+
+  vincularProcedimento(procedimentoId: number): void {
+    this.ocorrenciaService.vincularProcedimento(this.ocorrenciaId!, procedimentoId).subscribe({
+      next: () => {
+        Swal.fire('Sucesso!', 'Procedimento vinculado.', 'success');
+        this.loadOcorrencia(this.ocorrenciaId!);
+      },
+      error: (err) => {
+        const errorMsg = err.error?.error || 'Erro ao vincular procedimento';
+        Swal.fire('Erro', errorMsg, 'error');
+      }
+    });
+  }
+
+  desvincularProcedimento(): void {
+    Swal.fire({
+      title: 'Confirmar Desvinculação',
+      text: 'Tem certeza que deseja desvincular este procedimento?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, desvincular',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.ocorrenciaService.update(this.ocorrenciaId!, { procedimento_cadastrado_id: null }).subscribe({
+          next: () => {
+            Swal.fire('Desvinculado', 'Procedimento removido.', 'success');
+            this.loadOcorrencia(this.ocorrenciaId!);
+          },
+          error: (err) => {
+            Swal.fire('Erro', 'Erro ao desvincular.', 'error');
+          }
+        });
+      }
+    });
+  }
+
+
  onEditar(): void {
   if (!this.ocorrencia || !this.ocorrenciaId) return;
 
+  // SE FOI REABERTA, pode editar diretamente
+  if (this.ocorrencia.reaberta_por) {
+    this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', this.ocorrenciaId, 'editar']);
+    return;
+  }
+
+  // Verifica se está finalizada
   const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
                        !!this.ocorrencia.finalizada_por ||
                        !!this.ocorrencia.data_finalizacao;
 
-  // Verifica se está finalizada
   if (jaFinalizada) {
     Swal.fire({
       title: 'Ocorrência Finalizada',
@@ -91,20 +232,25 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     return;
   }
 
-  // Verifica se administrativo está tentando editar ocorrência com perito atribuído
+  // Verifica permissão para editar
   if (this.isAdministrativo && this.ocorrencia.perito_atribuido) {
-    Swal.fire({
-      title: 'Acesso Negado',
-      text: 'Esta ocorrência está atribuída a um perito. Somente o perito responsável pode editá-la.',
-      icon: 'error',
-      confirmButtonText: 'Ok'
-    });
-    return;
+    const user = this.authService.getCurrentUser();
+    // Administrativo NÃO pode editar se tem perito atribuído (exceto super admin)
+    if (Number(user?.id) !== Number(this.ocorrencia.perito_atribuido.id)) {
+      Swal.fire({
+        title: 'Acesso Negado',
+        html: `Esta ocorrência está atribuída ao perito <strong>${this.ocorrencia.perito_atribuido.nome_completo}</strong>.<br>Somente o perito responsável ou o administrador do sistema pode editá-la.`,
+        icon: 'error',
+        confirmButtonText: 'Ok'
+      });
+      return;
+    }
   }
 
   // Navega para edição
   this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', this.ocorrenciaId, 'editar']);
 }
+
   onVoltar(): void {
     this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
   }
@@ -268,13 +414,28 @@ export class OcorrenciasDetalhesComponent implements OnInit {
 podeEditar(): boolean {
   if (!this.ocorrencia) return false;
 
-  // SE FOI REABERTA, pode editar (reseta a finalização)
+  console.log('🔍 DEBUG podeEditar:');
+  console.log('- isPerito:', this.isPerito);
+  console.log('- currentUserId:', this.currentUserId);
+  console.log('- perito_atribuido:', this.ocorrencia.perito_atribuido);
+  console.log('- esta_finalizada:', this.ocorrencia.esta_finalizada);
+  console.log('- isSuperAdmin:', this.isSuperAdmin);
+
+  // SE FOI REABERTA, pode editar
   if (this.ocorrencia.reaberta_por) {
+    console.log('✅ Foi reaberta');
     if (this.isSuperAdmin) return true;
 
     if (this.ocorrencia.perito_atribuido) {
       const user = this.authService.getCurrentUser();
-      return user?.id === this.ocorrencia.perito_atribuido.id;
+      console.log('🔍 User:', user);
+      console.log('🔍 user.id:', user?.id, 'tipo:', typeof user?.id);
+      console.log('🔍 perito.id:', this.ocorrencia.perito_atribuido.id, 'tipo:', typeof this.ocorrencia.perito_atribuido.id);
+
+      const resultado = Number(user?.id) === Number(this.ocorrencia.perito_atribuido.id);
+      console.log('✅ Reaberta - comparando:', Number(user?.id), '===', Number(this.ocorrencia.perito_atribuido.id));
+      console.log('✅ Reaberta - pode editar?', resultado);
+      return resultado;
     }
 
     return this.isPerito || this.isOperacional;
@@ -285,21 +446,38 @@ podeEditar(): boolean {
                        !!this.ocorrencia.finalizada_por ||
                        !!this.ocorrencia.data_finalizacao;
 
+  console.log('- jaFinalizada:', jaFinalizada);
+  console.log('- finalizada_por:', this.ocorrencia.finalizada_por);
+  console.log('- data_finalizacao:', this.ocorrencia.data_finalizacao);
+
   if (jaFinalizada) {
+    console.log('❌ Não pode editar: está finalizada');
     return false;
   }
 
-  if (this.isSuperAdmin) return true;
-
-  if (this.ocorrencia.perito_atribuido) {
-    const user = this.authService.getCurrentUser();
-    return user?.id === this.ocorrencia.perito_atribuido.id;
+  if (this.isSuperAdmin) {
+    console.log('✅ Pode editar: super admin');
+    return true;
   }
 
-  return this.isPerito || this.isOperacional;
+  // Verifica se tem perito atribuído
+  if (this.ocorrencia.perito_atribuido) {
+    const user = this.authService.getCurrentUser();
+    console.log('🔍 User:', user);
+    console.log('🔍 user.id:', user?.id, 'tipo:', typeof user?.id);
+    console.log('🔍 perito.id:', this.ocorrencia.perito_atribuido.id, 'tipo:', typeof this.ocorrencia.perito_atribuido.id);
+
+    const resultado = Number(user?.id) === Number(this.ocorrencia.perito_atribuido.id);
+    console.log('✅ Tem perito - comparando:', Number(user?.id), '===', Number(this.ocorrencia.perito_atribuido.id));
+    console.log('✅ Resultado:', resultado);
+    return resultado;
+  }
+
+  // Sem perito atribuído
+  const resultadoFinal = this.isPerito || this.isOperacional;
+  console.log('✅ Sem perito - resultado final:', resultadoFinal);
+  return resultadoFinal;
 }
-
-
 podeFinalizar(): boolean {
   if (!this.ocorrencia) return false;
 
@@ -348,4 +526,22 @@ podeFinalizar(): boolean {
     };
     return classes[status] || '';
   }
+
+  podeGerenciarProcedimento(): boolean {
+  if (!this.ocorrencia) return false;
+
+  // Super admin pode tudo
+  if (this.isSuperAdmin) return true;
+
+  // Administrativo pode gerenciar
+  if (this.isAdministrativo) return true;
+
+  // Perito atribuído pode gerenciar sua própria ocorrência
+  if (this.ocorrencia.perito_atribuido) {
+    const user = this.authService.getCurrentUser();
+    return user?.id === this.ocorrencia.perito_atribuido.id;
+  }
+
+  return false;
+}
 }

@@ -1,35 +1,209 @@
-<div class="welcome-section">
-  <h1>Bem-vindo, {{ getFirstName(currentUser?.nome_completo) }}!</h1>
-  <p class="user-role">{{ currentUser?.perfil }}</p>
-</div>
-
-<div class="content-area">
-  <div class="info-card">
-    <h2>Sistema SPR-Criminalística</h2>
-    <p>Selecione uma opção no menu lateral para acessar os módulos do sistema.</p>
-
-    <div class="permissions-info">
-      <h4>Suas Permissões:</h4>
-      <ul>
-        @if (isSuperAdmin()) {
-          <li>✅ Acesso total ao sistema</li>
-          <li>✅ Gestão de usuários</li>
-          <li>✅ Aprovação e configuração</li>
-        } @else {
-          <li>✅ Cadastros administrativos (criar/editar)</li>
-          <li>✅ Operações do seu serviço pericial</li>
-          @if (isPerito()) {
-            <li>✅ Ocorrências atribuídas a você</li>
-          }
-        }
-      </ul>
-    </div>
-
-    <div class="system-info">
-      <small>
-        <strong>Versão:</strong> 1.0.1<br>
-        <strong>Data:</strong> {{ today | date:'dd/MM/yyyy' }}
-      </small>
-    </div>
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="welcome-section">
+    <h1>Bem-vindo, {{ getFirstName(currentUser?.nome_completo) }}!</h1>
+    <p class="user-role">{{ currentUser?.perfil }}</p>
   </div>
+
+  <!-- Filtro de Serviço (para todos os perfis) -->
+  @if (mostrarFiltroServico()) {
+    <div class="filtro-servico">
+      <label>Filtrar por Serviço:</label>
+      <select [(ngModel)]="servicoSelecionado" (change)="onServicoChange()">
+        <option [value]="null">
+          @if (isPerito()) {
+            Todos os Meus Serviços
+          } @else {
+            Todos os Serviços
+          }
+        </option>
+        @for (servico of servicosDisponiveis; track servico.id) {
+          <option [value]="servico.id">{{ servico.sigla }} - {{ servico.nome }}</option>
+        }
+      </select>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="loading">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando estatísticas...</p>
+    </div>
+  }
+
+  <!-- Estatísticas PERITO -->
+  @if (!isLoading && isPerito() && estatisticas) {
+    <div class="stats-grid">
+      <!-- Total -->
+      <div class="stat-card primary">
+        <div class="stat-icon">📋</div>
+        <div class="stat-content">
+          <h3>Minhas Ocorrências</h3>
+          <p class="stat-number">{{ estatisticas.minhas_ocorrencias.total }}</p>
+        </div>
+      </div>
+
+      <!-- Em Análise -->
+      <div class="stat-card warning">
+        <div class="stat-icon">🔍</div>
+        <div class="stat-content">
+          <h3>Em Análise</h3>
+          <p class="stat-number">{{ estatisticas.minhas_ocorrencias.em_analise }}</p>
+        </div>
+      </div>
+
+      <!-- Finalizadas -->
+      <div class="stat-card success">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3>Finalizadas</h3>
+          <p class="stat-number">{{ estatisticas.minhas_ocorrencias.finalizadas }}</p>
+          <small>{{ estatisticas.minhas_ocorrencias.taxa_finalizacao }}% de conclusão</small>
+        </div>
+      </div>
+
+      <!-- Atrasadas -->
+      <div class="stat-card danger">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-content">
+          <h3>Atrasadas</h3>
+          <p class="stat-number">{{ estatisticas.minhas_ocorrencias.atrasadas }}</p>
+          <small>Mais de 20 dias</small>
+        </div>
+      </div>
+
+      <!-- Finalizadas este mês -->
+      <div class="stat-card info">
+        <div class="stat-icon">📅</div>
+        <div class="stat-content">
+          <h3>Finalizadas este Mês</h3>
+          <p class="stat-number">{{ estatisticas.minhas_ocorrencias.finalizadas_este_mes }}</p>
+        </div>
+      </div>
+
+      <!-- Participação no Serviço -->
+      <div class="stat-card secondary">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <h3>Minha Participação</h3>
+          <p class="stat-number">{{ estatisticas.servico.minha_participacao }}%</p>
+          <small>Do total do serviço ({{ estatisticas.servico.total_geral }} ocorrências)</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Últimas Ocorrências -->
+    @if (estatisticas.ultimas_ocorrencias && estatisticas.ultimas_ocorrencias.length > 0) {
+      <div class="recent-section">
+        <h2>Últimas Ocorrências</h2>
+        <div class="recent-list">
+          @for (ocorrencia of estatisticas.ultimas_ocorrencias; track ocorrencia.id) {
+            <div class="recent-item">
+              <strong>{{ ocorrencia.numero_ocorrencia }}</strong>
+              <span class="badge" [ngClass]="'badge-' + ocorrencia.status.toLowerCase()">
+                {{ ocorrencia.status }}
+              </span>
+              <small>{{ ocorrencia.created_at | date:'dd/MM/yyyy' }}</small>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Estatísticas ADMIN/OPERACIONAL -->
+  @if (!isLoading && isAdminOrOperacional() && estatisticas) {
+    <div class="stats-grid">
+      <!-- Total Geral -->
+      <div class="stat-card primary">
+        <div class="stat-icon">📋</div>
+        <div class="stat-content">
+          <h3>Total de Ocorrências</h3>
+          <p class="stat-number">{{ estatisticas.geral.total }}</p>
+        </div>
+      </div>
+
+      <!-- Aguardando Perito -->
+      <div class="stat-card info">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-content">
+          <h3>Aguardando Perito</h3>
+          <p class="stat-number">{{ estatisticas.geral.aguardando }}</p>
+        </div>
+      </div>
+
+      <!-- Em Análise -->
+      <div class="stat-card warning">
+        <div class="stat-icon">🔍</div>
+        <div class="stat-content">
+          <h3>Em Análise</h3>
+          <p class="stat-number">{{ estatisticas.geral.em_analise }}</p>
+        </div>
+      </div>
+
+      <!-- Finalizadas -->
+      <div class="stat-card success">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3>Finalizadas</h3>
+          <p class="stat-number">{{ estatisticas.geral.finalizadas }}</p>
+        </div>
+      </div>
+
+      <!-- Sem Perito -->
+      <div class="stat-card secondary">
+        <div class="stat-icon">👤</div>
+        <div class="stat-content">
+          <h3>Sem Perito</h3>
+          <p class="stat-number">{{ estatisticas.geral.sem_perito }}</p>
+        </div>
+      </div>
+
+      <!-- Atrasadas -->
+      <div class="stat-card danger">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-content">
+          <h3>Atrasadas</h3>
+          <p class="stat-number">{{ estatisticas.geral.atrasadas }}</p>
+          <small>Mais de 20 dias</small>
+        </div>
+      </div>
+
+      <!-- Finalizadas este mês -->
+      <div class="stat-card info">
+        <div class="stat-icon">📅</div>
+        <div class="stat-content">
+          <h3>Finalizadas este Mês</h3>
+          <p class="stat-number">{{ estatisticas.geral.finalizadas_este_mes }}</p>
+        </div>
+      </div>
+
+      <!-- Últimos 30 dias -->
+      <div class="stat-card highlight">
+        <div class="stat-icon">📈</div>
+        <div class="stat-content">
+          <h3>Últimos 30 Dias</h3>
+          <p class="stat-number">{{ estatisticas.ultimos_30_dias.criadas }}</p>
+          <small>{{ estatisticas.ultimos_30_dias.finalizadas }} finalizadas</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Por Serviço -->
+    @if (estatisticas.por_servico && estatisticas.por_servico.length > 0) {
+      <div class="recent-section">
+        <h2>Top 5 Serviços</h2>
+        <div class="servico-list">
+          @for (servico of estatisticas.por_servico; track $index) {
+            <div class="servico-item">
+              <span class="servico-sigla">{{ servico.servico_pericial__sigla }}</span>
+              <span class="servico-nome">{{ servico.servico_pericial__nome }}</span>
+              <span class="servico-total">{{ servico.total }} ocorrências</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
 </div>

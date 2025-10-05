@@ -1,0 +1,49 @@
+<div class="container">
+  <div class="header-detalhes">
+    <button class="btn-back" (click)="voltar()">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </button>
+    <h1>Detalhes do Procedimento</h1>
+  </div>
+
+  @if (procedimento) {
+    <div class="info-card">
+      <h2>{{ procedimento.tipo }} {{ procedimento.numero }}/{{ procedimento.ano }}</h2>
+      <p><strong>Total de Ocorrências:</strong> {{ totalOcorrencias }}</p>
+    </div>
+
+    <div class="ocorrencias-list">
+      <h3>Ocorrências Vinculadas</h3>
+      @if (ocorrencias.length > 0) {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Status</th>
+              <th>Perito</th>
+              <th>Data Fato</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (oc of ocorrencias; track oc.id) {
+              <tr>
+                <td>{{ oc.numero_ocorrencia }}</td>
+                <td><span class="badge" [ngClass]="getStatusClass(oc.status)">{{ oc.status }}</span></td>
+                <td>{{ oc.perito_atribuido?.nome_completo || 'Não atribuído' }}</td>
+                <td>{{ oc.data_fato | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <button class="btn-view" (click)="verOcorrencia(oc.id)">
+                    <i class="bi bi-eye"></i> Ver
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="text-muted">Nenhuma ocorrência vinculada a este procedimento.</p>
+      }
+    </div>
+  }
+</div>

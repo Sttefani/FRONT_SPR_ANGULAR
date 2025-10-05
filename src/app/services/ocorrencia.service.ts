@@ -148,6 +148,16 @@ export class OcorrenciaService {
     return this.http.post<Ocorrencia>(`${this.baseUrl}/ocorrencias/${id}/restaurar/`, {});
   }
 
+ getEstatisticas(params?: any): Observable<any> {
+  return this.http.get(`${this.baseUrl}/ocorrencias/estatisticas/`, { params });
+}
+
+vincularProcedimento(ocorrenciaId: number, procedimentoId: number): Observable<any> {
+  return this.http.post(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/vincular_procedimento/`, {
+    procedimento_cadastrado_id: procedimentoId
+  });
+}
+
   imprimirPDF(id: number): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/ocorrencias/${id}/imprimir/`, {
       responseType: 'blob'

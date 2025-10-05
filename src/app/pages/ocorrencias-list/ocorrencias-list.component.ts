@@ -388,46 +388,17 @@ if (this.dataInicio && !this.dataFim) {
     this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', id]);
   }
 
-  onEdit(id: number): void {
-    const ocorrencia = this.ocorrencias.find(o => o.id === id);
-    if (!ocorrencia) return;
+onEdit(id: number): void {
+  const ocorrencia = this.ocorrencias.find(o => o.id === id);
+  if (!ocorrencia) return;
 
-    if (ocorrencia.esta_finalizada) {
-      Swal.fire({
-        title: 'Ocorrência Finalizada',
-        html: `
-          <p>A ocorrência <strong>${ocorrencia.numero_ocorrencia}</strong> está finalizada e não pode ser editada.</p>
-          <p>Solicite ao administrador do sistema que reabra a ocorrência.</p>
-        `,
-        icon: 'warning',
-        confirmButtonText: 'Entendi'
-      });
-      return;
-    }
-
-    if (ocorrencia.perito_atribuido && !this.isSuperAdmin) {
-      const user = this.authService.getCurrentUser();
-      if (user?.id !== ocorrencia.perito_atribuido.id) {
-        Swal.fire({
-          title: 'Acesso Negado',
-          html: `
-            <p>Esta ocorrência está atribuída ao perito <strong>${ocorrencia.perito_atribuido.nome_completo}</strong>.</p>
-            <p>Somente o perito responsável ou o administrador do sistema pode editá-la.</p>
-          `,
-          icon: 'error',
-          confirmButtonText: 'Entendi'
-        });
-        return;
-      }
-    }
-
+  // SE FOI REABERTA, ignora verificação de finalizada
+  if (ocorrencia.reaberta_por) {
+    // Verifica permissão normalmente
     if (!this.podeEditar(ocorrencia)) {
       Swal.fire({
         title: 'Acesso Negado',
-        html: `
-          <p>Você não tem permissão para editar esta ocorrência.</p>
-          <p>Entre em contato com o administrador do sistema.</p>
-        `,
+        text: 'Você não tem permissão para editar esta ocorrência.',
         icon: 'error',
         confirmButtonText: 'Entendi'
       });
@@ -435,8 +406,58 @@ if (this.dataInicio && !this.dataFim) {
     }
 
     this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', id, 'editar']);
+    return;
   }
 
+  // SE NÃO foi reaberta, verifica se está finalizada
+  const jaFinalizada = ocorrencia.esta_finalizada === true ||
+                       !!ocorrencia.finalizada_por ||
+                       !!ocorrencia.data_finalizacao;
+
+  if (jaFinalizada) {
+    Swal.fire({
+      title: 'Ocorrência Finalizada',
+      html: `
+        <p>A ocorrência <strong>${ocorrencia.numero_ocorrencia}</strong> está finalizada e não pode ser editada.</p>
+        <p>Solicite ao administrador do sistema que reabra a ocorrência.</p>
+      `,
+      icon: 'warning',
+      confirmButtonText: 'Entendi'
+    });
+    return;
+  }
+
+  // Verifica se tem perito atribuído - com Number() na comparação
+  if (ocorrencia.perito_atribuido && !this.isSuperAdmin) {
+    const user = this.authService.getCurrentUser();
+    // ← MUDANÇA AQUI: Number() nas duas partes
+    if (Number(user?.id) !== Number(ocorrencia.perito_atribuido.id)) {
+      Swal.fire({
+        title: 'Acesso Negado',
+        html: `
+          <p>Esta ocorrência está atribuída ao perito <strong>${ocorrencia.perito_atribuido.nome_completo}</strong>.</p>
+          <p>Somente o perito responsável ou o administrador do sistema pode editá-la.</p>
+        `,
+        icon: 'error',
+        confirmButtonText: 'Entendi'
+      });
+      return;
+    }
+  }
+
+  // Verificação final com podeEditar()
+  if (!this.podeEditar(ocorrencia)) {
+    Swal.fire({
+      title: 'Acesso Negado',
+      text: 'Você não tem permissão para editar esta ocorrência.',
+      icon: 'error',
+      confirmButtonText: 'Entendi'
+    });
+    return;
+  }
+
+  this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', id, 'editar']);
+}
   onDelete(ocorrencia: Ocorrencia): void {
     Swal.fire({
       title: 'Confirmar exclusão',
@@ -529,25 +550,34 @@ if (this.dataInicio && !this.dataFim) {
   }
 
   podeEditar(ocorrencia: Ocorrencia): boolean {
+  // SE FOI REABERTA, pode editar (não está mais finalizada)
+  if (ocorrencia.reaberta_por) {
+    if (this.isSuperAdmin) return true;
+
+    if (ocorrencia.perito_atribuido) {
+      const user = this.authService.getCurrentUser();
+      return Number(user?.id) === Number(ocorrencia.perito_atribuido.id);
+    }
+
+    return this.isPerito || this.isOperacional;
+  }
+
+  // SE NÃO FOI REABERTA, verifica se está finalizada
   const jaFinalizada = ocorrencia.esta_finalizada === true ||
                        !!ocorrencia.finalizada_por ||
                        !!ocorrencia.data_finalizacao;
 
-  // REGRA ABSOLUTA: Finalizada = NINGUÉM edita
   if (jaFinalizada) {
     return false;
   }
 
-  // Super admin sempre pode
   if (this.isSuperAdmin) return true;
 
-  // Tem perito atribuído: só o perito dono
   if (ocorrencia.perito_atribuido) {
     const user = this.authService.getCurrentUser();
-    return user?.id === ocorrencia.perito_atribuido.id;
+    return Number(user?.id) === Number(ocorrencia.perito_atribuido.id);
   }
 
-  // Sem perito: Operacional e Perito podem
   return this.isPerito || this.isOperacional;
 }
 }

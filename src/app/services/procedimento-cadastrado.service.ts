@@ -91,4 +91,15 @@ export class ProcedimentoCadastradoService {
 
   return this.http.get<any[]>(`${this.baseUrl}/procedimentos-cadastrados/`, { params });
 }
+verificarExistente(tipoProcedimentoId: number, numero: string, ano: number): Observable<any> {
+  const params = new HttpParams()
+    .set('tipo_procedimento_id', tipoProcedimentoId.toString())
+    .set('numero', numero.toUpperCase())
+    .set('ano', ano.toString());
+
+  return this.http.get<any>(`${this.baseUrl}/procedimentos-cadastrados/verificar_existente/`, { params });
+}
+getOcorrenciasVinculadas(procedimentoId: number): Observable<any> {
+  return this.http.get(`${this.baseUrl}/${procedimentoId}/ocorrencias_vinculadas/`);
+}
 }
