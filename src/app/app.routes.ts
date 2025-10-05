@@ -71,6 +71,16 @@ export const routes: Routes = [
       },
 
       // =====================================================================
+      // RELATÓRIOS GERENCIAIS (ADMIN & SUPERUSER)
+      // =====================================================================
+      {
+        path: 'relatorios-gerenciais',
+        loadComponent: () => import('./pages/relatorios-gerenciais/relatorios-gerenciais.component').then(m => m.RelatoriosGerenciaisComponent),
+        canActivate: [perfilGuard],
+        data: { requiredPerfis: ['ADMINISTRATIVO', 'SUPERUSER'] }
+      },
+
+      // =====================================================================
       // SERVIÇOS PERICIAIS
       // =====================================================================
       {

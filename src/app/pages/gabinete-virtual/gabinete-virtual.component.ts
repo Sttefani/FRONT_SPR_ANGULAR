@@ -1,14 +1,13 @@
 import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router'; // Imports para o roteamento
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from '../../components/header/header.component'; // Seus componentes de layout
+import { HeaderComponent } from '../../components/header/header.component';
 import { FooterComponent } from '../../components/footer/footer.component';
-import { AuthService } from '../../services/auth.service'; // Importamos para a função isSuperAdmin
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-gabinete-virtual',
   standalone: true,
-  // Adicionamos todos os módulos que o HTML do layout precisa
   imports: [
     CommonModule,
     RouterOutlet,
@@ -22,11 +21,14 @@ import { AuthService } from '../../services/auth.service'; // Importamos para a 
 })
 export class GabineteVirtualComponent {
 
-  // A única função que PRECISA ficar aqui é a isSuperAdmin(),
-  // porque o menu lateral (que está neste componente) a utiliza.
   constructor(private authService: AuthService) {}
 
   isSuperAdmin(): boolean {
     return this.authService.isSuperAdmin();
+  }
+
+  isGerencial(): boolean {
+    const user = this.authService.getCurrentUser();
+    return this.authService.isSuperAdmin() || user?.perfil === 'ADMINISTRATIVO';
   }
 }

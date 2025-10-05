@@ -48,6 +48,21 @@
           </div>
         }
 
+        <!-- Análise Gerencial (Só Admin e Super Admin) -->
+        @if (isGerencial()) {
+          <div class="nav-section">
+            <h4 class="nav-section-title">Análise Gerencial</h4>
+            <ul class="nav-list">
+              <li class="nav-item">
+                <a routerLink="/gabinete-virtual/relatorios-gerenciais" routerLinkActive="active" class="nav-link">
+                  <span class="nav-icon">📊</span>
+                  <span class="nav-text">Relatórios Gerenciais</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        }
+
         <!-- Cadastros Administrativos -->
         <div class="nav-section">
           <h4 class="nav-section-title">Cadastros Administrativos</h4>
@@ -75,7 +90,7 @@
                 <span class="nav-icon">🏢</span>
                 <span class="nav-text">Unidades Demandantes</span>
               </a>
-          </li>
+            </li>
             <li class="nav-item">
               <a routerLink="/gabinete-virtual/cadastros/procedimentos" routerLinkActive="active" class="nav-link">
                 <span class="nav-icon">📋</span>
@@ -94,6 +109,12 @@
               <a routerLink="/gabinete-virtual/cadastros/procedimentos-cadastrados" routerLinkActive="active" class="nav-link">
                 <span class="nav-icon">📁</span>
                 <span class="nav-text">Procedimentos Cadastrados</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a routerLink="/gabinete-virtual/cadastros/classificacoes" routerLinkActive="active" class="nav-link">
+                <span class="nav-icon">📚</span>
+                <span class="nav-text">Classificações</span>
               </a>
             </li>
             <li class="nav-item">
@@ -145,7 +166,6 @@
 
     <!-- Conteúdo Principal -->
     <div class="main-content-area">
-      <!-- Este é o portal onde as páginas (boas-vindas, aprovação, etc.) serão carregadas -->
       <router-outlet></router-outlet>
     </div>
   </div>

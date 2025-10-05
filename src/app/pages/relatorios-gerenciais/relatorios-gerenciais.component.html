@@ -1,0 +1,141 @@
+<div class="container">
+  <!-- CABEÇALHO DA PÁGINA -->
+  <div class="page-header">
+    <h1><i class="bi bi-bar-chart-line-fill"></i> Relatórios Gerenciais</h1>
+    <p>Análise de dados e estatísticas agregadas sobre as ocorrências do sistema.</p>
+  </div>
+
+  <!-- BARRA DE FILTROS COMPLETA -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label for="data_inicio">Data de Início</label>
+      <input type="date" id="data_inicio" [(ngModel)]="filtros.data_inicio">
+    </div>
+    <div class="filter-group">
+      <label for="data_fim">Data de Fim</label>
+      <input type="date" id="data_fim" [(ngModel)]="filtros.data_fim">
+    </div>
+    <div class="filter-group">
+      <label for="servicoFiltro">Serviço Pericial</label>
+      <select id="servicoFiltro" [(ngModel)]="filtros.servico_id">
+        <option [ngValue]="null">Todos</option>
+        @for (servico of servicosDisponiveis; track servico.id) { <option [value]="servico.id">{{ servico.sigla }}</option> }
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="cidadeFiltro">Cidade</label>
+      <select id="cidadeFiltro" [(ngModel)]="filtros.cidade_id">
+        <option [ngValue]="null">Todas</option>
+        @for (cidade of cidadesDisponiveis; track cidade.id) { <option [value]="cidade.id">{{ cidade.nome }}</option> }
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="peritoFiltro">Perito</label>
+      <select id="peritoFiltro" [(ngModel)]="filtros.perito_id">
+        <option [ngValue]="null">Todos</option>
+        @for (perito of peritosDisponiveis; track perito.id) { <option [value]="perito.id">{{ perito.nome_completo }}</option> }
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="classificacaoFiltro">Classificação (Grupo ou Subgrupo)</label>
+      <select id="classificacaoFiltro" [(ngModel)]="filtros.classificacao_id">
+        <option [ngValue]="null">Todas</option>
+        @for (c of classificacoesDisponiveis; track c.id) { <option [value]="c.id">{{ c.codigo }} - {{ c.nome }}</option> }
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" (click)="aplicarFiltros()">Aplicar Filtros</button>
+      <button class="btn-secondary" (click)="limparFiltros()">Limpar</button>
+    </div>
+  </div>
+
+  <!-- ESTADO DE CARREGAMENTO -->
+  @if (isLoading) {
+    <div class="loading-state"><i class="bi bi-hourglass-split"></i><p>Gerando relatórios...</p></div>
+  }
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  @if (!isLoading && relatorios) {
+    <!-- RELATÓRIO POR GRUPO PRINCIPAL -->
+    @if (relatorios.por_grupo_principal && relatorios.por_grupo_principal.length > 0) {
+      <div class="data-section">
+        <h2>Ocorrências por Grupo Principal</h2>
+        <table class="data-table">
+          <thead><tr><th>Grupo</th><th class="text-right">Total</th></tr></thead>
+          <tbody>
+            @for (item of relatorios.por_grupo_principal; track $index) {
+              <tr><td>{{ item.grupo_nome }}</td><td class="text-right">{{ item.total }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- RELATÓRIO POR CLASSIFICAÇÃO ESPECÍFICA -->
+    @if (relatorios.por_classificacao_especifica && relatorios.por_classificacao_especifica.length > 0) {
+      <div class="data-section">
+        <h2>Ocorrências por Classificação Específica</h2>
+        <table class="data-table">
+          <thead><tr><th>Código</th><th>Nome</th><th class="text-right">Total</th></tr></thead>
+          <tbody>
+            @for (item of relatorios.por_classificacao_especifica; track $index) {
+              <tr><td>{{ item.classificacao__codigo }}</td><td>{{ item.classificacao__nome }}</td><td class="text-right">{{ item.total }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- RELATÓRIO DE PRODUÇÃO POR PERITO -->
+    @if (relatorios.producao_por_perito && relatorios.producao_por_perito.length > 0) {
+      <div class="data-section">
+        <h2>Produção por Perito</h2>
+        <table class="data-table">
+          <thead><tr><th>Perito</th><th class="text-right">Total Atribuído</th><th class="text-right">Finalizadas</th><th class="text-right">Em Análise</th></tr></thead>
+          <tbody>
+            @for (item of relatorios.producao_por_perito; track $index) {
+              <tr><td>{{ item.nome_completo }}</td><td class="text-right">{{ item.total_ocorrencias }}</td><td class="text-right">{{ item.finalizadas }}</td><td class="text-right">{{ item.em_analise }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- RELATÓRIO DINÂMICO POR CIDADE -->
+    @if (relatorios.ocorrencias_por_cidade && relatorios.ocorrencias_por_cidade.dados.length > 0) {
+      <div class="data-section">
+        <h2>Ocorrências por Cidade (detalhado por Grupo Principal)</h2>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Cidade</th>
+                <th class="text-right">Total Geral</th>
+                @for (header of relatorios.ocorrencias_por_cidade.grupos_cabecalho; track $index) {
+                  <th class="text-right">{{ header }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of relatorios.ocorrencias_por_cidade.dados; track $index) {
+                <tr>
+                  <td>{{ item.cidade__nome || 'Não especificada' }}</td>
+                  <td class="text-right">{{ item.total }}</td>
+                  @for (header of relatorios.ocorrencias_por_cidade.grupos_cabecalho; track $index) {
+                    <td class="text-right">{{ item[getKeyForHeader(header)] || 0 }}</td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+  } @else if (!isLoading) {
+    <div class="empty-state">
+      <i class="bi bi-info-circle"></i>
+      <p>Nenhum dado encontrado para os filtros selecionados.</p>
+    </div>
+  }
+</div>

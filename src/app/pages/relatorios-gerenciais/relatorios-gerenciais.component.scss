@@ -1,0 +1,179 @@
+// Importa as variáveis de cor e estilo do seu padrão de design
+:host {
+  --primary-color: #DAA520;
+  --primary-color-dark: #B8860B;
+  --text-color-dark: #1a202c;
+  --text-color-light: #4a5568;
+  --background-color: #f7fafc;
+  --card-background-color: #ffffff;
+  --border-color: #e2e8f0;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ff9800;
+  --info-color: #3182ce;
+  --secondary-color: #6c757d;
+}
+
+// Container principal da página
+.container {
+  padding: 1.5rem;
+  background-color: var(--background-color);
+}
+
+// Cabeçalho da página
+.page-header {
+  margin-bottom: 2rem;
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-color-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    i {
+      color: var(--primary-color);
+    }
+  }
+  p {
+    color: var(--text-color-light);
+    margin-top: 0.5rem;
+  }
+}
+
+// --- INÍCIO DOS NOVOS ESTILOS PARA FILTROS ---
+.filters-bar {
+  background: var(--card-background-color);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end; // Alinha os botões com a base dos inputs
+  flex-wrap: wrap;
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1 1 180px; // Permite que os filtros se ajustem
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-color-light);
+      text-transform: uppercase;
+    }
+
+    select, input {
+      padding: 0.6rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background-color: var(--background-color);
+      width: 100%;
+    }
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 0.5rem;
+
+    button {
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: none;
+      transition: all 0.2s ease;
+
+      &.btn-primary {
+        background-color: var(--primary-color);
+        color: #000;
+        &:hover { background-color: var(--primary-color-dark); }
+      }
+      &.btn-secondary {
+        background-color: var(--secondary-color);
+        color: #fff;
+        &:hover { background-color: #5a6268; }
+      }
+    }
+  }
+}
+// --- FIM DOS NOVOS ESTILOS PARA FILTROS ---
+
+// Seção para uma tabela ou gráfico de dados
+.data-section {
+  background: var(--card-background-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-color-dark);
+    margin: 0 0 1.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+  }
+}
+
+// Tabela de dados
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    padding: 0.8rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-color-light);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  td {
+    padding: 1rem;
+    color: var(--text-color-dark);
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover {
+    background-color: var(--background-color);
+  }
+
+  .text-right {
+    text-align: right;
+  }
+}
+
+// Estados de carregamento e vazio
+.loading-state, .empty-state {
+  text-align: center;
+  padding: 4rem;
+  color: var(--text-color-light);
+  font-weight: 500;
+
+  i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+  }
+}
+
+.loading-state i {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+}

@@ -435,7 +435,9 @@
   gap: 0.3rem;
   justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; // ← MUDE de wrap para nowrap
+  white-space: nowrap; // ← ADICIONE
+  min-width: 140px;
 }
 
 .icon-btn {

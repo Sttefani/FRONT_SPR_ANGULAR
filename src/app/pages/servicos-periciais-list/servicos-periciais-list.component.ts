@@ -42,30 +42,42 @@ export class ServicosPericiaisListComponent implements OnInit {
     this.loadServicos();
   }
 
-  loadServicos(url?: string): void {
-    this.isLoading = true;
+ loadServicos(url?: string): void {
+  console.log('🔵 loadServicos CHAMADO', { url, searchTerm: this.searchTerm });
+  this.isLoading = true;
 
-    const request = url
-      ? this.servicoPericialService.getByUrl(url)
-      : this.servicoPericialService.getAll(this.searchTerm);
+  const request = url
+    ? this.servicoPericialService.getByUrl(url)
+    : this.servicoPericialService.getAll(this.searchTerm);
 
-    request.subscribe({
-      next: (response) => {
-        this.servicos = response.results;
+  request.subscribe({
+    next: (response: any) => {
+      console.log('🔵 Response recebido:', response);
+
+      // ← MUDANÇA: Se response já é array, usa direto. Se for objeto paginado, usa .results
+      if (Array.isArray(response)) {
+        this.servicos = response;
+        this.totalCount = response.length;
+        this.nextUrl = null;
+        this.previousUrl = null;
+      } else {
+        this.servicos = response.results || [];
         this.totalCount = response.count;
         this.nextUrl = response.next;
         this.previousUrl = response.previous;
-        this.isLoading = false;
-      },
-      error: (err: any) => {
-        console.error('Erro ao carregar serviços:', err);
-        this.message = 'Erro ao carregar serviços periciais.';
-        this.messageType = 'error';
-        this.servicos = [];
-        this.isLoading = false;
       }
-    });
-  }
+
+      this.isLoading = false;
+    },
+    error: (err: any) => {
+      console.error('Erro ao carregar serviços:', err);
+      this.message = 'Erro ao carregar serviços periciais.';
+      this.messageType = 'error';
+      this.servicos = [];
+      this.isLoading = false;
+    }
+  });
+}
 
   loadLixeira(): void {
     this.isLoadingLixeira = true;

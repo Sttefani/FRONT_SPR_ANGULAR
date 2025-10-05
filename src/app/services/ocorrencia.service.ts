@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { RelatoriosGerenciais } from '../interfaces/realatorios.interface';
 
 export interface Ocorrencia {
   id: number;
@@ -151,6 +152,19 @@ export class OcorrenciaService {
  getEstatisticas(params?: any): Observable<any> {
   return this.http.get(`${this.baseUrl}/ocorrencias/estatisticas/`, { params });
 }
+// --- MÉTODO MODIFICADO ---
+  getRelatoriosGerenciais(params?: any): Observable<RelatoriosGerenciais> { // <-- 2. MUDE O TIPO DE RETORNO
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.keys(params).forEach(key => {
+        if (params[key]) {
+          httpParams = httpParams.set(key, params[key]);
+        }
+      });
+    }
+    // 3. INFORME O TIPO PARA A REQUISIÇÃO HTTP
+    return this.http.get<RelatoriosGerenciais>(`${this.baseUrl}/ocorrencias/relatorios-gerenciais/`, { params: httpParams });
+  }
 
 vincularProcedimento(ocorrenciaId: number, procedimentoId: number): Observable<any> {
   return this.http.post(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/vincular_procedimento/`, {

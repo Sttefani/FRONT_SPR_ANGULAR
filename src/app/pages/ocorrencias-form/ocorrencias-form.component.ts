@@ -157,6 +157,8 @@ ngOnInit(): void {
       this.ocorrenciaId = Number(id);
       this.etapaAtual = 'formulario';
       this.loadOcorrencia(this.ocorrenciaId);
+    } else { this.isEditMode = false;
+      this.etapaAtual = 'procedimento-check';
     }
 
     this.loadInitialData();
@@ -475,6 +477,7 @@ loadPeritos(): void {
 
 loadOcorrencia(id: number): void {
   this.isLoading = true;
+  this.isEditMode = true; // ← ESTA LINHA DEVE EXISTIR
   this.ocorrenciaService.getById(id).subscribe({
     next: (ocorrencia: any) => {
       const user = this.authService.getCurrentUser();
@@ -570,15 +573,10 @@ loadOcorrencia(id: number): void {
         historico: ocorrencia.historico
       });
 
-      // Desabilitar campos não editáveis
-      this.ocorrenciaForm.get('data_fato')?.disable();
-      this.ocorrenciaForm.get('hora_fato')?.disable();
-
       this.examesSelecionados = ocorrencia.exames_solicitados || [];
       this.procedimentoVinculado = ocorrencia.procedimento_cadastrado || null;
 
       this.isLoading = false;
-
 
     },
     error: (err: any) => {
@@ -647,18 +645,22 @@ onExamesConfirmados(exames: Exame[]): void {
   const formValues = this.ocorrenciaForm.getRawValue();
   let payload: any; // Usamos 'any' para flexibilidade entre create e update
 
-  if (this.isEditMode) {
     // MODO DE EDIÇÃO: Envia apenas os campos permitidos pelo OcorrenciaUpdateSerializer
-    payload = {
-      historico: formValues.historico,
-      processo_sei_numero: formValues.processo_sei_numero,
-      numero_documento_origem: formValues.numero_documento_origem,
-      data_documento_origem: formValues.data_documento_origem || null,
-      tipo_documento_origem_id: formValues.tipo_documento_origem_id,
-      perito_atribuido_id: formValues.perito_atribuido_id,
-      exames_ids: this.examesSelecionados.map(e => e.id)
-      // CRUCIAL: NÃO ENVIAMOS 'procedimento_cadastrado_id' na edição!
-    };
+    if (this.isEditMode) {
+  // MODO DE EDIÇÃO: Campos editáveis
+  payload = {
+    classificacao_id: formValues.classificacao_id, // ← ADICIONE
+    unidade_demandante_id: formValues.unidade_demandante_id, // ← ADICIONE
+    autoridade_id: formValues.autoridade_id, // ← ADICIONE
+    cidade_id: formValues.cidade_id, // ← ADICIONE
+    historico: formValues.historico,
+    processo_sei_numero: formValues.processo_sei_numero,
+    numero_documento_origem: formValues.numero_documento_origem,
+    data_documento_origem: formValues.data_documento_origem || null,
+    tipo_documento_origem_id: formValues.tipo_documento_origem_id,
+    perito_atribuido_id: formValues.perito_atribuido_id,
+    exames_ids: this.examesSelecionados.map(e => e.id)
+  };
     console.log(' DADOS DE ATUALIZAÇÃO (PATCH) ENVIADOS PARA A API: ', payload);
 
   } else {
