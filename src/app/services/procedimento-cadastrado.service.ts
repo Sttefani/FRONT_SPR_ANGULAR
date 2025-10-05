@@ -100,6 +100,7 @@ verificarExistente(tipoProcedimentoId: number, numero: string, ano: number): Obs
   return this.http.get<any>(`${this.baseUrl}/procedimentos-cadastrados/verificar_existente/`, { params });
 }
 getOcorrenciasVinculadas(procedimentoId: number): Observable<any> {
-  return this.http.get(`${this.baseUrl}/${procedimentoId}/ocorrencias_vinculadas/`);
+  // A URL está correta, apontando para a sua @action personalizada
+  return this.http.get(`${this.baseUrl}/procedimentos-cadastrados/${procedimentoId}/ocorrencias_vinculadas/`);
 }
 }

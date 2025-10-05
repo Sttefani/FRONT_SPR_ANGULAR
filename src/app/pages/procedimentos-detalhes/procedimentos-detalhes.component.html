@@ -29,7 +29,7 @@
             @for (oc of ocorrencias; track oc.id) {
               <tr>
                 <td>{{ oc.numero_ocorrencia }}</td>
-                <td><span class="badge" [ngClass]="getStatusClass(oc.status)">{{ oc.status }}</span></td>
+                <td><span class="badge" [ngClass]="getStatusClass(oc.status)">{{ oc.status | statusFormat }}</span></td>
                 <td>{{ oc.perito_atribuido?.nome_completo || 'Não atribuído' }}</td>
                 <td>{{ oc.data_fato | date:'dd/MM/yyyy' }}</td>
                 <td>

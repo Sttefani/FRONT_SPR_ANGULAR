@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProcedimentoCadastradoService } from '../../services/procedimento-cadastrado.service';
+import { StatusFormatPipe } from '../../shared/pipes/status-format.pipe';
 
 @Component({
   selector: 'app-procedimentos-detalhes',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, StatusFormatPipe],
   templateUrl: './procedimentos-detalhes.component.html',
   styleUrls: ['./procedimentos-detalhes.component.scss']
 })

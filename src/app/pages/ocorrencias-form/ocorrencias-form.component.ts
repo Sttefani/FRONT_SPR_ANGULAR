@@ -575,7 +575,11 @@ loadOcorrencia(id: number): void {
       this.ocorrenciaForm.get('hora_fato')?.disable();
 
       this.examesSelecionados = ocorrencia.exames_solicitados || [];
+      this.procedimentoVinculado = ocorrencia.procedimento_cadastrado || null;
+
       this.isLoading = false;
+
+
     },
     error: (err: any) => {
       console.error('Erro:', err);
@@ -633,43 +637,84 @@ onExamesConfirmados(exames: Exame[]): void {
   }
 
   onSubmit(): void {
-    if (this.ocorrenciaForm.invalid) {
-      this.ocorrenciaForm.markAllAsTouched();
-      Swal.fire('Atenção', 'Preencha todos os campos obrigatórios.', 'warning');
-      return;
-    }
-
-    this.isSaving = true;
-    const formData = {
-      ...this.ocorrenciaForm.value,
-      exames_ids: this.examesSelecionados.map(e => e.id)
-    };
-
-    const request = this.isEditMode && this.ocorrenciaId
-      ? this.ocorrenciaService.update(this.ocorrenciaId, formData)
-      : this.ocorrenciaService.create(formData);
-
-    request.subscribe({
-      next: (ocorrencia: any) => {
-        const action = this.isEditMode ? 'atualizada' : 'cadastrada';
-        Swal.fire({
-          title: 'Sucesso!',
-          text: `Ocorrência ${action} com sucesso! Número: ${ocorrencia.numero_ocorrencia}`,
-          icon: 'success',
-          confirmButtonText: 'Ok'
-        }).then(() => {
-          this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
-        });
-      },
-      error: (err: any) => {
-        console.error('Erro:', err);
-        this.message = 'Erro ao salvar ocorrência.';
-        this.messageType = 'error';
-        this.isSaving = false;
-      }
-    });
+  if (this.ocorrenciaForm.invalid) {
+    this.ocorrenciaForm.markAllAsTouched();
+    Swal.fire('Atenção', 'Preencha todos os campos obrigatórios.', 'warning');
+    return;
   }
 
+  this.isSaving = true;
+  const formValues = this.ocorrenciaForm.getRawValue();
+  let payload: any; // Usamos 'any' para flexibilidade entre create e update
+
+  if (this.isEditMode) {
+    // MODO DE EDIÇÃO: Envia apenas os campos permitidos pelo OcorrenciaUpdateSerializer
+    payload = {
+      historico: formValues.historico,
+      processo_sei_numero: formValues.processo_sei_numero,
+      numero_documento_origem: formValues.numero_documento_origem,
+      data_documento_origem: formValues.data_documento_origem || null,
+      tipo_documento_origem_id: formValues.tipo_documento_origem_id,
+      perito_atribuido_id: formValues.perito_atribuido_id,
+      exames_ids: this.examesSelecionados.map(e => e.id)
+      // CRUCIAL: NÃO ENVIAMOS 'procedimento_cadastrado_id' na edição!
+    };
+    console.log(' DADOS DE ATUALIZAÇÃO (PATCH) ENVIADOS PARA A API: ', payload);
+
+  } else {
+    // MODO DE CRIAÇÃO: Envia o payload completo
+    payload = {
+      servico_pericial_id: formValues.servico_pericial_id,
+      unidade_demandante_id: formValues.unidade_demandante_id,
+      autoridade_id: formValues.autoridade_id,
+      cidade_id: formValues.cidade_id,
+      classificacao_id: formValues.classificacao_id,
+      data_fato: formValues.data_fato || null,
+      hora_fato: formValues.hora_fato || null,
+      tipo_documento_origem_id: formValues.tipo_documento_origem_id,
+      numero_documento_origem: formValues.numero_documento_origem,
+      data_documento_origem: formValues.data_documento_origem || null,
+      processo_sei_numero: formValues.processo_sei_numero,
+      perito_atribuido_id: formValues.perito_atribuido_id,
+      historico: formValues.historico,
+      exames_ids: this.examesSelecionados.map(e => e.id),
+      procedimento_cadastrado_id: this.procedimentoVinculado ? this.procedimentoVinculado.id : null
+    };
+    console.log(' DADOS DE CRIAÇÃO (POST) ENVIADOS PARA A API: ', payload);
+  }
+
+  const request = this.isEditMode && this.ocorrenciaId
+    ? this.ocorrenciaService.update(this.ocorrenciaId, payload)
+    : this.ocorrenciaService.create(payload);
+
+  request.subscribe({
+    next: (ocorrencia: any) => {
+      const action = this.isEditMode ? 'atualizada' : 'cadastrada';
+      Swal.fire({
+        title: 'Sucesso!',
+        text: `Ocorrência ${action} com sucesso! Número: ${ocorrencia.numero_ocorrencia}`,
+        icon: 'success',
+        confirmButtonText: 'Ok'
+      }).then(() => {
+        this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+      });
+    },
+    error: (err: any) => {
+      console.error('ERRO DETALHADO DO BACKEND:', err);
+      let errorMsg = 'Ocorreu um erro ao salvar. Tente novamente.';
+      if (err.error) {
+          errorMsg = Object.entries(err.error)
+              .map(([field, messages]) => `${field}: ${(messages as string[]).join(', ')}`)
+              .join('\n');
+      }
+      Swal.fire('Erro ao Salvar', `<pre style="text-align: left; font-size: 0.9em;">${errorMsg}</pre>`, 'error');
+      this.isSaving = false;
+    },
+    complete: () => {
+      this.isSaving = false;
+    }
+  });
+}
   cancelar(): void {
     Swal.fire({
       title: 'Cancelar?',
