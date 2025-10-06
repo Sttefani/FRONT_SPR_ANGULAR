@@ -4,7 +4,6 @@
       <h1>Gerenciamento de Classificações de Ocorrências</h1>
       <p class="subtitle">Organize classificações em grupos e subgrupos hierárquicos.</p>
     </div>
-
     <div class="actions-header">
       <button class="btn-primary" (click)="onCreate()">
         <i class="bi bi-plus-circle"></i>
@@ -14,18 +13,12 @@
   </div>
 
   <div class="tabs">
-    <button
-      class="tab"
-      [class.active]="viewMode === 'ativos'"
-      (click)="switchToAtivos()">
+    <button class="tab" [class.active]="viewMode === 'ativos'" (click)="switchToAtivos()">
       <i class="bi bi-list-ul"></i>
       Ativos
     </button>
     @if (isSuperAdmin) {
-      <button
-        class="tab"
-        [class.active]="viewMode === 'lixeira'"
-        (click)="switchToLixeira()">
+      <button class="tab" [class.active]="viewMode === 'lixeira'" (click)="switchToLixeira()">
         <i class="bi bi-trash"></i>
         Lixeira
       </button>
@@ -34,12 +27,7 @@
 
   <div class="search-container">
     <i class="bi bi-search"></i>
-    <input
-      type="text"
-      [(ngModel)]="searchTerm"
-      placeholder="Buscar por código ou nome..."
-      class="search-input"
-    >
+    <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar por código ou nome..." class="search-input">
     @if (searchTerm) {
       <button class="clear-search" (click)="searchTerm = ''">
         <i class="bi bi-x-circle"></i>
@@ -70,14 +58,20 @@
                 <span class="grupo-codigo">{{ grupo.codigo }}</span>
                 <span class="grupo-nome">{{ grupo.nome }}</span>
                 <span class="badge-grupo">Grupo Principal</span>
+
+                <!-- --- INÍCIO DA MODIFICAÇÃO (GRUPO) --- -->
+                <div class="servicos-badges">
+                  @for (servico of grupo.servicos_periciais; track servico.id) {
+                    <span class="badge-servico">{{ servico.sigla }}</span>
+                  }
+                </div>
+                <!-- --- FIM DA MODIFICAÇÃO (GRUPO) --- -->
               </div>
               <div class="grupo-meta">
-                <!-- ===== ALTERAÇÃO AQUI ===== -->
                 <small>Cadastrado em: {{ grupo.created_at | date:'dd/MM/yyyy' }} por: {{ getFirstName(grupo.created_by?.nome_completo) }}</small>
                 @if (hasBeenUpdated(grupo)) {
                   <small>Atualizado em: {{ grupo.updated_at | date:'dd/MM/yyyy' }} por: {{ getFirstName(grupo.updated_by?.nome_completo) }}</small>
                 }
-                <!-- ===== FIM DA ALTERAÇÃO ===== -->
               </div>
               <div class="grupo-actions">
                 <button class="icon-btn edit" title="Editar" (click)="onEdit(grupo.id)">
@@ -101,14 +95,21 @@
                         <span class="subgrupo-codigo">{{ subgrupo.codigo }}</span>
                         <span class="subgrupo-nome">{{ subgrupo.nome }}</span>
                         <span class="badge-subgrupo">Subgrupo</span>
+
+                        <!-- --- INÍCIO DA MODIFICAÇÃO (SUBGRUPO) --- -->
+                        <!-- Subgrupos herdam e mostram os serviços do pai -->
+                        <div class="servicos-badges inherited">
+                          @for (servico of grupo.servicos_periciais; track servico.id) {
+                            <span class="badge-servico">{{ servico.sigla }}</span>
+                          }
+                        </div>
+                        <!-- --- FIM DA MODIFICAÇÃO (SUBGRUPO) --- -->
                       </div>
                       <div class="subgrupo-meta">
-                        <!-- ===== ALTERAÇÃO AQUI ===== -->
                         <small>Cadastrado em: {{ subgrupo.created_at | date:'dd/MM/yyyy' }} por: {{ getFirstName(subgrupo.created_by?.nome_completo) }}</small>
                         @if (hasBeenUpdated(subgrupo)) {
                           <small>Atualizado em: {{ subgrupo.updated_at | date:'dd/MM/yyyy' }} por: {{ getFirstName(subgrupo.updated_by?.nome_completo) }}</small>
                         }
-                        <!-- ===== FIM DA ALTERAÇÃO ===== -->
                       </div>
                       <div class="subgrupo-actions">
                         <button class="icon-btn edit" title="Editar" (click)="onEdit(subgrupo.id)">

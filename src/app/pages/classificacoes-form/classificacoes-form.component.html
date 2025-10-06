@@ -24,8 +24,11 @@
       <div class="info-box">
         <i class="bi bi-info-circle"></i>
         <div>
-          <strong>Estrutura Hierárquica:</strong>
-          <p>Deixe "Grupo Pai" vazio para criar um <strong>Grupo Principal</strong>. Selecione um grupo para criar um <strong>Subgrupo</strong>.</p>
+          <strong>Estrutura Hierárquica e Associações:</strong>
+          <p>
+            Deixe "Grupo Pai" vazio para criar um <strong>Grupo Principal</strong>.
+            Associe os <strong>Grupos Principais</strong> aos Serviços Periciais para que os subgrupos herdem a associação.
+          </p>
         </div>
       </div>
 
@@ -35,18 +38,35 @@
             <i class="bi bi-diagram-3"></i>
             Grupo Pai (Opcional)
           </label>
-          <select
-            id="parent_id"
-            formControlName="parent_id"
-            class="form-control"
-          >
-            <option [value]="null">Nenhum (Grupo Principal)</option>
+          <select id="parent_id" formControlName="parent_id" class="form-control">
+            <option [value]="null">Nenhum (Esta é um Grupo Principal)</option>
             @for (grupo of gruposPrincipais; track grupo.id) {
               <option [value]="grupo.id">{{ grupo.codigo }} - {{ grupo.nome }}</option>
             }
           </select>
-          <small class="hint">Deixe vazio para criar um grupo principal ou selecione para criar um subgrupo</small>
+          <small class="hint">Selecione um grupo para criar um subgrupo.</small>
         </div>
+
+        <!-- --- INÍCIO DO NOVO CAMPO --- -->
+        <div class="form-group">
+          <label for="servicos_periciais_ids">
+            <i class="bi bi-building"></i>
+            Serviços Periciais Associados
+          </label>
+          <select
+            id="servicos_periciais_ids"
+            formControlName="servicos_periciais_ids"
+            class="form-control"
+            multiple
+            size="5"
+          >
+            @for (servico of servicosPericiais; track servico.id) {
+              <option [value]="servico.id">{{ servico.sigla }} - {{ servico.nome }}</option>
+            }
+          </select>
+          <small class="hint">Segure CTRL (ou Command no Mac) para selecionar múltiplos serviços. Associe apenas aos Grupos Principais.</small>
+        </div>
+        <!-- --- FIM DO NOVO CAMPO --- -->
 
         <div class="form-group">
           <label for="codigo">
@@ -64,12 +84,8 @@
           >
           @if (codigo?.invalid && codigo?.touched) {
             <div class="error-message">
-              @if (codigo?.errors?.['required']) {
-                <span>O código é obrigatório.</span>
-              }
-              @if (codigo?.errors?.['maxlength']) {
-                <span>O código deve ter no máximo 20 caracteres.</span>
-              }
+              @if (codigo?.errors?.['required']) { <span>O código é obrigatório.</span> }
+              @if (codigo?.errors?.['maxlength']) { <span>O código deve ter no máximo 20 caracteres.</span> }
             </div>
           }
           <small class="hint">Use formato numérico separado por pontos (ex: 1.0.0 para grupo, 1.0.0.1 para subgrupo)</small>
@@ -91,12 +107,8 @@
           >
           @if (nome?.invalid && nome?.touched) {
             <div class="error-message">
-              @if (nome?.errors?.['required']) {
-                <span>O nome é obrigatório.</span>
-              }
-              @if (nome?.errors?.['maxlength']) {
-                <span>O nome deve ter no máximo 255 caracteres.</span>
-              }
+              @if (nome?.errors?.['required']) { <span>O nome é obrigatório.</span> }
+              @if (nome?.errors?.['maxlength']) { <span>O nome deve ter no máximo 255 caracteres.</span> }
             </div>
           }
           <small class="hint">Será convertido automaticamente para maiúsculas</small>

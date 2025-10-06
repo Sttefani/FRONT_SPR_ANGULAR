@@ -45,4 +45,17 @@ body {
   &:hover {
     border-color: #cbd5e0 !important;
   }
+  // Em src/styles.scss
+
+/*
+ * Estilo personalizado para os modais de erro do SweetAlert2,
+ * tornando-os mais largos para acomodar mensagens longas.
+ */
+.swal2-popup.swal2-error.modal-erro-largo {
+  width: 500px; // Aumenta a largura padrão (que é em torno de 480px)
+}
+
+.swal2-popup.swal2-error.modal-erro-largo .swal2-html-container {
+  text-align: center; // Garante que a mensagem, mesmo longa, fique centralizada
+}
 }

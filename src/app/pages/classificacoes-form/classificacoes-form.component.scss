@@ -239,10 +239,6 @@
     text-transform: uppercase;
     letter-spacing: 0.3px;
 
-    i {
-      font-size: 1rem;
-    }
-
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
@@ -275,6 +271,29 @@
     }
   }
 }
+
+// --- INÍCIO DA MODIFICAÇÃO ---
+// Estilo específico para o select múltiplo
+select[multiple].form-control {
+  // Remove a seta de dropdown que não faz sentido aqui
+  appearance: none;
+  background-image: none;
+  padding-right: 0.9rem; // Volta ao padding normal
+
+  option {
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+    margin-top: 2px;
+
+    // Estilo para a opção selecionada
+    &:checked {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-color-dark));
+      color: #000;
+      font-weight: 600;
+    }
+  }
+}
+// --- FIM DA MODIFICAÇÃO ---
 
 @media (max-width: 768px) {
   .container {

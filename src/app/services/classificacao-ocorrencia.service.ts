@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { PaginatedResponse } from './servico-pericial.service';
 
 export interface ClassificacaoOcorrencia {
   id: number;
@@ -13,6 +12,7 @@ export interface ClassificacaoOcorrencia {
     nome: string;
   } | null;
   parent_id?: number | null;
+  servicos_periciais?: any[]; // <-- ADICIONE ESTA LINHA
   created_at: string;
   updated_at: string;
   created_by?: {
@@ -42,8 +42,8 @@ export class ClassificacaoOcorrenciaService {
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<ClassificacaoOcorrencia[]> {
-  return this.http.get<ClassificacaoOcorrencia[]>(`${this.baseUrl}/classificacoes/`);
-}
+    return this.http.get<ClassificacaoOcorrencia[]>(`${this.baseUrl}/classificacoes/`);
+  }
 
   getById(id: number): Observable<ClassificacaoOcorrencia> {
     return this.http.get<ClassificacaoOcorrencia>(`${this.baseUrl}/classificacoes/${id}/`);
@@ -74,7 +74,11 @@ export class ClassificacaoOcorrenciaService {
     return this.http.post<ClassificacaoOcorrencia>(`${this.baseUrl}/classificacoes/${id}/restaurar/`, {});
   }
 
-  getAllForDropdown(): Observable<any[]> {
-  return this.http.get<any[]>(`${this.baseUrl}/classificacoes/dropdown/`);  // ✅ CORRETO
-}
+  getAllForDropdown(servicoId?: number | null): Observable<any[]> {
+    let params = new HttpParams();
+    if (servicoId) {
+      params = params.set('servico_id', servicoId.toString());
+    }
+    return this.http.get<any[]>(`${this.baseUrl}/classificacoes/dropdown/`, { params });
+  }
 }

@@ -6,7 +6,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { RelatoriosGerenciais } from '../../interfaces/realatorios.interface';
 import { OcorrenciaService } from '../../services/ocorrencia.service';
 import { ServicoPericialService } from '../../services/servico-pericial.service';
-import { CidadeService } from '../../services/cidade.service';
+import { CidadeService } from '../../services/cidade.service'; // <-- 1. IMPORTA O SERVIÇO DE CIDADE
 import { UsuarioService } from '../../services/usuario.service';
 import { ClassificacaoOcorrenciaService } from '../../services/classificacao-ocorrencia.service';
 
@@ -26,20 +26,20 @@ export class RelatoriosGerenciaisComponent implements OnInit {
     data_inicio: '',
     data_fim: '',
     servico_id: null as number | null,
-    cidade_id: null as number | null,
+    cidade_id: null as number | null, // <-- 2. ADICIONA A PROPRIEDADE DO NOVO FILTRO
     perito_id: null as number | null,
     classificacao_id: null as number | null
   };
 
   servicosDisponiveis: any[] = [];
-  cidadesDisponiveis: any[] = [];
+  cidadesDisponiveis: any[] = []; // <-- 2. ADICIONA A LISTA PARA O DROPDOWN
   peritosDisponiveis: any[] = [];
   classificacoesDisponiveis: any[] = [];
 
   constructor(
     private ocorrenciaService: OcorrenciaService,
     private servicoPericialService: ServicoPericialService,
-    private cidadeService: CidadeService,
+    private cidadeService: CidadeService, // <-- 3. INJETA O SERVIÇO
     private usuarioService: UsuarioService,
     private classificacaoService: ClassificacaoOcorrenciaService
   ) {}
@@ -50,9 +50,9 @@ export class RelatoriosGerenciaisComponent implements OnInit {
   }
 
   loadFiltroData(): void {
-    this.servicoPericialService.getAllForDropdown().subscribe(data => this.servicosDisponiveis = data);
-    this.cidadeService.getAllForDropdown().subscribe(data => this.cidadesDisponiveis = data);
-    this.usuarioService.getPeritosList().subscribe(data => this.peritosDisponiveis = data);
+    this.servicoPericialService.getAllForDropdown().subscribe((data: any) => this.servicosDisponiveis = data);
+    this.cidadeService.getAllForDropdown().subscribe((data: any) => this.cidadesDisponiveis = data); // <-- 4. ADICIONA A CHAMADA PARA CARREGAR AS CIDADES
+    this.usuarioService.getPeritosList().subscribe((data: any) => this.peritosDisponiveis = data);
     this.classificacaoService.getAll().subscribe((data: any) => this.classificacoesDisponiveis = data);
   }
 
@@ -61,13 +61,15 @@ export class RelatoriosGerenciaisComponent implements OnInit {
       data_inicio: '',
       data_fim: '',
       servico_id: null,
-      cidade_id: null,
+      cidade_id: null, // <-- 2. ADICIONA AQUI TAMBÉM
       perito_id: null,
       classificacao_id: null
     };
     this.aplicarFiltros();
   }
 
+  // A função aplicarFiltros() JÁ ESTÁ PRONTA e vai enviar o 'cidade_id' automaticamente!
+  // Nenhuma mudança é necessária nela.
   aplicarFiltros(): void {
     this.isLoading = true;
     const params: any = {};
@@ -90,10 +92,6 @@ export class RelatoriosGerenciaisComponent implements OnInit {
     });
   }
 
-  /**
-   * Função auxiliar para o HTML. Gera a chave do objeto de dados a partir do nome do cabeçalho.
-   * Ex: "CRIMES CONTRA A VIDA" -> "total_crimes_contra_a_vida"
-   */
   getKeyForHeader(header: string): string {
     return 'total_' + header.toLowerCase().replace(/ /g, '_');
   }

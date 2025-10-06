@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ClassificacaoOcorrenciaService, ClassificacaoOcorrencia } from '../../services/classificacao-ocorrencia.service';
+import { ServicoPericialService, ServicoPericial } from '../../services/servico-pericial.service'; // <-- 1. Importa o serviço
 import Swal from 'sweetalert2';
 
 @Component({
@@ -25,17 +26,22 @@ export class ClassificacoesFormComponent implements OnInit {
   gruposPrincipais: ClassificacaoOcorrencia[] = [];
   todasClassificacoes: ClassificacaoOcorrencia[] = [];
 
+  // --- INÍCIO DA MODIFICAÇÃO ---
+  servicosPericiais: ServicoPericial[] = []; // 2. Lista para preencher o multi-select
+  // --- FIM DA MODIFICAÇÃO ---
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private classificacaoService: ClassificacaoOcorrenciaService
+    private classificacaoService: ClassificacaoOcorrenciaService,
+    private servicoPericialService: ServicoPericialService // <-- 3. Injeta o serviço
   ) {
     this.initForm();
   }
 
   ngOnInit(): void {
-    this.loadTodasClassificacoes();
+    this.loadDropdownData(); // Carrega todos os dados para os dropdowns
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -49,12 +55,14 @@ export class ClassificacoesFormComponent implements OnInit {
     this.form = this.fb.group({
       codigo: ['', [Validators.required, Validators.maxLength(20)]],
       nome: ['', [Validators.required, Validators.maxLength(255)]],
-      parent_id: [null]
+      parent_id: [null],
+      servicos_periciais_ids: [[]] // <-- 4. Adiciona o novo campo ao formulário
     });
   }
 
-  loadTodasClassificacoes(): void {
+  loadDropdownData(): void {
     this.isLoadingGrupos = true;
+    // Carrega classificações e serviços em paralelo
     this.classificacaoService.getAll().subscribe({
       next: (classificacoes) => {
         this.todasClassificacoes = classificacoes;
@@ -63,28 +71,33 @@ export class ClassificacoesFormComponent implements OnInit {
       },
       error: (err: any) => {
         console.error('Erro ao carregar classificações:', err);
-        this.message = 'Erro ao carregar grupos principais.';
-        this.messageType = 'error';
         this.isLoadingGrupos = false;
       }
+    });
+
+    this.servicoPericialService.getAllForDropdown().subscribe({
+      next: (servicos) => {
+        this.servicosPericiais = servicos;
+      },
+      error: (err: any) => console.error('Erro ao carregar serviços periciais:', err)
     });
   }
 
   loadClassificacao(id: number): void {
     this.isLoading = true;
     this.classificacaoService.getById(id).subscribe({
-      next: (classificacao) => {
+      next: (classificacao: any) => {
         this.form.patchValue({
           codigo: classificacao.codigo,
           nome: classificacao.nome,
-          parent_id: classificacao.parent?.id || null
+          parent_id: classificacao.parent?.id || null,
+          // 5. Extrai os IDs dos serviços associados para preencher o multi-select
+          servicos_periciais_ids: classificacao.servicos_periciais.map((s: any) => s.id)
         });
         this.isLoading = false;
       },
       error: (err: any) => {
         console.error('Erro ao carregar classificação:', err);
-        this.message = 'Erro ao carregar dados da classificação.';
-        this.messageType = 'error';
         this.isLoading = false;
       }
     });
@@ -106,7 +119,6 @@ export class ClassificacoesFormComponent implements OnInit {
     request.subscribe({
       next: (classificacao) => {
         const action = this.isEditMode ? 'atualizada' : 'cadastrada';
-
         Swal.fire({
           title: 'Sucesso!',
           text: `Classificação "${classificacao.codigo}" ${action} com sucesso.`,
@@ -117,30 +129,14 @@ export class ClassificacoesFormComponent implements OnInit {
         });
       },
       error: (err: any) => {
-        console.error('Erro completo:', err);
-
         let errorMsg = 'Erro ao salvar a classificação.';
-
         if (err.error) {
-          if (err.error.codigo) {
-            errorMsg = Array.isArray(err.error.codigo)
-              ? err.error.codigo[0]
-              : err.error.codigo;
-          } else if (err.error.nome) {
-            errorMsg = Array.isArray(err.error.nome)
-              ? err.error.nome[0]
-              : err.error.nome;
-          } else if (err.error.parent_id) {
-            errorMsg = Array.isArray(err.error.parent_id)
-              ? err.error.parent_id[0]
-              : err.error.parent_id;
-          } else if (err.error.detail) {
-            errorMsg = err.error.detail;
-          } else if (typeof err.error === 'string') {
-            errorMsg = err.error;
-          }
+          if (err.error.codigo) { errorMsg = Array.isArray(err.error.codigo) ? err.error.codigo[0] : err.error.codigo; }
+          else if (err.error.nome) { errorMsg = Array.isArray(err.error.nome) ? err.error.nome[0] : err.error.nome; }
+          else if (err.error.parent_id) { errorMsg = Array.isArray(err.error.parent_id) ? err.error.parent_id[0] : err.error.parent_id; }
+          else if (err.error.detail) { errorMsg = err.error.detail; }
+          else if (typeof err.error === 'string') { errorMsg = err.error; }
         }
-
         this.message = errorMsg;
         this.messageType = 'error';
         this.isSaving = false;
@@ -163,15 +159,7 @@ export class ClassificacoesFormComponent implements OnInit {
     });
   }
 
-  get codigo() {
-    return this.form.get('codigo');
-  }
-
-  get nome() {
-    return this.form.get('nome');
-  }
-
-  get parent_id() {
-    return this.form.get('parent_id');
-  }
+  get codigo() { return this.form.get('codigo'); }
+  get nome() { return this.form.get('nome'); }
+  get parent_id() { return this.form.get('parent_id'); }
 }

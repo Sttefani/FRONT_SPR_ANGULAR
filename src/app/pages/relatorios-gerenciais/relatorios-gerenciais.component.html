@@ -1,11 +1,9 @@
 <div class="container">
-  <!-- CABEÇALHO DA PÁGINA -->
   <div class="page-header">
     <h1><i class="bi bi-bar-chart-line-fill"></i> Relatórios Gerenciais</h1>
     <p>Análise de dados e estatísticas agregadas sobre as ocorrências do sistema.</p>
   </div>
 
-  <!-- BARRA DE FILTROS COMPLETA -->
   <div class="filters-bar">
     <div class="filter-group">
       <label for="data_inicio">Data de Início</label>
@@ -22,13 +20,19 @@
         @for (servico of servicosDisponiveis; track servico.id) { <option [value]="servico.id">{{ servico.sigla }}</option> }
       </select>
     </div>
+
+    <!-- --- INÍCIO DO NOVO FILTRO --- -->
     <div class="filter-group">
       <label for="cidadeFiltro">Cidade</label>
       <select id="cidadeFiltro" [(ngModel)]="filtros.cidade_id">
         <option [ngValue]="null">Todas</option>
-        @for (cidade of cidadesDisponiveis; track cidade.id) { <option [value]="cidade.id">{{ cidade.nome }}</option> }
+        @for (cidade of cidadesDisponiveis; track cidade.id) {
+          <option [value]="cidade.id">{{ cidade.nome }}</option>
+        }
       </select>
     </div>
+    <!-- --- FIM DO NOVO FILTRO --- -->
+
     <div class="filter-group">
       <label for="peritoFiltro">Perito</label>
       <select id="peritoFiltro" [(ngModel)]="filtros.perito_id">
@@ -49,44 +53,40 @@
     </div>
   </div>
 
-  <!-- ESTADO DE CARREGAMENTO -->
   @if (isLoading) {
     <div class="loading-state"><i class="bi bi-hourglass-split"></i><p>Gerando relatórios...</p></div>
   }
 
-  <!-- CONTEÚDO PRINCIPAL -->
   @if (!isLoading && relatorios) {
-    <!-- RELATÓRIO POR GRUPO PRINCIPAL -->
+    <!-- ... (suas tabelas de relatório permanecem exatamente as mesmas) ... -->
     @if (relatorios.por_grupo_principal && relatorios.por_grupo_principal.length > 0) {
       <div class="data-section">
         <h2>Ocorrências por Grupo Principal</h2>
         <table class="data-table">
-          <thead><tr><th>Grupo</th><th class="text-right">Total</th></tr></thead>
+          <thead><tr><th>Código</th><th>Grupo</th><th class="text-right">Total</th></tr></thead>
           <tbody>
             @for (item of relatorios.por_grupo_principal; track $index) {
-              <tr><td>{{ item.grupo_nome }}</td><td class="text-right">{{ item.total }}</td></tr>
+              <tr><td>{{ item.grupo_codigo }}</td><td>{{ item.grupo_nome }}</td><td class="text-right">{{ item.total | number }}</td></tr>
             }
           </tbody>
         </table>
       </div>
     }
 
-    <!-- RELATÓRIO POR CLASSIFICAÇÃO ESPECÍFICA -->
     @if (relatorios.por_classificacao_especifica && relatorios.por_classificacao_especifica.length > 0) {
       <div class="data-section">
-        <h2>Ocorrências por Classificação Específica</h2>
+        <h2>Ocorrências por Classificação Específica (Subgrupos)</h2>
         <table class="data-table">
           <thead><tr><th>Código</th><th>Nome</th><th class="text-right">Total</th></tr></thead>
           <tbody>
             @for (item of relatorios.por_classificacao_especifica; track $index) {
-              <tr><td>{{ item.classificacao__codigo }}</td><td>{{ item.classificacao__nome }}</td><td class="text-right">{{ item.total }}</td></tr>
+              <tr><td>{{ item.classificacao__codigo }}</td><td>{{ item.classificacao__nome }}</td><td class="text-right">{{ item.total | number }}</td></tr>
             }
           </tbody>
         </table>
       </div>
     }
 
-    <!-- RELATÓRIO DE PRODUÇÃO POR PERITO -->
     @if (relatorios.producao_por_perito && relatorios.producao_por_perito.length > 0) {
       <div class="data-section">
         <h2>Produção por Perito</h2>
@@ -94,41 +94,36 @@
           <thead><tr><th>Perito</th><th class="text-right">Total Atribuído</th><th class="text-right">Finalizadas</th><th class="text-right">Em Análise</th></tr></thead>
           <tbody>
             @for (item of relatorios.producao_por_perito; track $index) {
-              <tr><td>{{ item.nome_completo }}</td><td class="text-right">{{ item.total_ocorrencias }}</td><td class="text-right">{{ item.finalizadas }}</td><td class="text-right">{{ item.em_analise }}</td></tr>
+              <tr><td>{{ item.nome_completo }}</td><td class="text-right">{{ item.total_ocorrencias | number }}</td><td class="text-right">{{ item.finalizadas | number }}</td><td class="text-right">{{ item.em_analise | number }}</td></tr>
             }
           </tbody>
         </table>
       </div>
     }
 
-    <!-- RELATÓRIO DINÂMICO POR CIDADE -->
-    @if (relatorios.ocorrencias_por_cidade && relatorios.ocorrencias_por_cidade.dados.length > 0) {
+    @if (relatorios.por_servico && relatorios.por_servico.length > 0) {
       <div class="data-section">
-        <h2>Ocorrências por Cidade (detalhado por Grupo Principal)</h2>
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+        <h2>Produção por Serviço Pericial</h2>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Serviço</th>
+              <th class="text-right">Total de Ocorrências</th>
+              <th class="text-right">Finalizadas</th>
+              <th class="text-right">Em Análise</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of relatorios.por_servico; track $index) {
               <tr>
-                <th>Cidade</th>
-                <th class="text-right">Total Geral</th>
-                @for (header of relatorios.ocorrencias_por_cidade.grupos_cabecalho; track $index) {
-                  <th class="text-right">{{ header }}</th>
-                }
+                <td>{{ item.servico_pericial__sigla }} - {{ item.servico_pericial__nome }}</td>
+                <td class="text-right">{{ item.total | number }}</td>
+                <td class="text-right">{{ item.finalizadas | number }}</td>
+                <td class="text-right">{{ item.em_analise | number }}</td>
               </tr>
-            </thead>
-            <tbody>
-              @for (item of relatorios.ocorrencias_por_cidade.dados; track $index) {
-                <tr>
-                  <td>{{ item.cidade__nome || 'Não especificada' }}</td>
-                  <td class="text-right">{{ item.total }}</td>
-                  @for (header of relatorios.ocorrencias_por_cidade.grupos_cabecalho; track $index) {
-                    <td class="text-right">{{ item[getKeyForHeader(header)] || 0 }}</td>
-                  }
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+            }
+          </tbody>
+        </table>
       </div>
     }
 

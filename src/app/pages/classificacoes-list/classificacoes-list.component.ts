@@ -2,7 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+// --- INÍCIO DA MODIFICAÇÃO ---
+// Importa tanto o serviço quanto a INTERFACE
 import { ClassificacaoOcorrenciaService, ClassificacaoOcorrencia } from '../../services/classificacao-ocorrencia.service';
+// --- FIM DA MODIFICAÇÃO ---
 import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
 
@@ -14,7 +17,10 @@ import Swal from 'sweetalert2';
   styleUrls: ['./classificacoes-list.component.scss']
 })
 export class ClassificacoesListComponent implements OnInit {
+  // --- INÍCIO DA MODIFICAÇÃO ---
+  // Tipa explicitamente a propriedade com a interface importada
   classificacoes: ClassificacaoOcorrencia[] = [];
+  // --- FIM DA MODIFICAÇÃO ---
   classificacoesLixeira: ClassificacaoOcorrencia[] = [];
   isLoading = true;
   isLoadingLixeira = false;
@@ -40,11 +46,13 @@ export class ClassificacoesListComponent implements OnInit {
   loadClassificacoes(): void {
     this.isLoading = true;
     this.classificacaoService.getAll().subscribe({
-      next: (data) => {
+      // --- INÍCIO DA MODIFICAÇÃO ---
+      // Tipa explicitamente o 'data' que chega da API
+      next: (data: ClassificacaoOcorrencia[]) => {
+      // --- FIM DA MODIFICAÇÃO ---
         this.classificacoes = data;
         this.isLoading = false;
 
-        // ===== PASSO DE DEBUG: Verifique os dados recebidos na consola do navegador =====
         console.log("Dados recebidos da API:", data);
         const subgrupos = data.filter(c => c.parent_id);
         if (subgrupos.length > 0) {
@@ -52,8 +60,6 @@ export class ClassificacoesListComponent implements OnInit {
         } else {
           console.log("Nenhum subgrupo encontrado nos dados recebidos.");
         }
-        // =================================================================================
-
       },
       error: (err: any) => {
         console.error('Erro ao carregar classificações:', err);
@@ -82,20 +88,17 @@ export class ClassificacoesListComponent implements OnInit {
     });
   }
 
-  // ===== LÓGICA DO FILTRO CORRIGIDA E COMPLETA =====
   get classificacoesFiltradas(): ClassificacaoOcorrencia[] {
     if (!this.searchTerm.trim()) {
       return this.classificacoes;
     }
     const term = this.searchTerm.toLowerCase();
 
-    // 1. Encontra todos os itens que correspondem diretamente ao termo de busca.
     const directMatches = this.classificacoes.filter(c =>
       c.codigo.toLowerCase().includes(term) || c.nome.toLowerCase().includes(term)
     );
     const directMatchIds = new Set(directMatches.map(c => c.id));
 
-    // 2. Encontra os IDs de todos os filhos dos itens que corresponderam diretamente.
     const childrenIds = new Set<number>();
     this.classificacoes.forEach(c => {
       if (c.parent_id && directMatchIds.has(c.parent_id)) {
@@ -103,7 +106,6 @@ export class ClassificacoesListComponent implements OnInit {
       }
     });
 
-    // 3. Encontra os IDs de todos os pais dos itens que corresponderam diretamente.
     const parentIds = new Set<number>();
     directMatches.forEach(c => {
       if (c.parent_id) {
@@ -111,17 +113,14 @@ export class ClassificacoesListComponent implements OnInit {
       }
     });
 
-    // 4. Combina todos os IDs (correspondências diretas, seus pais e seus filhos) num único conjunto para evitar duplicados.
     const idsToKeep = new Set([
       ...directMatchIds,
       ...childrenIds,
       ...parentIds
     ]);
 
-    // 5. Retorna todos os itens da lista original cujos IDs estão no conjunto final.
     return this.classificacoes.filter(c => idsToKeep.has(c.id));
   }
-  // ===== FIM DA CORREÇÃO =====
 
   get classificacoesLixeiraFiltradas(): ClassificacaoOcorrencia[] {
     if (!this.searchTerm.trim()) {
@@ -231,18 +230,12 @@ export class ClassificacoesListComponent implements OnInit {
     return fullName.split(' ')[0];
   }
 
-  /**
-   * Verifica se as datas de criação e atualização são diferentes,
-   * indicando que o item foi editado após a sua criação.
-   */
   hasBeenUpdated(item: ClassificacaoOcorrencia): boolean {
     if (!item.updated_at || !item.created_at) {
       return false;
     }
-    // Compara os timestamps. Se a diferença for maior que 1 segundo, considera-se atualizado.
     const createdAt = new Date(item.created_at).getTime();
     const updatedAt = new Date(item.updated_at).getTime();
     return updatedAt > (createdAt + 1000);
   }
 }
-
