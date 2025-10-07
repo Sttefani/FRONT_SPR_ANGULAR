@@ -21,6 +21,7 @@ export class RelatoriosGerenciaisComponent implements OnInit {
 
   relatorios: RelatoriosGerenciais | null = null;
   isLoading = true;
+  isGerandoPDF = false;
 
   filtros = {
     data_inicio: '',
@@ -94,5 +95,27 @@ export class RelatoriosGerenciaisComponent implements OnInit {
 
   getKeyForHeader(header: string): string {
     return 'total_' + header.toLowerCase().replace(/ /g, '_');
+  }
+  gerarPDF(): void {
+    this.isGerandoPDF = true;
+
+    this.ocorrenciaService.imprimirRelatoriosGerenciais(this.filtros).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `relatorio_gerencial_${new Date().getTime()}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        this.isGerandoPDF = false;
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Erro ao gerar PDF:', err);
+        alert('Erro ao gerar PDF. Tente novamente.');
+        this.isGerandoPDF = false;
+      }
+    });
   }
 }

@@ -50,6 +50,21 @@
     <div class="filter-actions">
       <button class="btn-primary" (click)="aplicarFiltros()">Aplicar Filtros</button>
       <button class="btn-secondary" (click)="limparFiltros()">Limpar</button>
+      <div class="pdf-actions">
+      <button
+        class="btn-pdf"
+        (click)="gerarPDF()"
+        [disabled]="isGerandoPDF || isLoading"
+        title="Gerar PDF dos relatórios filtrados">
+        @if (isGerandoPDF) {
+          <i class="bi bi-hourglass-split"></i>
+          <span>Gerando PDF...</span>
+        } @else {
+          <i class="bi bi-file-earmark-pdf-fill"></i>
+          <span>Gerar PDF</span>
+        }
+      </button>
+    </div>
     </div>
   </div>
 

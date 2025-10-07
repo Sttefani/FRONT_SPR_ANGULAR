@@ -506,7 +506,7 @@
 .form-section {
   background: var(--bg-card);
   border-radius: 16px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.1rem;  // ← Metade do espaço
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border);
   overflow: hidden;
@@ -567,7 +567,7 @@
 }
 
 .section-content {
-  padding: 1.5rem;
+  padding: 0.5rem;
   animation: expandSection 0.3s ease-out;
 }
 

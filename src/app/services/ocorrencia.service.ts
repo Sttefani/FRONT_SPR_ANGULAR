@@ -177,4 +177,31 @@ vincularProcedimento(ocorrenciaId: number, procedimentoId: number): Observable<a
       responseType: 'blob'
     });
   }
+  imprimirRelatoriosGerenciais(filtros: any): Observable<Blob> {
+  let params = new HttpParams();
+
+  if (filtros.data_inicio) {
+    params = params.set('data_inicio', filtros.data_inicio);
+  }
+  if (filtros.data_fim) {
+    params = params.set('data_fim', filtros.data_fim);
+  }
+  if (filtros.servico_id) {
+    params = params.set('servico_id', filtros.servico_id.toString());
+  }
+  if (filtros.cidade_id) {
+    params = params.set('cidade_id', filtros.cidade_id.toString());
+  }
+  if (filtros.perito_id) {
+    params = params.set('perito_id', filtros.perito_id.toString());
+  }
+  if (filtros.classificacao_id) {
+    params = params.set('classificacao_id', filtros.classificacao_id.toString());
+  }
+
+  return this.http.get(`${this.baseUrl}/relatorios-gerenciais/pdf/`, {
+    params: params,
+    responseType: 'blob'
+  });
+}
 }

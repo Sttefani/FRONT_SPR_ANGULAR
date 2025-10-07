@@ -1,4 +1,5 @@
 /* Global SCSS Styles */
+
 * {
   margin: 0;
   padding: 0;
@@ -58,4 +59,61 @@ body {
 .swal2-popup.swal2-error.modal-erro-largo .swal2-html-container {
   text-align: center; // Garante que a mensagem, mesmo longa, fique centralizada
 }
+
+}
+// ========== INPUTS GLOBAIS - VISIBILIDADE ==========
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="tel"],
+input[type="url"],
+select,
+textarea {
+  // Borda SEMPRE visível
+  border: 2px solid #4a5568!important;
+  border-radius: 6px !important;
+  padding: 0.6rem !important;
+  font-size: 0.9rem !important;
+  background-color: #ffffff !important;
+  color: #1a202c !important;
+  transition: all 0.2s ease !important;
+
+  // Quando clicar (foco) - dourado
+  &:focus {
+    outline: none !important;
+    border-color: #DAA520 !important;
+    box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.15) !important;
+  }
+
+  // Quando passar o mouse
+  &:hover:not(:disabled) {
+    border-color: #a0aec0 !important;
+  }
+
+  // Quando desabilitado
+  &:disabled {
+    background-color: #f7fafc !important;
+    border-color: #e2e8f0 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+  }
+
+  // Placeholder mais visível
+  &::placeholder {
+    color: #a0aec0 !important;
+    opacity: 1 !important;
+  }
+}
+
+// Labels mais visíveis
+label {
+  font-weight: 600 !important;
+  color: #1a202c !important;
+  font-size: 0.85rem !important;
+  margin-bottom: 0.3rem !important;
+  display: block !important;
 }

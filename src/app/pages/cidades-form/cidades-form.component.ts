@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CidadeService, Cidade } from '../../services/cidade.service';
+import { CidadeService } from '../../services/cidade.service';
 import Swal from 'sweetalert2';
 
 @Component({
