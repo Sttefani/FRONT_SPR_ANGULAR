@@ -1,4 +1,6 @@
-/* Global SCSS Styles */
+/* =============================================================================
+   GLOBAL SCSS STYLES - CORRIGIDO E ORGANIZADO
+   ============================================================================= */
 
 * {
   margin: 0;
@@ -12,56 +14,10 @@ body {
   padding: 0;
 }
 
-// Customização tema preto/dourado
-.swal2-popup {
-  background: #ffffff !important;
-  border: 2px solid #DAA520 !important;
-}
+// =============================================================================
+// ===== INPUTS GLOBAIS - VISIBILIDADE =====
+// =============================================================================
 
-.swal2-title {
-  color: #1a202c !important;
-}
-
-.swal2-html-container {
-  color: #4a5568 !important;
-}
-
-.swal2-confirm {
-  background-color: #DAA520 !important;
-  color: #000000 !important;
-  border: 2px solid #DAA520 !important;
-  font-weight: 600 !important;
-
-  &:hover {
-    background-color: #B8860B !important;
-    border-color: #B8860B !important;
-  }
-}
-
-.swal2-cancel {
-  background-color: #ffffff !important;
-  color: #4a5568 !important;
-  border: 2px solid #e2e8f0 !important;
-
-  &:hover {
-    border-color: #cbd5e0 !important;
-  }
-  // Em src/styles.scss
-
-/*
- * Estilo personalizado para os modais de erro do SweetAlert2,
- * tornando-os mais largos para acomodar mensagens longas.
- */
-.swal2-popup.swal2-error.modal-erro-largo {
-  width: 500px; // Aumenta a largura padrão (que é em torno de 480px)
-}
-
-.swal2-popup.swal2-error.modal-erro-largo .swal2-html-container {
-  text-align: center; // Garante que a mensagem, mesmo longa, fique centralizada
-}
-
-}
-// ========== INPUTS GLOBAIS - VISIBILIDADE ==========
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -73,8 +29,7 @@ input[type="tel"],
 input[type="url"],
 select,
 textarea {
-  // Borda SEMPRE visível
-  border: 2px solid #4a5568!important;
+  border: 2px solid #4a5568 !important;
   border-radius: 6px !important;
   padding: 0.6rem !important;
   font-size: 0.9rem !important;
@@ -82,19 +37,16 @@ textarea {
   color: #1a202c !important;
   transition: all 0.2s ease !important;
 
-  // Quando clicar (foco) - dourado
   &:focus {
     outline: none !important;
     border-color: #DAA520 !important;
     box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.15) !important;
   }
 
-  // Quando passar o mouse
   &:hover:not(:disabled) {
     border-color: #a0aec0 !important;
   }
 
-  // Quando desabilitado
   &:disabled {
     background-color: #f7fafc !important;
     border-color: #e2e8f0 !important;
@@ -102,18 +54,204 @@ textarea {
     opacity: 0.6 !important;
   }
 
-  // Placeholder mais visível
   &::placeholder {
     color: #a0aec0 !important;
     opacity: 1 !important;
   }
 }
 
-// Labels mais visíveis
 label {
   font-weight: 600 !important;
   color: #1a202c !important;
   font-size: 0.85rem !important;
   margin-bottom: 0.3rem !important;
   display: block !important;
+}
+
+// =============================================================================
+// ===== SWEETALERT2 - ESTILO PREMIUM =====
+// =============================================================================
+
+.swal2-popup {
+  background: #ffffff !important;
+  border: 2px solid #DAA520 !important;
+
+  // Container do HTML
+  .swal2-html-container {
+    color: #4a5568 !important;
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+    padding: 1.5rem !important;
+  }
+
+  // Título
+  .swal2-title {
+    color: #1a202c !important;
+    font-weight: 700 !important;
+  }
+
+  // ⭐ INPUTS COM ESTILO PREMIUM
+  .swal2-input,
+  input.swal2-input,
+  select.swal2-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    margin: 0 0 1rem 0 !important;
+    padding: 0.8rem 1rem !important;
+    border: 2px solid #cbd5e0 !important;
+    border-radius: 10px !important;
+    font-size: 0.9rem !important;
+    background: #ffffff !important;
+    color: #1a202c !important;
+    font-weight: 500 !important;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+    &:hover {
+      border-color: #a0aec0 !important;
+    }
+
+    &:focus {
+      outline: none !important;
+      border-color: #DAA520 !important;
+      box-shadow: 0 0 0 4px rgba(218, 165, 32, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+      transform: translateY(-2px) !important;
+      background: #fffef8 !important;
+    }
+
+    &::placeholder {
+      color: #718096 !important;
+      font-style: italic !important;
+    }
+  }
+
+  // Labels dentro do SweetAlert
+  label {
+    display: block !important;
+    margin-bottom: 0.5rem !important;
+    font-weight: 600 !important;
+    color: #1a202c !important;
+    font-size: 0.8rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  // Botão Confirmar - Verde
+  .swal2-confirm {
+    background: linear-gradient(135deg, #28a745, #1e7e34) !important;
+    border: 2px solid #28a745 !important;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3) !important;
+    padding: 0.7rem 1.5rem !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    color: #ffffff !important;
+
+    &:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4) !important;
+    }
+  }
+
+  // Botão Cancelar
+  .swal2-cancel {
+    background: #ffffff !important;
+    border: 2px solid #e2e8f0 !important;
+    color: #1a202c !important;
+    padding: 0.7rem 1.5rem !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+
+    &:hover {
+      border-color: #1a202c !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    }
+  }
+}
+
+// Modal de erro largo
+.swal2-popup.swal2-error.modal-erro-largo {
+  width: 500px;
+
+  .swal2-html-container {
+    text-align: center;
+  }
+}
+
+// Sobrescreve estilos inline do SweetAlert
+.swal2-input[style] {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+// =============================================================================
+// ===== CORREÇÃO PARA MODAIS NORMAIS =====
+// =============================================================================
+
+.modal-overlay,
+[class*="modal-overlay"],
+.cdk-overlay-container,
+.mat-dialog-container {
+
+  .modal-content,
+  [class*="modal-content"] {
+    overflow: hidden !important;
+    max-width: 90vw !important;
+  }
+
+  .modal-body,
+  [class*="modal-body"] {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+
+    .form-row-compact,
+    [class*="form-row-compact"] {
+      display: grid !important;
+      grid-template-columns: 2fr 1fr 1fr auto !important;
+      gap: 0.8rem !important;
+      width: 100% !important;
+
+      > * {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+      }
+
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    input,
+    select,
+    textarea,
+    .form-control {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      box-sizing: border-box !important;
+
+      &[type="number"] {
+        -moz-appearance: textfield !important;
+
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+          -webkit-appearance: none !important;
+          margin: 0 !important;
+        }
+      }
+    }
+
+    .form-group,
+    [class*="form-group"] {
+      min-width: 0 !important;
+      max-width: 100% !important;
+    }
+  }
 }

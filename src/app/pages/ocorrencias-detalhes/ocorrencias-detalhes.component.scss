@@ -1,135 +1,189 @@
+// =============================================================================
+// ===== SCSS PREMIUM - DETALHES DA OCORRÊNCIA (CORRIGIDO) =====
+// Com correção para inputs que vazam do modal
+// =============================================================================
+
 :host {
   --primary-color: #DAA520;
   --primary-color-dark: #B8860B;
+  --primary-light: #F4D03F;
   --text-color-dark: #1a202c;
   --text-color-light: #4a5568;
+  --text-muted: #718096;
   --background-color: #f7fafc;
   --card-background-color: #ffffff;
   --border-color: #e2e8f0;
   --success-color: #28a745;
+  --success-light: #d4edda;
   --danger-color: #dc3545;
+  --danger-light: #f8d7da;
   --warning-color: #ff9800;
   --info-color: #3182ce;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.16);
+  --shadow-primary: 0 4px 20px rgba(218, 165, 32, 0.3);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .container {
-  padding: 1rem;
+  padding: 1.5rem;
   max-width: 1400px;
   margin: 0 auto;
+  min-height: 100vh;
 }
+
+// =============================================================================
+// ===== LOADING =====
+// =============================================================================
 
 .loading {
   text-align: center;
-  padding: 3rem;
+  padding: 4rem;
   color: var(--text-color-light);
 
   i {
-    font-size: 3rem;
+    font-size: 3.5rem;
     color: var(--primary-color);
-    margin-bottom: 1rem;
-    animation: pulse 2s ease-in-out infinite;
+    margin-bottom: 1.5rem;
+    animation: spin 2s linear infinite;
+    filter: drop-shadow(0 4px 8px rgba(218, 165, 32, 0.3));
+  }
+
+  p {
+    font-size: 1.1rem;
+    font-weight: 600;
   }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 0.3; }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
+
+// =============================================================================
+// ===== HEADER =====
+// =============================================================================
 
 .header-detalhes {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   gap: 1rem;
   flex-wrap: wrap;
+  animation: slideDown 0.5s ease-out;
 
   > div:first-child {
     flex: 1;
 
     h1 {
-      font-size: 1.8rem;
-      font-weight: 700;
+      font-size: 2rem;
+      font-weight: 800;
       color: var(--text-color-dark);
-      margin: 0.5rem 0 0.3rem 0;
+      margin: 0.5rem 0 0.5rem 0;
       font-family: 'Courier New', monospace;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-color-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
   }
 
   .btn-back {
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-color-dark));
     border: 2px solid var(--primary-color);
     color: #000;
-    padding: 0.4rem 0.9rem;
-    border-radius: 6px;
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 700;
     text-transform: uppercase;
-    transition: all 0.2s ease;
+    letter-spacing: 0.5px;
+    transition: var(--transition);
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.5rem;
+    box-shadow: var(--shadow-primary);
 
     &:hover {
-      background: var(--primary-color-dark);
-      transform: translateY(-2px);
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 6px 20px rgba(218, 165, 32, 0.4);
+    }
+
+    &:active {
+      transform: translateY(-1px);
+    }
+
+    i {
+      font-size: 1rem;
     }
   }
 
   .badge-status-large {
     display: inline-block;
-    padding: 0.4rem 1rem;
+    padding: 0.5rem 1.2rem;
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
+    margin-top: 0.5rem;
+    border: 2px solid transparent;
 
     &.status-aguardando {
       background: linear-gradient(135deg, #ff9800, #f57c00);
       color: #fff;
-      box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+      border-color: #f57c00;
+      box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
     }
 
     &.status-analise {
       background: linear-gradient(135deg, #3182ce, #2c5aa0);
       color: #fff;
-      box-shadow: 0 2px 8px rgba(49, 130, 206, 0.3);
+      border-color: #2c5aa0;
+      box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
     }
 
     &.status-finalizada {
       background: linear-gradient(135deg, #28a745, #1e7e34);
       color: #fff;
-      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+      border-color: #1e7e34;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
     }
   }
 
   .actions-group {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
     flex-wrap: wrap;
+    align-items: center;
 
     button {
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
+      padding: 0.7rem 1.2rem;
+      border-radius: 10px;
       cursor: pointer;
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.85rem;
+      font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 0.4rem;
-      transition: all 0.2s ease;
+      gap: 0.5rem;
+      transition: var(--transition);
       text-transform: uppercase;
+      letter-spacing: 0.5px;
       border: 2px solid;
 
-      i { font-size: 1rem; }
+      i { font-size: 1.1rem; }
 
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+      }
+
+      &:active {
+        transform: translateY(-1px);
       }
     }
 
@@ -140,299 +194,89 @@
 
       &:hover {
         border-color: var(--text-color-dark);
+        background: #f0f0f0;
       }
     }
 
     .btn-edit {
-      background: var(--primary-color);
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-color-dark));
       border-color: var(--primary-color);
       color: #000;
+      box-shadow: var(--shadow-primary);
 
       &:hover {
-        background: var(--primary-color-dark);
-        border-color: var(--primary-color-dark);
+        box-shadow: 0 6px 20px rgba(218, 165, 32, 0.4);
       }
     }
 
     .btn-success {
-      background: var(--success-color);
+      background: linear-gradient(135deg, var(--success-color), #1e7e34);
       border-color: var(--success-color);
       color: #fff;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 
       &:hover {
-        background: #1e7e34;
-        border-color: #1e7e34;
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
       }
     }
 
     .btn-warning {
-      background: var(--warning-color);
+      background: linear-gradient(135deg, var(--warning-color), #f57c00);
       border-color: var(--warning-color);
       color: #fff;
+      box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
 
       &:hover {
-        background: #f57c00;
-        border-color: #f57c00;
+        box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
       }
     }
   }
 }
 
-.message {
-  padding: 0.8rem 1.2rem;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-  font-size: 0.9rem;
-  border-left: 4px solid;
-  animation: slideIn 0.3s ease-out;
-
-  &.success {
-    background-color: #d4edda;
-    color: #155724;
-    border-color: var(--success-color);
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
   }
-
-  &.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border-color: var(--danger-color);
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+// =============================================================================
+// ===== BADGES DE BLOQUEIO =====
+// =============================================================================
 
-.detalhes-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.info-card {
-  background: var(--card-background-color);
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  border-left: 4px solid var(--primary-color);
-  transition: all 0.2s ease;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    transform: translateY(-2px);
-  }
-
-  &.full-width {
-    grid-column: 1 / -1;
-  }
-
-  &.finalizado {
-    border-left-color: var(--success-color);
-    background: linear-gradient(135deg, rgba(40, 167, 69, 0.05), var(--card-background-color));
-  }
-
-  &.alerta {
-    border-left-color: var(--warning-color);
-    background: linear-gradient(135deg, rgba(255, 152, 0, 0.05), var(--card-background-color));
-  }
-
-  h3 {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text-color-dark);
-    margin: 0 0 0.8rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-
-    i {
-      color: var(--primary-color);
-      font-size: 1.1rem;
-    }
-  }
-}
-
-.info-row {
-  display: grid;
-  grid-template-columns: 100px 1fr;
-  gap: 0.8rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--background-color);
-  font-size: 0.85rem;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  .label {
-    font-weight: 600;
-    color: var(--text-color-light);
-  }
-
-  .value {
-    color: var(--text-color-dark);
-    font-weight: 500;
-    word-break: break-word;
-  }
-}
-
-.badge-alert {
-  display: inline-block;
-  padding: 0.4rem 0.8rem;
-  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-  color: #e65100;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border: 1px solid #ff9800;
-}
-
-.text-muted {
-  color: var(--text-color-light);
-  font-style: italic;
-  font-size: 0.85rem;
-}
-
-.exames-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 0.6rem;
-  margin-top: 0.8rem;
-}
-
-.exame-chip {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.6rem;
-  background: linear-gradient(135deg, var(--background-color), #fff);
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 2px 6px rgba(218, 165, 32, 0.2);
-    transform: translateX(2px);
-  }
-
-  .exame-codigo {
-    font-weight: 700;
-    color: var(--primary-color);
-    font-size: 0.75rem;
-    font-family: 'Courier New', monospace;
-  }
-
-  .exame-nome {
-    color: var(--text-color-dark);
-    font-size: 0.8rem;
-    font-weight: 500;
-  }
-}
-
-.historico-content {
-  padding: 1rem;
-  background: var(--background-color);
-  border-radius: 6px;
-  color: var(--text-color-dark);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-  border-left: 3px solid var(--info-color);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  background: var(--card-background-color);
-  border: 2px dashed var(--border-color);
-  border-radius: 8px;
-  color: var(--text-color-light);
-
-  i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: var(--danger-color);
-  }
-
-  p {
-    font-size: 1rem;
-    font-weight: 500;
-  }
-}
-
-@media (max-width: 768px) {
-  .container { padding: 0.8rem; }
-
-  .header-detalhes {
-    flex-direction: column;
-
-    h1 { font-size: 1.4rem; }
-
-    .actions-group {
-      width: 100%;
-
-      button {
-        flex: 1;
-        justify-content: center;
-      }
-    }
-  }
-
-  .detalhes-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .info-row {
-    grid-template-columns: 80px 1fr;
-    gap: 0.5rem;
-  }
-
-  .exames-grid {
-    grid-template-columns: 1fr;
-  }
-}
-// ✅ ADICIONE ESTE BLOCO AO FINAL DO SEU SCSS EXISTENTE
-
-// Badge de bloqueio (quando não pode editar)
 .badge-bloqueio {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  gap: 0.6rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: 10px;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
   border: 2px solid;
   cursor: help;
-  transition: all 0.2s ease;
-  animation: fadeIn 0.3s ease-out;
+  transition: var(--transition);
+  animation: fadeIn 0.4s ease-out;
 
   i {
-    font-size: 1rem;
-  }
-
-  span {
-    letter-spacing: 0.5px;
+    font-size: 1.1rem;
   }
 
   &.finalizada {
     background: linear-gradient(135deg, #fff5f5, #ffe5e5);
     border-color: var(--danger-color);
     color: var(--danger-color);
-    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.15);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
 
     &:hover {
       background: linear-gradient(135deg, #ffe5e5, #ffd5d5);
-      box-shadow: 0 3px 8px rgba(220, 53, 69, 0.25);
-      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(220, 53, 69, 0.3);
+      transform: translateY(-2px);
     }
   }
 
@@ -440,12 +284,12 @@
     background: linear-gradient(135deg, #fff3e0, #ffe0b2);
     border-color: var(--warning-color);
     color: #e65100;
-    box-shadow: 0 2px 6px rgba(255, 152, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
 
     &:hover {
       background: linear-gradient(135deg, #ffe0b2, #ffcc80);
-      box-shadow: 0 3px 8px rgba(255, 152, 0, 0.25);
-      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(255, 152, 0, 0.3);
+      transform: translateY(-2px);
     }
   }
 }
@@ -461,36 +305,169 @@
   }
 }
 
-// Ajuste no grupo de ações para acomodar o badge
-.actions-group {
-  align-items: center;
+// =============================================================================
+// ===== MENSAGENS =====
+// =============================================================================
 
-  .badge-bloqueio {
-    margin: 0;
+.message {
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-left: 4px solid;
+  animation: slideIn 0.4s ease-out;
+  box-shadow: var(--shadow-sm);
+
+  &.success {
+    background: linear-gradient(135deg, var(--success-light), #c3e6cb);
+    color: #155724;
+    border-color: var(--success-color);
+  }
+
+  &.error {
+    background: linear-gradient(135deg, var(--danger-light), #f5c6cb);
+    color: #721c24;
+    border-color: var(--danger-color);
   }
 }
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// =============================================================================
+// ===== CARDS DE INFORMAÇÃO =====
+// =============================================================================
+
+.detalhes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-card {
+  background: var(--card-background-color);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--border-color);
+  border-left: 4px solid var(--primary-color);
+  transition: var(--transition);
+  animation: fadeIn 0.5s ease-out;
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+    border-left-color: var(--primary-color-dark);
+  }
+
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+
+  &.finalizado {
+    border-left-color: var(--success-color);
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.03), var(--card-background-color));
+  }
+
+  &.alerta {
+    border-left-color: var(--warning-color);
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.03), var(--card-background-color));
+  }
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-color-dark);
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid var(--background-color);
+
+    i {
+      color: var(--primary-color);
+      font-size: 1.3rem;
+      filter: drop-shadow(0 2px 4px rgba(218, 165, 32, 0.2));
+    }
+  }
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--background-color);
+  font-size: 0.9rem;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .label {
+    font-weight: 700;
+    color: var(--text-color-light);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+  }
+
+  .value {
+    color: var(--text-color-dark);
+    font-weight: 500;
+    word-break: break-word;
+  }
+}
+
+// =============================================================================
+// ===== CARD DE PROCEDIMENTO COM AÇÃO =====
+// =============================================================================
+
 .card-header-with-action {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 2px solid var(--background-color);
 }
 
 .btn-link-procedimento {
-  background: #007bff;
+  background: linear-gradient(135deg, var(--info-color), #2c5aa0);
   color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.875rem;
+  border: 2px solid var(--info-color);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
-  transition: all 0.2s;
+  gap: 0.5rem;
+  transition: var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
 
   &:hover {
-    background: #0056b3;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(49, 130, 206, 0.4);
+  }
+
+  &:active {
     transform: translateY(-1px);
   }
 
@@ -500,14 +477,16 @@
 }
 
 .procedimento-vinculado {
-  background: #e8f5e9;
-  border: 2px solid #4caf50;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 15px;
+  background: linear-gradient(135deg, var(--success-light), #c3e6cb);
+  border: 2px solid var(--success-color);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: var(--shadow-sm);
+  animation: slideIn 0.4s ease-out;
 
   .procedimento-info {
     flex: 1;
@@ -515,17 +494,27 @@
 }
 
 .btn-danger-sm {
-  background: #dc3545;
+  background: linear-gradient(135deg, var(--danger-color), #c82333);
   color: white;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
+  border: 2px solid var(--danger-color);
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.875rem;
-  transition: all 0.2s;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 
   &:hover {
-    background: #c82333;
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 
   i {
@@ -533,15 +522,376 @@
   }
 }
 
-// Responsive para badges
+// =============================================================================
+// ===== OUTROS ELEMENTOS =====
+// =============================================================================
+
+.badge-alert {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  color: #e65100;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 2px solid var(--warning-color);
+  box-shadow: var(--shadow-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.text-muted {
+  color: var(--text-color-light);
+  font-style: italic;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.exames-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.exame-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--background-color), #fff);
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+  transition: var(--transition);
+
+  &:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(218, 165, 32, 0.2);
+    transform: translateX(4px);
+  }
+
+  .exame-codigo {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 0.8rem;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+  }
+
+  .exame-nome {
+    color: var(--text-color-dark);
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+}
+
+.historico-content {
+  padding: 1.5rem;
+  background: var(--background-color);
+  border-radius: 12px;
+  color: var(--text-color-dark);
+  font-size: 0.9rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-left: 4px solid var(--info-color);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem;
+  background: var(--card-background-color);
+  border: 2px dashed var(--border-color);
+  border-radius: 16px;
+  color: var(--text-color-light);
+
+  i {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    color: var(--danger-color);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  p {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.95);
+  }
+}
+
+// =============================================================================
+// ===== CORREÇÕES ULTRA AGRESSIVAS PARA MODAL - PRIORIDADE MÁXIMA =====
+// Sobrescreve QUALQUER CSS global, incluindo styles.scss
+// =============================================================================
+
+// Seletor SUPER específico com máxima prioridade
+:host ::ng-deep .modal-overlay,
+::ng-deep .modal-overlay,
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 9999 !important;
+  overflow: hidden !important;
+
+  * {
+    box-sizing: border-box !important;
+  }
+
+  // FORÇA ABSOLUTA no modal-content
+  .modal-content,
+  div[class*="modal-content"] {
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    max-width: 650px !important;
+    width: 95% !important;
+    max-height: 90vh !important;
+    position: relative !important;
+    margin: 0 auto !important;
+  }
+
+  // FORÇA ABSOLUTA no modal-body
+  .modal-body,
+  div[class*="modal-body"] {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 1.5rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+
+    // SOBRESCREVE styles.scss global para TODOS os inputs
+    input,
+    select,
+    textarea,
+    .form-control,
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    input[type="email"],
+    input.form-control,
+    select.form-control {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      padding: 0.7rem 1rem !important;
+      margin: 0 !important;
+      flex: none !important; // Impede flex-grow de bagunçar
+      flex-shrink: 1 !important; // Permite shrink
+      flex-basis: auto !important;
+    }
+
+    // Form groups e rows - MÁXIMA ESPECIFICIDADE
+    .form-row,
+    .form-row-compact,
+    div[class*="form-row"] {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+
+      // Se for grid, força confinamento
+      &[style*="grid"],
+      &.form-row-compact {
+        display: grid !important;
+        overflow: hidden !important;
+
+        > * {
+          min-width: 0 !important; // CRÍTICO para grid
+          overflow: hidden !important;
+        }
+      }
+    }
+
+    .form-group,
+    div[class*="form-group"] {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+
+      input,
+      select,
+      textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+      }
+    }
+  }
+}
+
+// Regras específicas para modal de vincular procedimento
+:host ::ng-deep .modal-vincular-procedimento,
+::ng-deep .modal-vincular-procedimento,
+.modal-vincular-procedimento {
+  .modal-overlay {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .modal-content {
+    overflow: hidden !important;
+    max-width: 700px !important;
+    width: 95% !important;
+  }
+
+  // Grid de busca de procedimento (form-row-compact)
+  .form-row-compact {
+    display: grid !important;
+    grid-template-columns: 2fr 1fr 1fr auto !important;
+    gap: 0.8rem !important;
+    width: 100% !important;
+    overflow: hidden !important;
+
+    > * {
+      min-width: 0 !important; // VITAL para conter grid items
+      max-width: 100% !important;
+      overflow: hidden !important;
+    }
+
+    // Campo número especificamente
+    .form-group:nth-child(2),
+    div:nth-child(2) {
+      input {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  // Força inputs a respeitarem container
+  input[type="text"],
+  input[type="number"],
+  select {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    box-sizing: border-box !important;
+  }
+}
+
+// Regra UNIVERSAL para QUALQUER modal ou overlay
+[class*="modal"],
+[class*="overlay"] {
+  input,
+  select,
+  textarea,
+  .form-control {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+
+  // Força grid items a respeitarem bounds
+  [style*="grid"] > *,
+  .form-row-compact > *,
+  [class*="form-row"] > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+}
+
+// ===== HACK FINAL PARA GRID COLUMNS =====
+// Se o input ainda vazar, é porque o grid está expandindo
+:host ::ng-deep,
+::ng-deep {
+  .modal-body .form-row-compact,
+  .modal-content .form-row-compact {
+    // Força cada coluna do grid a ter tamanho máximo
+    > *:nth-child(1) { max-width: 100% !important; min-width: 0 !important; }
+    > *:nth-child(2) { max-width: 100% !important; min-width: 0 !important; }
+    > *:nth-child(3) { max-width: 100% !important; min-width: 0 !important; }
+    > *:nth-child(4) { max-width: 100% !important; min-width: 0 !important; }
+  }
+}
+
+// =============================================================================
+// ===== RESPONSIVIDADE =====
+// =============================================================================
+
 @media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .header-detalhes {
+    flex-direction: column;
+
+    h1 {
+      font-size: 1.5rem;
+    }
+
+    .actions-group {
+      width: 100%;
+      flex-direction: column;
+
+      button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+
+  .detalhes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-row {
+    grid-template-columns: 90px 1fr;
+    gap: 0.5rem;
+  }
+
+  .exames-grid {
+    grid-template-columns: 1fr;
+  }
+
   .badge-bloqueio {
-    padding: 0.4rem 0.8rem;
+    padding: 0.5rem 1rem;
     font-size: 0.75rem;
     gap: 0.4rem;
 
     i {
       font-size: 0.9rem;
+    }
+  }
+
+  .procedimento-vinculado {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+
+    .btn-danger-sm {
+      width: 100%;
+      justify-content: center;
     }
   }
 }

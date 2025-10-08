@@ -83,27 +83,26 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   }
 
   abrirModalVincularProcedimento(): void {
-    Swal.fire({
-      title: 'Vincular Procedimento',
-      html: `
-        <div style="text-align: left; padding: 10px;">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Procedimento *</label>
-          <select id="swal-tipo" class="swal2-input" style="width: 100%; margin-bottom: 15px;">
-            <option value="">Selecione</option>
-            ${this.tiposProcedimento.map(t => `<option value="${t.id}">${t.sigla} - ${t.nome}</option>`).join('')}
-          </select>
-
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Número *</label>
-          <input id="swal-numero" class="swal2-input" placeholder="Ex: 123" style="width: 100%; margin-bottom: 15px;">
-
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Ano *</label>
-          <input id="swal-ano" type="number" class="swal2-input" value="${new Date().getFullYear()}" style="width: 100%;">
-        </div>
-      `,
+  Swal.fire({
+    title: 'Vincular Procedimento',
+    width: '600px', // ⭐ Adicione isso para controlar largura do modal
+    html: `
+      <div style="text-align: left; padding: 10px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Procedimento *</label>
+        <select id="swal-tipo" class="swal2-input">
+          <option value="">Selecione</option>
+          ${this.tiposProcedimento.map(t => `<option value="${t.id}">${t.sigla} - ${t.nome}</option>`).join('')}
+        </select>
+        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Número *</label>
+        <input id="swal-numero" class="swal2-input" placeholder="Ex: 123">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Ano *</label>
+        <input id="swal-ano" type="number" class="swal2-input" value="${new Date().getFullYear()}">
+      </div>
+    `,
       showCancelButton: true,
       confirmButtonText: 'Buscar',
       cancelButtonText: 'Cancelar',
-      width: '500px',
+
       preConfirm: () => {
         const tipo = (document.getElementById('swal-tipo') as HTMLSelectElement).value;
         const numero = (document.getElementById('swal-numero') as HTMLInputElement).value;
