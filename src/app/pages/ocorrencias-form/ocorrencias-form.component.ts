@@ -377,74 +377,159 @@ export class OcorrenciasFormComponent implements OnInit {
     (this.secoesAbertas as any)[secao] = true;
   }
 
-  loadOcorrencia(id: number): void {
-    this.isLoading = true;
-    this.isEditMode = true;
-    this.ocorrenciaService.getById(id).subscribe({
-      next: (ocorrencia: any) => {
-        const user = this.authService.getCurrentUser();
-        const isAdminOrSuper = this.authService.isSuperAdmin() || user?.perfil === 'ADMINISTRATIVO';
-        if (ocorrencia.reaberta_por) {
-          if (ocorrencia.perito_atribuido && !isAdminOrSuper) {
-            if (Number(user?.id) !== Number(ocorrencia.perito_atribuido.id)) {
-              Swal.fire({ title: 'Acesso Negado', text: 'Esta ocorrência está atribuída a outro perito.', icon: 'error', confirmButtonText: 'Voltar' }).then(() => { this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']); });
-              return;
-            }
-          }
-        } else {
-          const jaFinalizada = ocorrencia.esta_finalizada === true || !!ocorrencia.finalizada_por || !!ocorrencia.data_finalizacao;
-          if (jaFinalizada && !this.authService.isSuperAdmin()) {
-            Swal.fire({ title: 'Ocorrência Finalizada', text: 'Esta ocorrência está finalizada e não pode ser editada.', icon: 'warning', confirmButtonText: 'Voltar' }).then(() => { this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']); });
-            return;
-          }
-          if (ocorrencia.perito_atribuido && !isAdminOrSuper) {
-            if (Number(user?.id) !== Number(ocorrencia.perito_atribuido.id)) {
-              Swal.fire({ title: 'Acesso Negado', text: 'Esta ocorrência está atribuída a outro perito.', icon: 'error', confirmButtonText: 'Voltar' }).then(() => { this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']); });
-              return;
-            }
-          }
-        }
-        this.loadUnidades();
-        this.loadCargos();
-        this.loadCidades();
-        this.loadPeritos();
-        if (ocorrencia.servico_pericial) {
-          this.loadClassificacoes(ocorrencia.servico_pericial.id);
-        }
-        if (ocorrencia.autoridade) {
-          this.cargoSelecionado = ocorrencia.autoridade.cargo.id;
-          this.autoridadeSelecionada = ocorrencia.autoridade;
-          this.autoridadeBusca = ocorrencia.autoridade.nome;
-          this.autoridadeService.getAll('', this.cargoSelecionado ?? undefined).subscribe({ next: (response: any) => { this.autoridades = response.results || []; }, error: (err: any) => console.error('Erro ao carregar autoridades:', err) });
-        }
-        this.ocorrenciaForm.patchValue({
-          servico_pericial_id: ocorrencia.servico_pericial.id,
-          unidade_demandante_id: ocorrencia.unidade_demandante?.id,
-          autoridade_id: ocorrencia.autoridade?.id,
-          cidade_id: ocorrencia.cidade?.id,
-          classificacao_id: ocorrencia.classificacao?.id,
-          data_fato: ocorrencia.data_fato,
-          hora_fato: ocorrencia.hora_fato,
-          procedimento_cadastrado_id: ocorrencia.procedimento_cadastrado?.id,
-          tipo_documento_origem_id: ocorrencia.tipo_documento_origem?.id,
-          numero_documento_origem: ocorrencia.numero_documento_origem,
-          data_documento_origem: ocorrencia.data_documento_origem,
-          processo_sei_numero: ocorrencia.processo_sei_numero,
-          perito_atribuido_id: ocorrencia.perito_atribuido?.id,
-          historico: ocorrencia.historico
-        });
-        this.examesSelecionados = ocorrencia.exames_solicitados || [];
-        this.procedimentoVinculado = ocorrencia.procedimento_cadastrado || null;
+  // ==========================================
+// MÉTODO PRINCIPAL - CARREGAR OCORRÊNCIA
+// ==========================================
+loadOcorrencia(id: number): void {
+  this.isLoading = true;
+  this.isEditMode = true;
+
+  this.ocorrenciaService.getById(id).subscribe({
+    next: (ocorrencia: any) => {
+      console.log('📦 DADOS CARREGADOS:', ocorrencia); // Debug opcional
+
+      // Valida permissões de acesso
+      if (!this.podeEditarOcorrencia(ocorrencia)) {
         this.isLoading = false;
-      },
-      error: (err: any) => {
-        console.error('Erro:', err);
-        Swal.fire({ title: 'Erro', text: 'Erro ao carregar ocorrência.', icon: 'error' }).then(() => { this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']); });
-        this.isLoading = false;
+        return; // Já mostra o erro e redireciona dentro do método
       }
-    });
+
+      // Carrega dados complementares
+      this.carregarDadosComplementares(ocorrencia);
+
+      // Preenche o formulário
+      this.preencherFormulario(ocorrencia);
+
+      this.isLoading = false;
+    },
+    error: (err: any) => {
+      console.error('❌ Erro ao carregar ocorrência:', err);
+      this.isLoading = false;
+      Swal.fire({
+        title: 'Erro',
+        text: 'Não foi possível carregar a ocorrência.',
+        icon: 'error',
+        confirmButtonText: 'Voltar'
+      }).then(() => {
+        this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+      });
+    }
+  });
+}
+
+// ==========================================
+// VALIDAÇÃO DE PERMISSÕES
+// ==========================================
+private podeEditarOcorrencia(ocorrencia: any): boolean {
+  const user = this.authService.getCurrentUser();
+  const isSuperAdmin = this.authService.isSuperAdmin();
+  const isAdmin = user?.perfil === 'ADMINISTRATIVO';
+
+  // Super Admin e Administrativo podem editar qualquer coisa
+  if (isSuperAdmin || isAdmin) {
+    return true;
   }
 
+  // Verifica se está finalizada
+  if (this.estaFinalizada(ocorrencia)) {
+    Swal.fire({
+      title: 'Ocorrência Finalizada',
+      text: 'Esta ocorrência está finalizada e não pode ser editada.',
+      icon: 'warning',
+      confirmButtonText: 'Voltar'
+    }).then(() => {
+      this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+    });
+    return false;
+  }
+
+  // Verifica se o perito atribuído é o usuário logado
+  if (ocorrencia.perito_atribuido) {
+    if (Number(user?.id) !== Number(ocorrencia.perito_atribuido.id)) {
+      Swal.fire({
+        title: 'Acesso Negado',
+        text: 'Esta ocorrência está atribuída a outro perito.',
+        icon: 'error',
+        confirmButtonText: 'Voltar'
+      }).then(() => {
+        this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+      });
+      return false;
+    }
+  }
+
+  return true;
+}
+
+// ==========================================
+// VERIFICA SE ESTÁ FINALIZADA
+// ==========================================
+private estaFinalizada(ocorrencia: any): boolean {
+  return ocorrencia.esta_finalizada === true ||
+         !!ocorrencia.finalizada_por ||
+         !!ocorrencia.data_finalizacao;
+}
+
+// ==========================================
+// CARREGA DADOS COMPLEMENTARES
+// ==========================================
+private carregarDadosComplementares(ocorrencia: any): void {
+  // Carrega listas de seleção
+  this.loadUnidades();
+  this.loadCargos();
+  this.loadCidades();
+  this.loadPeritos();
+
+  // Carrega classificações do serviço específico
+  if (ocorrencia.servico_pericial?.id) {
+    this.loadClassificacoes(ocorrencia.servico_pericial.id);
+  }
+
+  // Preenche autoridade se existir
+  if (ocorrencia.autoridade) {
+    this.cargoSelecionado = ocorrencia.autoridade.cargo?.id || null;
+    this.autoridadeSelecionada = ocorrencia.autoridade;
+    this.autoridadeBusca = ocorrencia.autoridade.nome || '';
+
+    // Carrega lista de autoridades do cargo
+    if (this.cargoSelecionado) {
+      this.autoridadeService.getAll('', this.cargoSelecionado).subscribe({
+        next: (response: any) => {
+          this.autoridades = response.results || [];
+        },
+        error: (err: any) => {
+          console.error('❌ Erro ao carregar autoridades:', err);
+        }
+      });
+    }
+  }
+}
+
+// ==========================================
+// PREENCHE O FORMULÁRIO
+// ==========================================
+private preencherFormulario(ocorrencia: any): void {
+  this.ocorrenciaForm.patchValue({
+    servico_pericial_id: ocorrencia.servico_pericial?.id || null,
+    unidade_demandante_id: ocorrencia.unidade_demandante?.id || null,
+    autoridade_id: ocorrencia.autoridade?.id || null,
+    cidade_id: ocorrencia.cidade?.id || null,
+    classificacao_id: ocorrencia.classificacao?.id || null,
+    data_fato: ocorrencia.data_fato || null,
+    hora_fato: ocorrencia.hora_fato || null,
+    procedimento_cadastrado_id: ocorrencia.procedimento_cadastrado?.id || null,
+    tipo_documento_origem_id: ocorrencia.tipo_documento_origem?.id || null,
+    numero_documento_origem: ocorrencia.numero_documento_origem || '',
+    data_documento_origem: ocorrencia.data_documento_origem || null,
+    processo_sei_numero: ocorrencia.processo_sei_numero || '',
+    perito_atribuido_id: ocorrencia.perito_atribuido?.id || null,
+    historico: ocorrencia.historico || ''
+  });
+
+  // Carrega dados adicionais
+  this.examesSelecionados = ocorrencia.exames_solicitados || [];
+  this.procedimentoVinculado = ocorrencia.procedimento_cadastrado || null;
+}
   abrirModalExames(): void {
     const servicoId = this.ocorrenciaForm.get('servico_pericial_id')?.value;
     if (!servicoId) {
