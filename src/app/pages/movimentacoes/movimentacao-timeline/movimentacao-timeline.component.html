@@ -1,0 +1,142 @@
+<div class="movimentacoes-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-title">
+      <h3>📋 Extrato de Movimentações</h3>
+      <span class="badge-count" *ngIf="!carregando()">
+        {{ movimentacoes().length }} registros
+      </span>
+    </div>
+
+    <div class="header-actions">
+      <button
+        class="btn-pdf-historico"
+        (click)="gerarHistoricoPdf()"
+        [disabled]="movimentacoes().length === 0"
+        title="Baixar histórico completo em PDF">
+        📄 PDF Completo
+      </button>
+
+      <button
+        *ngIf="podeAdicionar()"
+        class="btn-adicionar"
+        (click)="abrirModalAdicionar()"
+        title="Adicionar nova movimentação">
+        ➕ Nova Movimentação
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="carregando()" class="loading">
+    <div class="spinner"></div>
+    <p>Carregando movimentações...</p>
+  </div>
+
+  <!-- Erro -->
+  <div *ngIf="erro()" class="erro">
+    <p>❌ {{ erro() }}</p>
+    <button class="btn-retry" (click)="carregarMovimentacoes()">
+      🔄 Tentar novamente
+    </button>
+  </div>
+
+  <!-- Lista vazia -->
+  <div *ngIf="!carregando() && !erro() && movimentacoes().length === 0" class="vazio">
+    <p>📭 Nenhuma movimentação registrada ainda.</p>
+    <button
+      *ngIf="podeAdicionar()"
+      class="btn-adicionar-first"
+      (click)="abrirModalAdicionar()">
+      ➕ Adicionar primeira movimentação
+    </button>
+  </div>
+
+  <!-- Timeline de Movimentações -->
+  <div *ngIf="!carregando() && !erro() && movimentacoes().length > 0" class="timeline">
+    <div
+      *ngFor="let mov of movimentacoes(); let i = index"
+      class="timeline-item"
+      [class.editado]="foiEditado(mov)">
+
+      <!-- Bolinha da timeline -->
+      <div class="timeline-marker"></div>
+
+      <!-- Card da movimentação -->
+      <div class="movimentacao-card">
+        <!-- Cabeçalho do card -->
+        <div class="card-header">
+          <div class="card-info">
+            <h4 class="assunto">{{ mov.assunto }}</h4>
+            <span class="data">📅 {{ formatarData(mov.created_at) }}</span>
+          </div>
+
+          <div class="card-actions">
+            <button
+              class="btn-icon"
+              (click)="gerarPdf(mov)"
+              title="Baixar PDF desta movimentação">
+              📄
+            </button>
+
+            <button
+              *ngIf="podeEditar()"
+              class="btn-icon"
+              (click)="abrirModalEditar(mov)"
+              title="Editar movimentação">
+              ✏️
+            </button>
+
+            <button
+              *ngIf="podeDeletar()"
+              class="btn-icon btn-delete"
+              (click)="deletar(mov)"
+              title="Deletar movimentação">
+              🗑️
+            </button>
+          </div>
+        </div>
+
+        <!-- Descrição -->
+        <div class="card-body">
+          <p class="descricao">{{ mov.descricao }}</p>
+        </div>
+
+        <!-- Footer com auditoria -->
+        <div class="card-footer">
+          <div class="auditoria">
+            <span class="autor">
+              👤 <strong>{{ mov.created_by?.nome_completo || 'Sistema' }}</strong>
+            </span>
+            <span class="email">{{ mov.created_by?.email }}</span>
+            <span class="ip" *ngIf="mov.ip_registro">
+              🌐 IP: {{ mov.ip_registro }}
+            </span>
+          </div>
+
+          <!-- Badge de editado -->
+          <div *ngIf="foiEditado(mov)" class="badge-editado">
+            ✏️ Editado em {{ formatarData(mov.updated_at) }}
+            <span *ngIf="mov.updated_by">
+              por {{ mov.updated_by.nome_completo }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modais -->
+<app-adicionar-movimentacao-modal
+  *ngIf="mostrarModalAdicionar()"
+  [ocorrenciaId]="ocorrenciaId"
+  (fechar)="fecharModalAdicionar()">
+</app-adicionar-movimentacao-modal>
+
+<app-editar-movimentacao-modal
+  *ngIf="mostrarModalEditar() && movimentacaoSelecionada()"
+  [ocorrenciaId]="ocorrenciaId"
+  [movimentacao]="movimentacaoSelecionada()!"
+  (fechar)="fecharModalEditar()">
+</app-editar-movimentacao-modal>

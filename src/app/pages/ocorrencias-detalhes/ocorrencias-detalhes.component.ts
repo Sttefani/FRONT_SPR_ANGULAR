@@ -4,14 +4,19 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OcorrenciaService, Ocorrencia } from '../../services/ocorrencia.service';
 import { AuthService } from '../../services/auth.service';
-import { ProcedimentoService } from '../../services/procedimento.service'; // ← ADICIONAR
-import { ProcedimentoCadastradoService } from '../../services/procedimento-cadastrado.service'; // ← ADICIONAR
+import { ProcedimentoService } from '../../services/procedimento.service';
+import { ProcedimentoCadastradoService } from '../../services/procedimento-cadastrado.service';
+import { MovimentacaoTimelineComponent } from '../movimentacoes/movimentacao-timeline/movimentacao-timeline.component'; // ← NOVO
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-ocorrencias-detalhes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MovimentacaoTimelineComponent // ← NOVO
+  ],
   templateUrl: './ocorrencias-detalhes.component.html',
   styleUrls: ['./ocorrencias-detalhes.component.scss']
 })
@@ -28,15 +33,17 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   isOperacional = false;
   currentUserId: number | null = null;
 
-  tiposProcedimento: any[] = []; // ← ADICIONAR
+  tiposProcedimento: any[] = [];
+
+  perfilUsuario: string = ''; // ← NOVO
 
   constructor(
     private ocorrenciaService: OcorrenciaService,
     private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
-    private procedimentoService: ProcedimentoService, // ← ADICIONAR
-    private procedimentoCadastradoService: ProcedimentoCadastradoService // ← ADICIONAR
+    private procedimentoService: ProcedimentoService,
+    private procedimentoCadastradoService: ProcedimentoCadastradoService
   ) {}
 
   ngOnInit(): void {
@@ -47,11 +54,13 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     this.isPerito = user?.perfil === 'PERITO';
     this.isOperacional = user?.perfil === 'OPERACIONAL';
 
+    this.perfilUsuario = user?.perfil || ''; // ← NOVO
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.ocorrenciaId = Number(id);
       this.loadOcorrencia(this.ocorrenciaId);
-      this.loadTiposProcedimento(); // ← ADICIONAR
+      this.loadTiposProcedimento();
     }
   }
 
@@ -71,8 +80,6 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     });
   }
 
-  // ========== MÉTODOS NOVOS PARA PROCEDIMENTO ==========
-
   loadTiposProcedimento(): void {
     this.procedimentoService.getAllForDropdown().subscribe({
       next: (data) => {
@@ -83,26 +90,25 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   }
 
   abrirModalVincularProcedimento(): void {
-  Swal.fire({
-    title: 'Vincular Procedimento',
-    width: '600px', // ⭐ Adicione isso para controlar largura do modal
-    html: `
-      <div style="text-align: left; padding: 10px;">
-        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Procedimento *</label>
-        <select id="swal-tipo" class="swal2-input">
-          <option value="">Selecione</option>
-          ${this.tiposProcedimento.map(t => `<option value="${t.id}">${t.sigla} - ${t.nome}</option>`).join('')}
-        </select>
-        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Número *</label>
-        <input id="swal-numero" class="swal2-input" placeholder="Ex: 123">
-        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Ano *</label>
-        <input id="swal-ano" type="number" class="swal2-input" value="${new Date().getFullYear()}">
-      </div>
-    `,
+    Swal.fire({
+      title: 'Vincular Procedimento',
+      width: '600px',
+      html: `
+        <div style="text-align: left; padding: 10px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Procedimento *</label>
+          <select id="swal-tipo" class="swal2-input">
+            <option value="">Selecione</option>
+            ${this.tiposProcedimento.map(t => `<option value="${t.id}">${t.sigla} - ${t.nome}</option>`).join('')}
+          </select>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Número *</label>
+          <input id="swal-numero" class="swal2-input" placeholder="Ex: 123">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Ano *</label>
+          <input id="swal-ano" type="number" class="swal2-input" value="${new Date().getFullYear()}">
+        </div>
+      `,
       showCancelButton: true,
       confirmButtonText: 'Buscar',
       cancelButtonText: 'Cancelar',
-
       preConfirm: () => {
         const tipo = (document.getElementById('swal-tipo') as HTMLSelectElement).value;
         const numero = (document.getElementById('swal-numero') as HTMLInputElement).value;
@@ -197,200 +203,193 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     });
   }
 
+  onEditar(): void {
+    if (!this.ocorrencia || !this.ocorrenciaId) return;
 
- onEditar(): void {
-  if (!this.ocorrencia || !this.ocorrenciaId) return;
+    if (this.ocorrencia.reaberta_por) {
+      this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', this.ocorrenciaId, 'editar']);
+      return;
+    }
 
-  // SE FOI REABERTA, pode editar diretamente
-  if (this.ocorrencia.reaberta_por) {
-    this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', this.ocorrenciaId, 'editar']);
-    return;
-  }
+    const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
+                         !!this.ocorrencia.finalizada_por ||
+                         !!this.ocorrencia.data_finalizacao;
 
-  // Verifica se está finalizada
-  const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
-                       !!this.ocorrencia.finalizada_por ||
-                       !!this.ocorrencia.data_finalizacao;
-
-  if (jaFinalizada) {
-    Swal.fire({
-      title: 'Ocorrência Finalizada',
-      html: `
-        <p>A ocorrência <strong>${this.ocorrencia.numero_ocorrencia}</strong> está finalizada e não pode ser editada.</p>
-        <p>Deseja reabrir esta ocorrência para edição?</p>
-      `,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sim, reabrir',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.onReabrir();
-      }
-    });
-    return;
-  }
-
-  // Verifica permissão para editar
-  if (this.isAdministrativo && this.ocorrencia.perito_atribuido) {
-    const user = this.authService.getCurrentUser();
-    // Administrativo NÃO pode editar se tem perito atribuído (exceto super admin)
-    if (Number(user?.id) !== Number(this.ocorrencia.perito_atribuido.id)) {
+    if (jaFinalizada) {
       Swal.fire({
-        title: 'Acesso Negado',
-        html: `Esta ocorrência está atribuída ao perito <strong>${this.ocorrencia.perito_atribuido.nome_completo}</strong>.<br>Somente o perito responsável ou o administrador do sistema pode editá-la.`,
-        icon: 'error',
-        confirmButtonText: 'Ok'
+        title: 'Ocorrência Finalizada',
+        html: `
+          <p>A ocorrência <strong>${this.ocorrencia.numero_ocorrencia}</strong> está finalizada e não pode ser editada.</p>
+          <p>Deseja reabrir esta ocorrência para edição?</p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, reabrir',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.onReabrir();
+        }
       });
       return;
     }
-  }
 
-  // Navega para edição
-  this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', this.ocorrenciaId, 'editar']);
-}
+    if (this.isAdministrativo && this.ocorrencia.perito_atribuido) {
+      const user = this.authService.getCurrentUser();
+      if (Number(user?.id) !== Number(this.ocorrencia.perito_atribuido.id)) {
+        Swal.fire({
+          title: 'Acesso Negado',
+          html: `Esta ocorrência está atribuída ao perito <strong>${this.ocorrencia.perito_atribuido.nome_completo}</strong>.<br>Somente o perito responsável ou o administrador do sistema pode editá-la.`,
+          icon: 'error',
+          confirmButtonText: 'Ok'
+        });
+        return;
+      }
+    }
+
+    this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', this.ocorrenciaId, 'editar']);
+  }
 
   onVoltar(): void {
     this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
   }
 
   onFinalizar(): void {
-  console.log('🚀 onFinalizar INICIOU');
-  console.log('📊 Dados da ocorrência:', {
-    id: this.ocorrencia?.id,
-    numero: this.ocorrencia?.numero_ocorrencia,
-    esta_finalizada: this.ocorrencia?.esta_finalizada,
-    finalizada_por: this.ocorrencia?.finalizada_por?.nome_completo,
-    data_finalizacao: this.ocorrencia?.data_finalizacao
-  });
-
-  if (!this.ocorrencia) return;
-
-  // VERIFICAR SE JÁ ESTÁ FINALIZADA (múltiplas formas)
-  const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
-                       !!this.ocorrencia.finalizada_por ||
-                       !!this.ocorrencia.data_finalizacao;
-
-  if (jaFinalizada) {
-    console.log('⚠️ OCORRÊNCIA JÁ FINALIZADA - mostrando aviso SEM pedir senha');
-    Swal.fire({
-      title: 'Ocorrência já finalizada',
-      html: `
-        <p>A ocorrência <strong>${this.ocorrencia!.numero_ocorrencia}</strong> já foi finalizada.</p>
-        <p>Finalizada por: <strong>${this.ocorrencia!.finalizada_por?.nome_completo || 'N/D'}</strong></p>
-        <p>Data: ${this.ocorrencia!.data_finalizacao ? new Date(this.ocorrencia!.data_finalizacao).toLocaleString('pt-BR') : 'N/D'}</p>
-      `,
-      icon: 'info',
-      confirmButtonText: 'Entendi'
+    console.log('🚀 onFinalizar INICIOU');
+    console.log('📊 Dados da ocorrência:', {
+      id: this.ocorrencia?.id,
+      numero: this.ocorrencia?.numero_ocorrencia,
+      esta_finalizada: this.ocorrencia?.esta_finalizada,
+      finalizada_por: this.ocorrencia?.finalizada_por?.nome_completo,
+      data_finalizacao: this.ocorrencia?.data_finalizacao
     });
-    return;
+
+    if (!this.ocorrencia) return;
+
+    const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
+                         !!this.ocorrencia.finalizada_por ||
+                         !!this.ocorrencia.data_finalizacao;
+
+    if (jaFinalizada) {
+      console.log('⚠️ OCORRÊNCIA JÁ FINALIZADA - mostrando aviso SEM pedir senha');
+      Swal.fire({
+        title: 'Ocorrência já finalizada',
+        html: `
+          <p>A ocorrência <strong>${this.ocorrencia!.numero_ocorrencia}</strong> já foi finalizada.</p>
+          <p>Finalizada por: <strong>${this.ocorrencia!.finalizada_por?.nome_completo || 'N/D'}</strong></p>
+          <p>Data: ${this.ocorrencia!.data_finalizacao ? new Date(this.ocorrencia!.data_finalizacao).toLocaleString('pt-BR') : 'N/D'}</p>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Entendi'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: 'Finalizar Ocorrência',
+      html: `
+        <p>Confirme sua senha para finalizar a ocorrência <strong>${this.ocorrencia!.numero_ocorrencia}</strong></p>
+        <input type="password" id="senha-finalizacao" class="swal2-input" placeholder="Digite sua senha">
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Finalizar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const senha = (document.getElementById('senha-finalizacao') as HTMLInputElement).value;
+        if (!senha) {
+          Swal.showValidationMessage('A senha é obrigatória');
+          return false;
+        }
+        return senha;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        this.ocorrenciaService.finalizar(this.ocorrencia!.id, result.value).subscribe({
+          next: () => {
+            Swal.fire('Sucesso!', 'Ocorrência finalizada com assinatura digital.', 'success');
+            this.loadOcorrencia(this.ocorrencia!.id);
+          },
+          error: (err: any) => {
+            console.error('Erro ao finalizar:', err);
+            const errorMsg = err.error?.password?.[0] || err.error?.error || 'Erro ao finalizar ocorrência.';
+            Swal.fire('Erro', errorMsg, 'error');
+          }
+        });
+      }
+    });
   }
 
-  // SE NÃO ESTÁ FINALIZADA, PEDE SENHA
-  Swal.fire({
-    title: 'Finalizar Ocorrência',
-    html: `
-      <p>Confirme sua senha para finalizar a ocorrência <strong>${this.ocorrencia!.numero_ocorrencia}</strong></p>
-      <input type="password" id="senha-finalizacao" class="swal2-input" placeholder="Digite sua senha">
-    `,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Finalizar',
-    cancelButtonText: 'Cancelar',
-    preConfirm: () => {
-      const senha = (document.getElementById('senha-finalizacao') as HTMLInputElement).value;
-      if (!senha) {
-        Swal.showValidationMessage('A senha é obrigatória');
-        return false;
-      }
-      return senha;
-    }
-  }).then((result) => {
-    if (result.isConfirmed && result.value) {
-      this.ocorrenciaService.finalizar(this.ocorrencia!.id, result.value).subscribe({
-        next: () => {
-          Swal.fire('Sucesso!', 'Ocorrência finalizada com assinatura digital.', 'success');
-          this.loadOcorrencia(this.ocorrencia!.id);
-        },
-        error: (err: any) => {
-          console.error('Erro ao finalizar:', err);
-          const errorMsg = err.error?.password?.[0] || err.error?.error || 'Erro ao finalizar ocorrência.';
-          Swal.fire('Erro', errorMsg, 'error');
-        }
-      });
-    }
-  });
-}
   onReabrir(): void {
-  if (!this.ocorrencia) return;
+    if (!this.ocorrencia) return;
 
-  // VERIFICAR SE JÁ FOI REABERTA
-  if (this.ocorrencia.reaberta_por) {
-    Swal.fire({
-      title: 'Ocorrência já reaberta',
-      html: `
-        <p>Esta ocorrência já foi reaberta anteriormente.</p>
-        <p>Reaberta por: <strong>${this.ocorrencia.reaberta_por.nome_completo}</strong></p>
-        <p>Data: ${new Date(this.ocorrencia.data_reabertura!).toLocaleString('pt-BR')}</p>
-        <p>Motivo: ${this.ocorrencia.motivo_reabertura}</p>
-      `,
-      icon: 'info',
-      confirmButtonText: 'Entendi'
-    });
-    return;
-  }
-
-  const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
-                       !!this.ocorrencia.finalizada_por ||
-                       !!this.ocorrencia.data_finalizacao;
-
-  if (!jaFinalizada) {
-    Swal.fire({
-      title: 'Ocorrência não finalizada',
-      text: 'Esta ocorrência não está finalizada.',
-      icon: 'info',
-      confirmButtonText: 'Entendi'
-    });
-    return;
-  }
-
-  Swal.fire({
-    title: 'Reabrir Ocorrência',
-    html: `
-      <p>Confirme sua senha e informe o motivo para reabrir <strong>${this.ocorrencia.numero_ocorrencia}</strong></p>
-      <input type="password" id="senha-reabertura" class="swal2-input" placeholder="Digite sua senha">
-      <textarea id="motivo-reabertura" class="swal2-textarea" placeholder="Motivo da reabertura"></textarea>
-    `,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Reabrir',
-    cancelButtonText: 'Cancelar',
-    preConfirm: () => {
-      const senha = (document.getElementById('senha-reabertura') as HTMLInputElement).value;
-      const motivo = (document.getElementById('motivo-reabertura') as HTMLTextAreaElement).value;
-
-      if (!senha || !motivo) {
-        Swal.showValidationMessage('Senha e motivo são obrigatórios');
-        return false;
-      }
-      return { senha, motivo };
-    }
-  }).then((result) => {
-    if (result.isConfirmed && result.value) {
-      this.ocorrenciaService.reabrir(this.ocorrencia!.id, result.value.senha, result.value.motivo).subscribe({
-        next: () => {
-          Swal.fire('Sucesso!', 'Ocorrência reaberta com sucesso.', 'success');
-          this.loadOcorrencia(this.ocorrencia!.id);
-        },
-        error: (err: any) => {
-          console.error('Erro ao reabrir:', err);
-          const errorMsg = err.error?.password?.[0] || err.error?.error || 'Erro ao reabrir ocorrência.';
-          Swal.fire('Erro', errorMsg, 'error');
-        }
+    if (this.ocorrencia.reaberta_por) {
+      Swal.fire({
+        title: 'Ocorrência já reaberta',
+        html: `
+          <p>Esta ocorrência já foi reaberta anteriormente.</p>
+          <p>Reaberta por: <strong>${this.ocorrencia.reaberta_por.nome_completo}</strong></p>
+          <p>Data: ${new Date(this.ocorrencia.data_reabertura!).toLocaleString('pt-BR')}</p>
+          <p>Motivo: ${this.ocorrencia.motivo_reabertura}</p>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Entendi'
       });
+      return;
     }
-  });
-}
+
+    const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
+                         !!this.ocorrencia.finalizada_por ||
+                         !!this.ocorrencia.data_finalizacao;
+
+    if (!jaFinalizada) {
+      Swal.fire({
+        title: 'Ocorrência não finalizada',
+        text: 'Esta ocorrência não está finalizada.',
+        icon: 'info',
+        confirmButtonText: 'Entendi'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: 'Reabrir Ocorrência',
+      html: `
+        <p>Confirme sua senha e informe o motivo para reabrir <strong>${this.ocorrencia.numero_ocorrencia}</strong></p>
+        <input type="password" id="senha-reabertura" class="swal2-input" placeholder="Digite sua senha">
+        <textarea id="motivo-reabertura" class="swal2-textarea" placeholder="Motivo da reabertura"></textarea>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Reabrir',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const senha = (document.getElementById('senha-reabertura') as HTMLInputElement).value;
+        const motivo = (document.getElementById('motivo-reabertura') as HTMLTextAreaElement).value;
+
+        if (!senha || !motivo) {
+          Swal.showValidationMessage('Senha e motivo são obrigatórios');
+          return false;
+        }
+        return { senha, motivo };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        this.ocorrenciaService.reabrir(this.ocorrencia!.id, result.value.senha, result.value.motivo).subscribe({
+          next: () => {
+            Swal.fire('Sucesso!', 'Ocorrência reaberta com sucesso.', 'success');
+            this.loadOcorrencia(this.ocorrencia!.id);
+          },
+          error: (err: any) => {
+            console.error('Erro ao reabrir:', err);
+            const errorMsg = err.error?.password?.[0] || err.error?.error || 'Erro ao reabrir ocorrência.';
+            Swal.fire('Erro', errorMsg, 'error');
+          }
+        });
+      }
+    });
+  }
+
   onImprimirPDF(): void {
     if (!this.ocorrencia) return;
 
@@ -410,30 +409,16 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     });
   }
 
-podeEditar(): boolean {
+  podeEditar(): boolean {
   if (!this.ocorrencia) return false;
-
-  console.log('🔍 DEBUG podeEditar:');
-  console.log('- isPerito:', this.isPerito);
-  console.log('- currentUserId:', this.currentUserId);
-  console.log('- perito_atribuido:', this.ocorrencia.perito_atribuido);
-  console.log('- esta_finalizada:', this.ocorrencia.esta_finalizada);
-  console.log('- isSuperAdmin:', this.isSuperAdmin);
 
   // SE FOI REABERTA, pode editar
   if (this.ocorrencia.reaberta_por) {
-    console.log('✅ Foi reaberta');
     if (this.isSuperAdmin) return true;
 
     if (this.ocorrencia.perito_atribuido) {
       const user = this.authService.getCurrentUser();
-      console.log('🔍 User:', user);
-      console.log('🔍 user.id:', user?.id, 'tipo:', typeof user?.id);
-      console.log('🔍 perito.id:', this.ocorrencia.perito_atribuido.id, 'tipo:', typeof this.ocorrencia.perito_atribuido.id);
-
       const resultado = Number(user?.id) === Number(this.ocorrencia.perito_atribuido.id);
-      console.log('✅ Reaberta - comparando:', Number(user?.id), '===', Number(this.ocorrencia.perito_atribuido.id));
-      console.log('✅ Reaberta - pode editar?', resultado);
       return resultado;
     }
 
@@ -445,69 +430,54 @@ podeEditar(): boolean {
                        !!this.ocorrencia.finalizada_por ||
                        !!this.ocorrencia.data_finalizacao;
 
-  console.log('- jaFinalizada:', jaFinalizada);
-  console.log('- finalizada_por:', this.ocorrencia.finalizada_por);
-  console.log('- data_finalizacao:', this.ocorrencia.data_finalizacao);
-
   if (jaFinalizada) {
-    console.log('❌ Não pode editar: está finalizada');
     return false;
   }
 
   if (this.isSuperAdmin) {
-    console.log('✅ Pode editar: super admin');
     return true;
   }
 
   // Verifica se tem perito atribuído
   if (this.ocorrencia.perito_atribuido) {
     const user = this.authService.getCurrentUser();
-    console.log('🔍 User:', user);
-    console.log('🔍 user.id:', user?.id, 'tipo:', typeof user?.id);
-    console.log('🔍 perito.id:', this.ocorrencia.perito_atribuido.id, 'tipo:', typeof this.ocorrencia.perito_atribuido.id);
-
     const resultado = Number(user?.id) === Number(this.ocorrencia.perito_atribuido.id);
-    console.log('✅ Tem perito - comparando:', Number(user?.id), '===', Number(this.ocorrencia.perito_atribuido.id));
-    console.log('✅ Resultado:', resultado);
     return resultado;
   }
 
   // Sem perito atribuído
   const resultadoFinal = this.isPerito || this.isOperacional;
-  console.log('✅ Sem perito - resultado final:', resultadoFinal);
   return resultadoFinal;
 }
-podeFinalizar(): boolean {
-  if (!this.ocorrencia) return false;
 
-  // SE FOI REABERTA, PODE FINALIZAR DE NOVO
-  if (this.ocorrencia.reaberta_por) {
-    return this.isAdministrativo || this.isSuperAdmin;
+  podeFinalizar(): boolean {
+    if (!this.ocorrencia) return false;
+
+    if (this.ocorrencia.reaberta_por) {
+      return this.isAdministrativo || this.isSuperAdmin;
+    }
+
+    const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
+                         !!this.ocorrencia.finalizada_por ||
+                         !!this.ocorrencia.data_finalizacao;
+
+    return !jaFinalizada && (this.isAdministrativo || this.isSuperAdmin);
   }
-
-  // SE NÃO FOI REABERTA, verifica se já está finalizada
-  const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
-                       !!this.ocorrencia.finalizada_por ||
-                       !!this.ocorrencia.data_finalizacao;
-
-  return !jaFinalizada && (this.isAdministrativo || this.isSuperAdmin);
-}
 
   podeReabrir(): boolean {
-  if (!this.ocorrencia) return false;
+    if (!this.ocorrencia) return false;
 
-  // SE FOI REABERTA, NÃO PODE REABRIR DE NOVO
-  if (this.ocorrencia.reaberta_por) {
-    return false;
+    if (this.ocorrencia.reaberta_por) {
+      return false;
+    }
+
+    const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
+                         !!this.ocorrencia.finalizada_por ||
+                         !!this.ocorrencia.data_finalizacao;
+
+    return jaFinalizada && this.isSuperAdmin;
   }
 
-  // SÓ PODE REABRIR SE ESTIVER FINALIZADA
-  const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
-                       !!this.ocorrencia.finalizada_por ||
-                       !!this.ocorrencia.data_finalizacao;
-
-  return jaFinalizada && this.isSuperAdmin;
-}
   getStatusLabel(status: string): string {
     const labels: any = {
       'AGUARDANDO_PERITO': 'Aguardando Atribuição de Perito',
@@ -527,20 +497,17 @@ podeFinalizar(): boolean {
   }
 
   podeGerenciarProcedimento(): boolean {
-  if (!this.ocorrencia) return false;
+    if (!this.ocorrencia) return false;
 
-  // Super admin pode tudo
-  if (this.isSuperAdmin) return true;
+    if (this.isSuperAdmin) return true;
 
-  // Administrativo pode gerenciar
-  if (this.isAdministrativo) return true;
+    if (this.isAdministrativo) return true;
 
-  // Perito atribuído pode gerenciar sua própria ocorrência
-  if (this.ocorrencia.perito_atribuido) {
-    const user = this.authService.getCurrentUser();
-    return user?.id === this.ocorrencia.perito_atribuido.id;
+    if (this.ocorrencia.perito_atribuido) {
+      const user = this.authService.getCurrentUser();
+      return user?.id === this.ocorrencia.perito_atribuido.id;
+    }
+
+    return false;
   }
-
-  return false;
-}
 }

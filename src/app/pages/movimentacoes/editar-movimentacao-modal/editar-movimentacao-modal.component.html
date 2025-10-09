@@ -1,0 +1,135 @@
+<div class="modal-overlay" (click)="fecharModal($event)">
+  <div class="modal-container">
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="bi bi-pencil-square"></i>
+        <div>
+          <h2>Editar Movimentação</h2>
+          <p>Atualize os dados do registro #{{ movimentacao.id }}</p>
+        </div>
+      </div>
+      <button class="btn-close" (click)="cancelar()" title="Fechar">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Info da movimentação original -->
+    <div class="info-original">
+      <div class="info-item">
+        <i class="bi bi-calendar-check"></i>
+        <span>Criado em: <strong>{{ formatarData(movimentacao.created_at) }}</strong></span>
+      </div>
+      <div class="info-item" *ngIf="movimentacao.created_by">
+        <i class="bi bi-person"></i>
+        <span>Por: <strong>{{ movimentacao.created_by.nome_completo }}</strong></span>
+      </div>
+    </div>
+
+    <!-- Erro -->
+    <div *ngIf="erro()" class="alert-erro">
+      <i class="bi bi-exclamation-triangle"></i>
+      <span>{{ erro() }}</span>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      <form (ngSubmit)="salvar()">
+        <!-- Assunto -->
+        <div class="form-group required">
+          <label for="assunto">Assunto da Movimentação</label>
+          <input
+            type="text"
+            id="assunto"
+            class="form-control"
+            [(ngModel)]="formulario.assunto"
+            name="assunto"
+            placeholder="Ex: Perícia realizada no local"
+            maxlength="255"
+            required
+            [disabled]="salvando()">
+          <span class="form-hint">Máximo 255 caracteres</span>
+        </div>
+
+        <!-- Descrição -->
+        <div class="form-group required">
+          <label for="descricao">Descrição Detalhada</label>
+          <textarea
+            id="descricao"
+            class="form-control-textarea"
+            [(ngModel)]="formulario.descricao"
+            name="descricao"
+            rows="6"
+            placeholder="Descreva em detalhes o que ocorreu..."
+            required
+            [disabled]="salvando()"></textarea>
+          <span class="form-hint">Seja específico e detalhado</span>
+        </div>
+
+        <!-- Assinatura Digital -->
+        <div class="assinatura-section">
+          <div class="assinatura-header">
+            <i class="bi bi-shield-lock"></i>
+            <div>
+              <h3>Assinatura Digital Obrigatória</h3>
+              <p>Confirme sua identidade para validar esta alteração</p>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <!-- Email de Confirmação -->
+            <div class="form-group required">
+              <label for="username">Email de Confirmação</label>
+              <input
+                type="email"
+                id="username"
+                class="form-control"
+                [(ngModel)]="formulario.username"
+                name="username"
+                placeholder="seu.email@exemplo.com"
+                required
+                [disabled]="salvando()">
+              <span class="form-hint">Use seu email de login</span>
+            </div>
+
+            <!-- Senha de Confirmação -->
+            <div class="form-group required">
+              <label for="password">Senha de Confirmação</label>
+              <input
+                type="password"
+                id="password"
+                class="form-control"
+                [(ngModel)]="formulario.password"
+                name="password"
+                placeholder="••••••••"
+                required
+                [disabled]="salvando()">
+              <span class="form-hint">Sua senha de acesso ao sistema</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn-cancel"
+            (click)="cancelar()"
+            [disabled]="salvando()">
+            <i class="bi bi-x-circle"></i>
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="btn-submit"
+            [disabled]="salvando()">
+            <i class="bi bi-check-circle" *ngIf="!salvando()"></i>
+            <i class="bi bi-hourglass-split" *ngIf="salvando()"></i>
+            {{ salvando() ? 'Salvando...' : 'Salvar Alterações' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
