@@ -1,0 +1,246 @@
+// src/app/pages/ordens-servico/lista-ordens-servico/lista-ordens-servico.component.scss
+
+:host {
+  --primary-color: #DAA520;
+  --primary-color-dark: #B8860B;
+  --text-color-dark: #1a202c;
+  --text-color-light: #4a5568;
+  --background-color: #f7fafc;
+  --card-background-color: #ffffff;
+  --border-color: #cbd5e0;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ff9800;
+  --info-color: #3182ce;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+// ========== TABELA ==========
+.table {
+  thead {
+    background-color: #000;
+
+    th {
+      padding: 0.7rem 0.6rem;
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: var(--primary-color);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 3px solid var(--primary-color);
+
+      // ✨ DESTACA A COLUNA "AÇÕES"
+      &:last-child {
+        background: var(--primary-color);
+        color: #000;
+        font-size: 0.85rem;
+        text-align: center;
+        position: relative;
+
+        &:after {
+          content: '👆 CLIQUE AQUI';
+          display: block;
+          font-size: 0.65rem;
+          margin-top: 0.2rem;
+          opacity: 0.8;
+        }
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 2px solid var(--border-color);
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: rgba(218, 165, 32, 0.05);
+      }
+
+      td {
+        padding: 0.6rem;
+        vertical-align: middle;
+
+        // ✨ DESTACA A COLUNA "AÇÕES"
+        &:last-child {
+          background: rgba(218, 165, 32, 0.08);
+          border-left: 3px solid var(--primary-color);
+        }
+      }
+    }
+  }
+}
+
+// ========== BADGES (APENAS INFORMATIVOS) ==========
+.badge {
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;  // ← Mais quadrado, menos botão
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: 1px solid;  // ← Borda fina
+  opacity: 0.85;  // ← Menos vibrante
+  cursor: default;  // ← Cursor normal (não pointer)
+  user-select: none;  // ← Não selecionável
+  pointer-events: none;  // ← NÃO CLICÁVEL!
+
+  &.bg-warning {
+    background: #fff3cd !important;
+    border-color: #ffc107;
+    color: #856404;
+  }
+
+  &.bg-info {
+    background: #d1ecf1 !important;
+    border-color: #17a2b8;
+    color: #0c5460;
+  }
+
+  &.bg-danger {
+    background: #f8d7da !important;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+
+  &.bg-secondary {
+    background: #e2e3e5 !important;
+    border-color: #6c757d;
+    color: #383d41;
+  }
+
+  &.bg-success {
+    background: #d4edda !important;
+    border-color: #28a745;
+    color: #155724;
+  }
+}
+
+// ========== BOTÕES DE AÇÃO (BEM DESTACADOS) ==========
+.btn-group-sm .btn,
+.d-flex .btn-sm {
+  border: 3px solid;  // ← Borda grossa
+  padding: 0.5rem 0.7rem;  // ← Maior
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+
+  i {
+    font-size: 1.1rem;  // ← Ícones maiores
+  }
+
+  // Animação de pulso nos botões de ação necessária
+  &.btn-success,
+  &.btn-info {
+    animation: pulse 2s infinite;
+  }
+
+  &:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  &.btn-outline-primary {
+    background: #e3f2fd;
+    border-color: var(--info-color);
+    color: var(--info-color);
+
+    &:hover {
+      background: var(--info-color);
+      color: #fff;
+    }
+  }
+
+  &.btn-success {
+    background: var(--success-color);
+    border-color: #1e7e34;
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.2);
+
+    &:hover {
+      background: #218838;
+    }
+  }
+
+  &.btn-info {
+    background: #17a2b8;
+    border-color: #117a8b;
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(23, 162, 184, 0.2);
+
+    &:hover {
+      background: #138496;
+    }
+  }
+
+  &.btn-outline-secondary {
+    background: #f8f9fa;
+    border-color: #6c757d;
+    color: #6c757d;
+
+    &:hover {
+      background: #6c757d;
+      color: #fff;
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(40, 167, 69, 0.4);
+  }
+}
+
+// ========== HEADER COM HINT ==========
+.d-flex.justify-content-between {
+  background: var(--card-background-color);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 3px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-color-dark);
+    margin: 0 0 0.3rem 0;
+  }
+
+  .btn-primary {
+    background: var(--primary-color);
+    color: #000;
+    border: 3px solid var(--primary-color-dark);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(218, 165, 32, 0.3);
+
+    &:hover {
+      background: var(--primary-color-dark);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+// ========== CARDS ==========
+.card {
+  background: var(--card-background-color);
+  border: 3px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 1.5rem;
+}
+
+// ========== RESPONSIVO ==========
+@media (max-width: 768px) {
+  .btn-group-sm .btn {
+    padding: 0.4rem 0.5rem;
+  }
+}

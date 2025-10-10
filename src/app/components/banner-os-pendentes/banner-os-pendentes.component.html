@@ -1,0 +1,20 @@
+@if (mostrarBanner && osPendentes > 0) {
+  <div class="banner-os-pendentes">
+    <div class="container-fluid">
+      <div class="banner-content">
+        <div class="banner-icon">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <div class="banner-texto">
+          <strong>⚠️ Atenção!</strong>
+          Você possui <strong>{{ osPendentes }}</strong>
+          {{ osPendentes === 1 ? 'Ordem de Serviço aguardando' : 'Ordens de Serviço aguardando' }} ciência.
+          <span class="texto-secundario">O prazo só começa após a ciência.</span>
+        </div>
+        <button class="btn btn-warning btn-sm" (click)="verOrdens()">
+          <i class="bi bi-eye"></i> Ver Ordens
+        </button>
+      </div>
+    </div>
+  </div>
+}

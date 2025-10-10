@@ -1,0 +1,114 @@
+.banner-os-pendentes {
+  position: fixed !important;  // ← FIXO na tela
+  top: 70px !important;        // ← Abaixo do header (ajuste conforme altura do seu header)
+  right: 20px !important;      // ← Canto direito
+  width: 25% !important;       // ← 1/4 da tela
+  min-width: 320px !important; // ← Largura mínima
+  max-width: 400px !important; // ← Largura máxima
+
+  background: linear-gradient(135deg, #ff9800, #f57c00) !important;
+  color: #000 !important;
+  padding: 1rem !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 12px !important;  // ← Cantos arredondados
+  border: 3px solid #e65100 !important;
+  z-index: 99999 !important;
+  animation: slideInRight 0.4s ease-out !important;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.banner-content {
+  display: flex !important;
+  flex-direction: column !important;  // ← Vertical
+  gap: 0.8rem !important;
+}
+
+.banner-icon {
+  font-size: 1.8rem !important;
+  text-align: center !important;
+  animation: pulse 2s infinite !important;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.banner-texto {
+  text-align: center !important;
+  font-size: 0.85rem !important;
+  line-height: 1.4 !important;
+
+  strong {
+    font-weight: 700 !important;
+    display: block !important;
+    margin-bottom: 0.3rem !important;
+  }
+}
+
+.texto-secundario {
+  display: block !important;
+  font-size: 0.75rem !important;
+  opacity: 0.85 !important;
+  margin-top: 0.3rem !important;
+  font-style: italic !important;
+}
+
+.btn {
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  padding: 0.6rem 1rem !important;
+  border: 2px solid #000 !important;
+  background: #fff !important;
+  color: #000 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  font-size: 0.85rem !important;
+  border-radius: 8px !important;
+  width: 100% !important;
+
+  &:hover {
+    background: #000 !important;
+    color: #fff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  i {
+    margin-right: 0.4rem !important;
+  }
+}
+
+// Responsivo
+@media (max-width: 1200px) {
+  .banner-os-pendentes {
+    width: 30% !important;  // ← Aumenta em telas médias
+  }
+}
+
+@media (max-width: 768px) {
+  .banner-os-pendentes {
+    width: calc(100% - 40px) !important;  // ← Quase toda largura em mobile
+    right: 20px !important;
+    left: 20px !important;
+    min-width: auto !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner-os-pendentes {
+    top: auto !important;
+    bottom: 20px !important;  // ← No rodapé em telas pequenas
+    border-radius: 12px 12px 0 0 !important;
+  }
+}

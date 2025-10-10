@@ -124,6 +124,25 @@ export const routes: Routes = [
         canActivate: [AuthGuard]
       },
 
+      // ORDENS DE SERVIÇO
+      // =====================================================================
+      {
+        path: 'operacional/ordens-servico',
+        loadComponent: () => import('./pages/ordens-servico/lista-ordens-servico/lista-ordens-servico.component').then(m => m.ListaOrdensServicoComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'operacional/ordens-servico/novo',
+        loadComponent: () => import('./pages/ordens-servico/form-ordem-servico/form-ordem-servico.component').then(m => m.FormOrdemServicoComponent),
+        canActivate: [perfilGuard],
+        data: { requiredPerfis: ['ADMINISTRATIVO', 'SUPERUSER'] }
+      },
+      {
+        path: 'operacional/ordens-servico/:id',
+        loadComponent: () => import('./pages/ordens-servico/detalhes-ordem-servico/detalhes-ordem-servico.component').then(m => m.DetalhesOrdemServicoComponent),
+        canActivate: [AuthGuard]
+      },
+
       // =====================================================================
       // CADASTROS AUXILIARES
       // =====================================================================

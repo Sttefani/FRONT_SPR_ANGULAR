@@ -1,0 +1,455 @@
+<!-- src/app/pages/ordens-servico/detalhes-ordem-servico/detalhes-ordem-servico.component.html -->
+
+<div class="container-fluid py-4">
+  <!-- LOADING -->
+  @if (loading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <p class="mt-2 text-muted">Carregando ordem de serviço...</p>
+    </div>
+  }
+
+  <!-- ERRO -->
+  @if (error) {
+    <div class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle"></i> {{ error }}
+      <button class="btn btn-sm btn-outline-danger ms-3" (click)="voltar()">
+        Voltar
+      </button>
+    </div>
+  }
+
+  <!-- CONTEÚDO -->
+  @if (!loading && ordemServico) {
+    <!-- CABEÇALHO -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <button class="btn btn-outline-secondary btn-sm mb-2" (click)="voltar()">
+          <i class="bi bi-arrow-left"></i> Voltar
+        </button>
+        <h2 class="mb-1">
+          📋 Ordem de Serviço {{ ordemServico.numero_os }}
+          @if (ordemServico.numero_reiteracao > 0) {
+            <span class="badge bg-info ms-2">
+              {{ ordemServico.numero_reiteracao }}ª Reiteração
+            </span>
+          }
+        </h2>
+        <p class="text-muted mb-0">
+          Ocorrência: {{ ordemServico.ocorrencia.numero_ocorrencia }}
+        </p>
+      </div>
+
+      <!-- BOTÕES DE PDF COM BLOQUEIO -->
+      <div class="d-flex gap-2 align-items-center">
+        @if (ordemServico.status !== 'AGUARDANDO_CIENCIA') {
+          <button
+            class="btn btn-info"
+            (click)="baixarPdf(false)">
+            <i class="bi bi-file-pdf"></i> PDF Simples
+          </button>
+
+          <button
+            class="btn btn-secondary"
+            (click)="baixarPdf(true)">
+            <i class="bi bi-file-earmark-pdf"></i> PDF Oficial
+          </button>
+        } @else {
+          <div class="alert alert-warning mb-0 py-2 px-3">
+            <i class="bi bi-lock"></i>
+            <strong>PDFs bloqueados!</strong> Tome ciência primeiro.
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ALERTA: MENSAGEM DE DETALHES OCULTOS -->
+    @if (ordemServico.detalhes_ocultos) {
+      <div class="alert alert-warning">
+        <i class="bi bi-lock"></i> {{ ordemServico.mensagem }}
+      </div>
+    }
+
+    <!-- CARDS DE RESUMO -->
+    <div class="row g-3 mb-4">
+      <!-- Status -->
+      <div class="col-md-3">
+        <div class="card bg-{{ getStatusColor(ordemServico.status) }} text-white">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2 opacity-75">Status</h6>
+            <h4 class="card-title mb-0">{{ getStatusLabel(ordemServico.status) }}</h4>
+          </div>
+        </div>
+      </div>
+
+      <!-- Urgência -->
+      <div class="col-md-3">
+        <div class="card bg-{{ getUrgenciaInfo(ordemServico.urgencia).cor }} text-white">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2 opacity-75">Urgência</h6>
+            <h4 class="card-title mb-0">
+              {{ getUrgenciaInfo(ordemServico.urgencia).icone }}
+              {{ getUrgenciaInfo(ordemServico.urgencia).label }}
+            </h4>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prazo -->
+      <div class="col-md-3">
+        <div class="card bg-primary text-white">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2 opacity-75">Prazo</h6>
+            <h4 class="card-title mb-0">{{ ordemServico.prazo_dias }} dia(s)</h4>
+          </div>
+        </div>
+      </div>
+
+      <!-- Restante -->
+      <div class="col-md-3">
+        <div class="card"
+             [class.bg-danger]="ordemServico.dias_restantes !== null && ordemServico.dias_restantes < 0"
+             [class.bg-warning]="ordemServico.dias_restantes !== null && ordemServico.dias_restantes >= 0 && ordemServico.dias_restantes <= 2"
+             [class.bg-success]="ordemServico.dias_restantes !== null && ordemServico.dias_restantes > 2"
+             [class.text-white]="ordemServico.dias_restantes !== null">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2" [class.opacity-75]="ordemServico.dias_restantes !== null">
+              Tempo Restante
+            </h6>
+            <h4 class="card-title mb-0">{{ getDiasRestantesTexto() }}</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BARRA DE PROGRESSO -->
+    @if (ordemServico.percentual_prazo_consumido > 0) {
+      <div class="card mb-4">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-3">⏱️ Progresso do Prazo</h6>
+          <div class="progress" style="height: 25px;">
+            <div
+              class="progress-bar"
+              [class.bg-success]="ordemServico.percentual_prazo_consumido <= 50"
+              [class.bg-warning]="ordemServico.percentual_prazo_consumido > 50 && ordemServico.percentual_prazo_consumido <= 80"
+              [class.bg-danger]="ordemServico.percentual_prazo_consumido > 80"
+              [style.width.%]="ordemServico.percentual_prazo_consumido">
+              {{ ordemServico.percentual_prazo_consumido }}%
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- AÇÃO NECESSÁRIA -->
+    @if (ordemServico.acao_necessaria) {
+      <div class="alert alert-warning">
+        <h5 class="alert-heading">
+          <i class="bi bi-exclamation-triangle"></i> Ação Necessária
+        </h5>
+        <p class="mb-3">
+          @switch (ordemServico.acao_necessaria) {
+            @case ('TOMAR_CIENCIA') {
+              Você precisa tomar ciência desta ordem de serviço para que o prazo comece a contar.
+            }
+            @case ('INICIAR_TRABALHO') {
+              Você pode marcar esta OS como "Em Andamento" para indicar que iniciou o trabalho.
+            }
+            @case ('JUSTIFICAR_ATRASO') {
+              Esta OS está vencida. Você precisa justificar o motivo do atraso.
+            }
+          }
+        </p>
+
+        <div class="d-flex gap-2">
+          @if (ordemServico.acao_necessaria === 'TOMAR_CIENCIA') {
+            <button class="btn btn-success" (click)="abrirModalCiencia()">
+              <i class="bi bi-check2-circle"></i> Tomar Ciência
+            </button>
+          }
+
+          @if (ordemServico.acao_necessaria === 'INICIAR_TRABALHO') {
+            <button class="btn btn-info" (click)="iniciarTrabalho()">
+              <i class="bi bi-play-circle"></i> Iniciar Trabalho
+            </button>
+          }
+
+          @if (ordemServico.acao_necessaria === 'JUSTIFICAR_ATRASO') {
+            <button class="btn btn-danger" (click)="abrirModalJustificativa()">
+              <i class="bi bi-file-text"></i> Justificar Atraso
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-3" id="osTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="dados-tab" data-bs-toggle="tab" data-bs-target="#dados" type="button">
+          📋 Dados Gerais
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="prazos-tab" data-bs-toggle="tab" data-bs-target="#prazos" type="button">
+          ⏱️ Prazos e Ciência
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico" type="button">
+          🔄 Histórico
+        </button>
+      </li>
+    </ul>
+
+    <!-- CONTEÚDO DAS TABS -->
+    <div class="tab-content">
+      <!-- TAB: DADOS GERAIS -->
+      <div class="tab-pane fade show active" id="dados">
+        <div class="row g-3">
+          <!-- Informações Básicas -->
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title mb-0">📄 Informações Básicas</h5>
+              </div>
+              <div class="card-body">
+                <table class="table table-sm">
+                  <tr>
+                    <th style="width: 40%;">Número OS:</th>
+                    <td>{{ ordemServico.numero_os }}</td>
+                  </tr>
+                  <tr>
+                    <th>Ocorrência:</th>
+                    <td>{{ ordemServico.ocorrencia.numero_ocorrencia }}</td>
+                  </tr>
+                  @if (ordemServico.ocorrencia.servico_pericial) {
+                    <tr>
+                      <th>Serviço:</th>
+                      <td>{{ ordemServico.ocorrencia.servico_pericial.nome }}</td>
+                    </tr>
+                  }
+                  @if (ordemServico.numero_reiteracao > 0) {
+                    <tr>
+                      <th>Tipo:</th>
+                      <td>
+                        <span class="badge bg-info">
+                          {{ ordemServico.numero_reiteracao }}ª Reiteração
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                  <tr>
+                    <th>Emitida em:</th>
+                    <td>{{ formatarData(ordemServico.created_at) }}</td>
+                  </tr>
+                  @if (ordemServico.created_by) {
+                    <tr>
+                      <th>Emitida por:</th>
+                      <td>{{ ordemServico.created_by.nome_completo }}</td>
+                    </tr>
+                  }
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Perito e Autoridades -->
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title mb-0">👤 Perito e Autoridades</h5>
+              </div>
+              <div class="card-body">
+                <table class="table table-sm">
+                  @if (ordemServico.perito_destinatario) {
+                    <tr>
+                      <th style="width: 40%;">Perito:</th>
+                      <td>{{ ordemServico.perito_destinatario.nome_completo }}</td>
+                    </tr>
+                  }
+                  @if (ordemServico.ordenada_por) {
+                    <tr>
+                      <th>Ordenada por:</th>
+                      <td>{{ ordemServico.ordenada_por.nome_completo }}</td>
+                    </tr>
+                  }
+                  @if (ordemServico.unidade_demandante) {
+                    <tr>
+                      <th>Unidade:</th>
+                      <td>{{ ordemServico.unidade_demandante.nome }}</td>
+                    </tr>
+                  }
+                  @if (ordemServico.autoridade_demandante) {
+                    <tr>
+                      <th>Autoridade:</th>
+                      <td>{{ ordemServico.autoridade_demandante.nome }}</td>
+                    </tr>
+                  }
+                  @if (ordemServico.procedimento) {
+                    <tr>
+                      <th>Procedimento:</th>
+                      <td>{{ ordemServico.procedimento.numero_completo || 'Sem procedimento vinculado' }}</td>
+                    </tr>
+                  }
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Documentos de Referência -->
+          @if (!ordemServico.detalhes_ocultos) {
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">📎 Documentos de Referência</h5>
+                </div>
+                <div class="card-body">
+                  <table class="table table-sm">
+                    @if (ordemServico.tipo_documento_referencia) {
+                      <tr>
+                        <th style="width: 30%;">Tipo de Documento:</th>
+                        <td>{{ ordemServico.tipo_documento_referencia.nome }}</td>
+                      </tr>
+                    }
+                    @if (ordemServico.numero_documento_referencia) {
+                      <tr>
+                        <th>Nº Documento:</th>
+                        <td>{{ ordemServico.numero_documento_referencia }}</td>
+                      </tr>
+                    }
+                    @if (ordemServico.processo_sei_referencia) {
+                      <tr>
+                        <th>Processo SEI:</th>
+                        <td>{{ ordemServico.processo_sei_referencia }}</td>
+                      </tr>
+                    }
+                    @if (ordemServico.processo_judicial_referencia) {
+                      <tr>
+                        <th>Processo Judicial:</th>
+                        <td>{{ ordemServico.processo_judicial_referencia }}</td>
+                      </tr>
+                    }
+                    @if (!ordemServico.tipo_documento_referencia && !ordemServico.numero_documento_referencia) {
+                      <tr>
+                        <td colspan="2" class="text-muted text-center">
+                          Nenhum documento de referência informado
+                        </td>
+                      </tr>
+                    }
+                  </table>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Observações -->
+          @if (ordemServico.observacoes_administrativo && !ordemServico.detalhes_ocultos) {
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">💬 Observações do Administrativo</h5>
+                </div>
+                <div class="card-body">
+                  <p class="mb-0">{{ ordemServico.observacoes_administrativo }}</p>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Justificativa de Atraso -->
+          @if (ordemServico.justificativa_atraso) {
+            <div class="col-12">
+              <div class="card border-warning">
+                <div class="card-header bg-warning bg-opacity-10">
+                  <h5 class="card-title mb-0">⚠️ Justificativa de Atraso</h5>
+                </div>
+                <div class="card-body">
+                  <p class="mb-0">{{ ordemServico.justificativa_atraso }}</p>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- TAB: PRAZOS -->
+      <div class="tab-pane fade" id="prazos">
+        <div class="card">
+          <div class="card-body">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <h6 class="text-muted mb-3">⏱️ Informações de Prazo</h6>
+                <p><strong>Prazo:</strong> {{ ordemServico.prazo_dias }} dia(s)</p>
+                @if (ordemServico.data_vencimento) {
+                  <p><strong>Vencimento:</strong> {{ formatarData(ordemServico.data_vencimento) }}</p>
+                }
+              </div>
+              <div class="col-md-6">
+                <h6 class="text-muted mb-3">✍️ Ciência</h6>
+                @if (ordemServico.ciente_por) {
+                  <p><strong>Ciente por:</strong> {{ ordemServico.ciente_por.nome_completo }}</p>
+                } @else {
+                  <p class="text-warning"><strong>Pendente de ciência</strong></p>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: HISTÓRICO -->
+      <div class="tab-pane fade" id="historico">
+        <div class="card">
+          <div class="card-body">
+            <p class="text-muted">Histórico de reiterações aparecerá aqui.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- MODAL: CIÊNCIA -->
+@if (mostrarModalCiencia) {
+  <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Tomar Ciência</h5>
+          <button type="button" class="btn-close" (click)="mostrarModalCiencia = false"></button>
+        </div>
+        <div class="modal-body">
+          <input type="password" class="form-control" [(ngModel)]="senhaCiencia" placeholder="Senha">
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="mostrarModalCiencia = false">Cancelar</button>
+          <button class="btn btn-success" (click)="confirmarCiencia()">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL: JUSTIFICATIVA -->
+@if (mostrarModalJustificativa) {
+  <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Justificar Atraso</h5>
+          <button type="button" class="btn-close" (click)="mostrarModalJustificativa = false"></button>
+        </div>
+        <div class="modal-body">
+          <textarea class="form-control" rows="5" [(ngModel)]="justificativaAtraso"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="mostrarModalJustificativa = false">Cancelar</button>
+          <button class="btn btn-primary" (click)="salvarJustificativa()">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
