@@ -153,6 +153,9 @@ export interface FiltrosOrdemServico {
   apenas_reiteracoes?: boolean;
   search?: string;
   page?: number;
+  unidade_id?: number | string;
+  page_size?: number;
+  ordering?: string;
 }
 
 // =============================================================================
@@ -338,8 +341,8 @@ export class OrdemServicoService {
   }
 
   getOsPendentesCiencia(): Observable<{ count: number; ordens: any[] }> {
-  return this.http.get<{ count: number; ordens: any[] }>(
-    `${this.baseUrl}/ordens-servico/pendentes-ciencia/`  // ← CORRIGIDO!
-  );
-}
+    return this.http.get<{ count: number; ordens: any[] }>(
+      `${this.baseUrl}/ordens-servico/pendentes-ciencia/`
+    );
+  }
 }

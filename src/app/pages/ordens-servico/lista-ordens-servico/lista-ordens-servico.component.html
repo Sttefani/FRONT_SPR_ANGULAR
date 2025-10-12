@@ -1,24 +1,17 @@
-<!-- src/app/pages/ordens-servico/lista-ordens-servico/lista-ordens-servico.component.html -->
-
 <div class="container-fluid py-4">
-  <!-- CABEÇALHO -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 header-card">
     <div>
       <h2 class="mb-1">📋 Ordens de Serviço</h2>
       <p class="text-muted mb-0">
-        <span *ngIf="!loading">{{ totalItens }} registro(s) encontrado(s)</span>
+        <span *ngIf="!loading && totalItens > 0">
+          Mostrando {{ getIndicePrimeiro() }}-{{ getIndiceUltimo() }} de {{ totalItens }} registro(s)
+        </span>
+        <span *ngIf="!loading && totalItens === 0">Nenhum registro encontrado</span>
         <span *ngIf="loading">Carregando...</span>
       </p>
     </div>
 
     <div class="d-flex gap-2">
-      <button
-        class="btn btn-outline-primary"
-        (click)="toggleFiltros()"
-        [class.active]="mostrarFiltros">
-        <i class="bi bi-funnel"></i> Filtros
-      </button>
-
       <button
         class="btn btn-outline-secondary"
         (click)="alternarModoExibicao()"
@@ -26,34 +19,78 @@
         <i class="bi" [class.bi-grid]="modoExibicao === 'tabela'" [class.bi-list]="modoExibicao === 'cards'"></i>
       </button>
 
- @if (isAdministrativo()) {
-  <button
-    class="btn btn-primary"
-    (click)="novaOrdemServico()">
-    <i class="bi bi-plus-lg"></i> Nova OS
-  </button>
-}
+      @if (isAdministrativo()) {
+        <button
+          class="btn btn-primary"
+          (click)="novaOrdemServico()">
+          <i class="bi bi-plus-lg"></i> Nova OS
+        </button>
+      }
     </div>
   </div>
 
-  <!-- PAINEL DE FILTROS -->
+  <!-- ✅ FILTROS SIMPLIFICADOS -->
+  <div class="filtros-simplificados mb-3" *ngIf="!loading">
+    <div class="row g-3 align-items-end">
+      <!-- Busca por número -->
+      <div class="col-md-4">
+        <label class="form-label">🔍 Buscar</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="filtros.search"
+          placeholder="Nº da OS ou Ocorrência"
+          (keyup.enter)="aplicarFiltros()">
+      </div>
+
+      <!-- Filtro por perito (apenas para administrativos) -->
+      <div class="col-md-4" *ngIf="isAdministrativo()">
+        <label class="form-label">👤 Perito</label>
+        <select
+          class="form-select"
+          [(ngModel)]="filtros.perito_id"
+          (change)="aplicarFiltros()">
+          <option value="">Todos os peritos</option>
+          <option *ngFor="let perito of peritos" [value]="perito.id">
+            {{ perito.nome_completo }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Botões de ação -->
+      <div class="col-md-4">
+        <div class="d-flex gap-2">
+          <button
+            class="btn btn-primary flex-fill"
+            (click)="aplicarFiltros()"
+            [disabled]="!filtros.search && !filtros.perito_id">
+            <i class="bi bi-search"></i> Buscar
+          </button>
+
+          <button
+            class="btn btn-outline-secondary"
+            (click)="limparFiltros()"
+            *ngIf="filtros.search || filtros.perito_id">
+            <i class="bi bi-x-circle"></i> Limpar
+          </button>
+
+          <button
+            class="btn btn-outline-primary"
+            (click)="toggleFiltros()"
+            title="Filtros avançados">
+            <i class="bi bi-funnel"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAINEL DE FILTROS AVANÇADOS -->
   <div class="card mb-4" *ngIf="mostrarFiltros">
     <div class="card-body">
-      <h5 class="card-title mb-3">🔍 Filtros</h5>
+      <h5 class="card-title mb-3">🔍 Filtros Avançados</h5>
 
       <div class="row g-3">
-        <!-- Busca -->
-        <div class="col-md-4">
-          <label class="form-label">Buscar por Nº OS ou Ocorrência</label>
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="filtros.search"
-            placeholder="Ex: 0001/2025"
-            (keyup.enter)="aplicarFiltros()">
-        </div>
-
-        <!-- Status -->
         <div class="col-md-3">
           <label class="form-label">Status</label>
           <select class="form-select" [(ngModel)]="filtros.status">
@@ -63,7 +100,6 @@
           </select>
         </div>
 
-        <!-- Urgência -->
         <div class="col-md-3">
           <label class="form-label">Urgência</label>
           <select class="form-select" [(ngModel)]="filtros.urgencia">
@@ -73,9 +109,34 @@
           </select>
         </div>
 
-        <!-- Vencida -->
-        <div class="col-md-2">
-          <label class="form-label">Situação</label>
+        <div class="col-md-3" *ngIf="isAdministrativo()">
+          <label class="form-label">Unidade Demandante</label>
+          <select class="form-select" [(ngModel)]="filtros.unidade_id">
+            <option value="">Todas as unidades</option>
+            <option *ngFor="let unidade of unidades" [value]="unidade.id">
+              {{ unidade.nome }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Emitida a partir de</label>
+          <input
+            type="date"
+            class="form-control"
+            [(ngModel)]="filtros.data_inicio">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Emitida até</label>
+          <input
+            type="date"
+            class="form-control"
+            [(ngModel)]="filtros.data_fim">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Situações especiais</label>
           <div class="form-check">
             <input
               class="form-check-input"
@@ -104,52 +165,91 @@
           <i class="bi bi-search"></i> Aplicar Filtros
         </button>
         <button class="btn btn-outline-secondary" (click)="limparFiltros()">
-          <i class="bi bi-x-lg"></i> Limpar
+          <i class="bi bi-x-lg"></i> Limpar Todos
         </button>
       </div>
     </div>
   </div>
 
-  <!-- MENSAGEM DE ERRO -->
+  <!-- ERRO -->
   <div class="alert alert-danger" *ngIf="error">
     <i class="bi bi-exclamation-triangle"></i> {{ error }}
   </div>
 
   <!-- LOADING -->
   <div class="text-center py-5" *ngIf="loading">
-    <div class="spinner-border text-primary" role="status">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
       <span class="visually-hidden">Carregando...</span>
     </div>
-    <p class="mt-2 text-muted">Carregando ordens de serviço...</p>
+    <p class="mt-3 text-muted fw-bold">Carregando ordens de serviço...</p>
   </div>
 
-  <!-- LISTA VAZIA -->
-  <div class="text-center py-5" *ngIf="!loading && ordensServico.length === 0">
+  <!-- EMPTY STATE -->
+  <div class="text-center py-5 empty-state" *ngIf="!loading && ordensServico.length === 0">
     <i class="bi bi-inbox display-1 text-muted"></i>
     <h4 class="mt-3">Nenhuma ordem de serviço encontrada</h4>
     <p class="text-muted">Tente ajustar os filtros ou criar uma nova OS.</p>
+    <button class="btn btn-outline-primary mt-2" (click)="limparFiltros()">
+      <i class="bi bi-arrow-clockwise"></i> Limpar Filtros
+    </button>
   </div>
 
-  <!-- MODO TABELA -->
-  <div class="card" *ngIf="!loading && ordensServico.length > 0 && modoExibicao === 'tabela'">
+  <!-- CONTROLES DE VISUALIZAÇÃO -->
+  <div class="controles-visualizacao mb-3" *ngIf="!loading && ordensServico.length > 0">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <label class="mb-0 text-muted small">Mostrar:</label>
+        <select
+          class="form-select form-select-sm"
+          style="width: auto;"
+          [(ngModel)]="itensPorPagina"
+          (change)="mudarQuantidadePorPagina()">
+          <option *ngFor="let qtd of quantidadeOptions" [value]="qtd">
+            {{ qtd }} por página
+          </option>
+        </select>
+      </div>
+
+      <div class="text-muted small">
+        <strong>{{ getIndicePrimeiro() }}-{{ getIndiceUltimo() }}</strong> de <strong>{{ totalItens }}</strong> registros
+      </div>
+    </div>
+  </div>
+
+  <!-- TABELA -->
+  <div class="card table-card" *ngIf="!loading && ordensServico.length > 0 && modoExibicao === 'tabela'">
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr>
-            <th>Nº OS</th>
+            <th (click)="ordenarColuna('numero_os')" class="sortable">
+              Nº OS
+              <i class="bi ms-1" [ngClass]="getIconeOrdenacao('numero_os')"></i>
+            </th>
             <th>Ocorrência</th>
             <th>Perito</th>
-            <th>Status</th>
-            <th>Urgência</th>
-            <th>Prazo</th>
-            <th>Restante</th>
+            <th (click)="ordenarColuna('status')" class="sortable">
+              Status
+              <i class="bi ms-1" [ngClass]="getIconeOrdenacao('status')"></i>
+            </th>
+            <th (click)="ordenarColuna('urgencia')" class="sortable">
+              Urgência
+              <i class="bi ms-1" [ngClass]="getIconeOrdenacao('urgencia')"></i>
+            </th>
+            <th (click)="ordenarColuna('prazo_dias')" class="sortable">
+              Prazo
+              <i class="bi ms-1" [ngClass]="getIconeOrdenacao('prazo_dias')"></i>
+            </th>
+            <th (click)="ordenarColuna('dias_restantes')" class="sortable">
+              Restante
+              <i class="bi ms-1" [ngClass]="getIconeOrdenacao('dias_restantes')"></i>
+            </th>
             <th>Ação Necessária</th>
-            <th class="text-center">Ações</th>
+            <th class="text-center acoes-header">Ações</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let os of ordensServico">
-            <!-- Número OS -->
             <td>
               <strong>{{ os.numero_os }}</strong>
               <span class="badge bg-info ms-1" *ngIf="os.numero_reiteracao > 0">
@@ -157,12 +257,10 @@
               </span>
             </td>
 
-            <!-- Ocorrência -->
             <td>
               <small class="text-muted">{{ os.ocorrencia.numero_ocorrencia }}</small>
             </td>
 
-            <!-- Perito -->
             <td>
               <small *ngIf="os.perito_destinatario">
                 {{ os.perito_destinatario.nome_completo }}
@@ -170,14 +268,12 @@
               <small class="text-muted" *ngIf="!os.perito_destinatario">-</small>
             </td>
 
-            <!-- Status -->
             <td>
               <span class="badge bg-{{ getStatusColor(os.status) }}">
                 {{ getStatusLabel(os.status) }}
               </span>
             </td>
 
-            <!-- Urgência -->
             <td>
               <span
                 class="badge bg-{{ getUrgenciaInfo(os.urgencia).cor }}"
@@ -189,12 +285,10 @@
               </span>
             </td>
 
-            <!-- Prazo -->
             <td>
               <small>{{ os.prazo_dias }} dia(s)</small>
             </td>
 
-            <!-- Restante -->
             <td>
               <small
                 [class.text-danger]="os.dias_restantes !== null && os.dias_restantes < 0"
@@ -204,34 +298,34 @@
               </small>
             </td>
 
-            <!-- Ação Necessária -->
             <td>
-              <span class="badge bg-warning text-dark" *ngIf="os.acao_necessaria === 'TOMAR_CIENCIA'">
+              <span class="badge badge-acao bg-warning text-dark" *ngIf="os.acao_necessaria === 'TOMAR_CIENCIA'">
                 ⚠️ Dar Ciência
               </span>
-              <span class="badge bg-info" *ngIf="os.acao_necessaria === 'INICIAR_TRABALHO'">
+              <span class="badge badge-acao bg-info" *ngIf="os.acao_necessaria === 'INICIAR_TRABALHO'">
                 ▶️ Iniciar
               </span>
-              <span class="badge bg-danger" *ngIf="os.acao_necessaria === 'JUSTIFICAR_ATRASO'">
+              <span class="badge badge-acao bg-danger" *ngIf="os.acao_necessaria === 'JUSTIFICAR_ATRASO'">
                 ⚠️ Justificar
               </span>
-              <span class="badge bg-warning" *ngIf="os.acao_necessaria === 'REITERAR'">
+              <span class="badge badge-acao bg-warning" *ngIf="os.acao_necessaria === 'REITERAR'">
                 🔄 Reiterar
               </span>
             </td>
 
-            <!-- Ações -->
-            <td class="text-center">
-              <div class="btn-group btn-group-sm">
+            <td class="text-center acoes-coluna">
+              <div class="d-flex gap-1 justify-content-center">
                 <button
-                  class="btn btn-outline-primary"
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
                   (click)="verDetalhes(os)"
                   title="Ver detalhes">
                   <i class="bi bi-eye"></i>
                 </button>
 
                 <button
-                  class="btn btn-outline-success"
+                  type="button"
+                  class="btn btn-sm btn-success"
                   (click)="tomarCiencia(os)"
                   *ngIf="os.acao_necessaria === 'TOMAR_CIENCIA'"
                   title="Tomar ciência">
@@ -239,7 +333,8 @@
                 </button>
 
                 <button
-                  class="btn btn-outline-info"
+                  type="button"
+                  class="btn btn-sm btn-info"
                   (click)="iniciarTrabalho(os)"
                   *ngIf="os.acao_necessaria === 'INICIAR_TRABALHO'"
                   title="Iniciar trabalho">
@@ -247,7 +342,8 @@
                 </button>
 
                 <button
-                  class="btn btn-outline-secondary"
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary"
                   (click)="baixarPdf(os)"
                   title="Baixar PDF">
                   <i class="bi bi-file-pdf"></i>
@@ -263,7 +359,7 @@
   <!-- MODO CARDS -->
   <div class="row g-3" *ngIf="!loading && ordensServico.length > 0 && modoExibicao === 'cards'">
     <div class="col-md-6 col-lg-4" *ngFor="let os of ordensServico">
-      <div class="card h-100 shadow-sm">
+      <div class="card h-100 shadow-sm card-os">
         <div class="card-header bg-{{ getStatusColor(os.status) }} text-white">
           <div class="d-flex justify-content-between align-items-center">
             <strong>{{ os.numero_os }}</strong>
@@ -315,7 +411,6 @@
             </span>
           </p>
 
-          <!-- Barra de progresso -->
           <div class="progress mt-3" style="height: 8px;" *ngIf="os.percentual_prazo_consumido > 0">
             <div
               class="progress-bar"
@@ -327,71 +422,92 @@
           </div>
         </div>
 
-        <!-- Ações -->
-<td class="text-center">
-  <div class="d-flex gap-1 justify-content-center">
-    <!-- Ver Detalhes -->
-    <button
-      type="button"
-      class="btn btn-sm btn-outline-primary"
-      (click)="verDetalhes(os)"
-      title="Ver detalhes">
-      <i class="bi bi-eye"></i>
-    </button>
+        <div class="card-footer bg-light">
+          <div class="d-grid gap-2">
+            <button
+              type="button"
+              class="btn btn-sm btn-primary"
+              (click)="verDetalhes(os)">
+              <i class="bi bi-eye"></i> Ver Detalhes
+            </button>
 
-    <!-- Tomar Ciência -->
-    <button
-      type="button"
-      class="btn btn-sm btn-success"
-      (click)="tomarCiencia(os)"
-      *ngIf="os.acao_necessaria === 'TOMAR_CIENCIA'"
-      title="Tomar ciência">
-      <i class="bi bi-check2-circle"></i>
-    </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-success"
+              (click)="tomarCiencia(os)"
+              *ngIf="os.acao_necessaria === 'TOMAR_CIENCIA'">
+              <i class="bi bi-check2-circle"></i> Tomar Ciência
+            </button>
 
-    <!-- Iniciar Trabalho -->
-    <button
-      type="button"
-      class="btn btn-sm btn-info"
-      (click)="iniciarTrabalho(os)"
-      *ngIf="os.acao_necessaria === 'INICIAR_TRABALHO'"
-      title="Iniciar trabalho">
-      <i class="bi bi-play-circle"></i>
-    </button>
-
-    <!-- PDF -->
-    <button
-      type="button"
-      class="btn btn-sm btn-outline-secondary"
-      (click)="baixarPdf(os)"
-      title="Baixar PDF">
-      <i class="bi bi-file-pdf"></i>
-    </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-info"
+              (click)="iniciarTrabalho(os)"
+              *ngIf="os.acao_necessaria === 'INICIAR_TRABALHO'">
+              <i class="bi bi-play-circle"></i> Iniciar Trabalho
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</td>
+
   <!-- PAGINAÇÃO -->
   <nav aria-label="Paginação" *ngIf="!loading && ordensServico.length > 0 && totalPaginas > 1" class="mt-4">
-    <ul class="pagination justify-content-center">
-      <li class="page-item" [class.disabled]="paginaAtual === 1">
-        <a class="page-link" (click)="irParaPagina(paginaAtual - 1)">
-          Anterior
-        </a>
-      </li>
+    <div class="paginacao-container">
+      <ul class="pagination justify-content-center mb-0">
+        <li class="page-item" [class.disabled]="paginaAtual === 1">
+          <a class="page-link" (click)="irParaPagina(1)" title="Primeira página">
+            <i class="bi bi-chevron-double-left"></i>
+          </a>
+        </li>
 
-      <li
-        class="page-item"
-        *ngFor="let pagina of getPaginas()"
-        [class.active]="pagina === paginaAtual">
-        <a class="page-link" (click)="irParaPagina(pagina)">
-          {{ pagina }}
-        </a>
-      </li>
+        <li class="page-item" [class.disabled]="paginaAtual === 1">
+          <a class="page-link" (click)="irParaPagina(paginaAtual - 1)">
+            <i class="bi bi-chevron-left"></i> Anterior
+          </a>
+        </li>
 
-      <li class="page-item" [class.disabled]="paginaAtual === totalPaginas">
-        <a class="page-link" (click)="irParaPagina(paginaAtual + 1)">
-          Próximo
-        </a>
-      </li>
-    </ul>
+        <li
+          class="page-item"
+          *ngFor="let pagina of getPaginas()"
+          [class.active]="pagina === paginaAtual">
+          <a class="page-link" (click)="irParaPagina(pagina)">
+            {{ pagina }}
+          </a>
+        </li>
+
+        <li class="page-item" [class.disabled]="paginaAtual === totalPaginas">
+          <a class="page-link" (click)="irParaPagina(paginaAtual + 1)">
+            Próxima <i class="bi bi-chevron-right"></i>
+          </a>
+        </li>
+
+        <li class="page-item" [class.disabled]="paginaAtual === totalPaginas">
+          <a class="page-link" (click)="irParaPagina(totalPaginas)" title="Última página">
+            <i class="bi bi-chevron-double-right"></i>
+          </a>
+        </li>
+      </ul>
+
+      <div class="ir-para-pagina mt-3">
+        <div class="d-flex justify-content-center align-items-center gap-2">
+          <label class="mb-0 small text-muted">Ir para página:</label>
+          <input
+            type="number"
+            class="form-control form-control-sm"
+            style="width: 80px;"
+            [(ngModel)]="paginaInput"
+            [min]="1"
+            [max]="totalPaginas"
+            (keyup.enter)="irParaPaginaDigitada()">
+          <button
+            class="btn btn-sm btn-outline-primary"
+            (click)="irParaPaginaDigitada()">
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
   </nav>
 </div>

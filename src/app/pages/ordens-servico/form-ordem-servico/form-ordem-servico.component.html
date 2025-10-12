@@ -3,323 +3,348 @@
 <div class="container-fluid py-4">
   <!-- CABEÇALHO -->
   <div class="mb-4">
-    <h2 class="mb-1">📋 Nova Ordem de Serviço</h2>
-    <p class="text-muted mb-0">Preencha os dados abaixo para emitir uma nova OS</p>
+    <h2>
+      <i class="bi bi-file-earmark-plus"></i>
+      Nova Ordem de Serviço
+    </h2>
+    <p class="text-muted">Preencha os dados abaixo para emitir uma nova OS</p>
   </div>
 
-  <!-- MENSAGEM DE ERRO -->
+  <!-- MENSAGENS DE ERRO -->
   <div class="alert alert-danger" *ngIf="error">
     <i class="bi bi-exclamation-triangle"></i> {{ error }}
   </div>
 
   <!-- FORMULÁRIO PRINCIPAL -->
-  <div class="card" *ngIf="!mostrarAssinatura">
-    <div class="card-body">
-      <form>
-        <!-- BUSCA DE OCORRÊNCIA -->
-        <div class="row g-3 mb-4">
-          <div class="col-12">
-            <h5 class="border-bottom pb-2 mb-3">🔍 Buscar Ocorrência</h5>
-          </div>
+  <div *ngIf="!mostrarAssinatura">
 
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- PASSO 1: BUSCAR OCORRÊNCIA (FULL WIDTH) -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="card mb-4 card-busca">
+      <div class="card-header bg-primary">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-search"></i>
+          Passo 1: Selecionar Ocorrência
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
           <div class="col-12">
-            <label class="form-label">Número da Ocorrência <span class="text-danger">*</span></label>
-            <div class="input-group">
+            <label class="form-label">
+              🔍 Buscar Ocorrência
+              <span class="text-danger">*</span>
+            </label>
+            <div class="input-group input-group-lg">
               <input
                 type="text"
                 class="form-control"
                 [(ngModel)]="numeroOcorrenciaBusca"
-                name="buscaOcorrencia"
-                placeholder="Ex: 20250001/PLT"
-                [disabled]="ocorrenciaEncontrada !== null"
+                placeholder="Digite o número da ocorrência"
                 (keyup.enter)="buscarOcorrencia()">
-
               <button
+                type="button"
                 class="btn btn-primary"
-                type="button"
                 (click)="buscarOcorrencia()"
-                [disabled]="buscandoOcorrencia || ocorrenciaEncontrada !== null">
-                <span *ngIf="!buscandoOcorrencia">
-                  <i class="bi bi-search"></i> Buscar
-                </span>
-                <span *ngIf="buscandoOcorrencia">
-                  <span class="spinner-border spinner-border-sm me-2"></span>
-                  Buscando...
-                </span>
-              </button>
-
-              <button
-                class="btn btn-outline-secondary"
-                type="button"
-                (click)="limparBusca()"
-                *ngIf="ocorrenciaEncontrada !== null">
-                <i class="bi bi-x-lg"></i> Limpar
+                [disabled]="buscandoOcorrencia">
+                <span class="spinner-border spinner-border-sm" *ngIf="buscandoOcorrencia"></span>
+                <i class="bi bi-search" *ngIf="!buscandoOcorrencia"></i>
+                Buscar
               </button>
             </div>
+            <small class="form-text text-muted">
+              <i class="bi bi-info-circle"></i>
+              Digite o número completo da ocorrência
+            </small>
+          </div>
 
-            <!-- ERRO -->
-            <div class="alert alert-danger mt-2 mb-0" *ngIf="erroOcorrencia">
+          <!-- ERRO NA BUSCA -->
+          <div class="col-12" *ngIf="erroOcorrencia">
+            <div class="alert alert-danger">
               <i class="bi bi-exclamation-triangle"></i> {{ erroOcorrencia }}
             </div>
+          </div>
 
-            <!-- SUCESSO -->
-            <div class="alert alert-success mt-2 mb-0" *ngIf="ocorrenciaEncontrada">
-              <h6 class="alert-heading">
-                <i class="bi bi-check-circle"></i> Ocorrência Encontrada!
-              </h6>
+          <!-- OCORRÊNCIA ENCONTRADA -->
+          <div class="col-12" *ngIf="ocorrenciaEncontrada">
+            <div class="alert alert-success">
+              <h5 class="alert-heading">
+                <i class="bi bi-check-circle"></i>
+                Ocorrência Selecionada
+              </h5>
               <hr>
-              <div class="row">
-                <div class="col-md-6">
-                  <p class="mb-1"><strong>Número:</strong> {{ ocorrenciaEncontrada.numero_ocorrencia }}</p>
-                  <p class="mb-1"><strong>Serviço:</strong> {{ ocorrenciaEncontrada.servico_pericial?.nome || '-' }}</p>
-                </div>
-                <div class="col-md-6">
-                  <p class="mb-1"><strong>Perito:</strong> {{ ocorrenciaEncontrada.perito_atribuido?.nome_completo || '-' }}</p>
-                  <p class="mb-0"><strong>Status:</strong> {{ ocorrenciaEncontrada.status }}</p>
-                </div>
-              </div>
+              <p class="mb-1">
+                <strong>Nº:</strong> {{ ocorrenciaEncontrada.numero_ocorrencia }}
+              </p>
+              <p class="mb-1">
+                <strong>Perito:</strong> {{ ocorrenciaEncontrada.perito_atribuido?.nome_completo }}
+              </p>
+              <p class="mb-0" *ngIf="ocorrenciaEncontrada.servico_pericial">
+                <strong>Serviço:</strong> {{ ocorrenciaEncontrada.servico_pericial.nome }}
+              </p>
+              <hr>
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="limparBusca()">
+                <i class="bi bi-x-circle"></i> Buscar outra ocorrência
+              </button>
             </div>
-          </div>
-        </div>
-
-        <!-- DADOS PRINCIPAIS (SÓ APARECE DEPOIS DE ENCONTRAR) -->
-        <div *ngIf="ocorrenciaEncontrada">
-          <div class="row g-3 mb-4">
-            <div class="col-12">
-              <h5 class="border-bottom pb-2 mb-3">📄 Dados da Ordem de Serviço</h5>
-            </div>
-
-            <!-- Prazo -->
-            <div class="col-md-6">
-              <label class="form-label">Prazo (dias) <span class="text-danger">*</span></label>
-              <input
-                type="number"
-                class="form-control"
-                [(ngModel)]="form.prazo_dias"
-                name="prazo"
-                min="1"
-                max="365"
-                placeholder="Ex: 10">
-              <small class="form-text text-muted">
-                Prazo padrão: 10 dias
-              </small>
-            </div>
-
-            <!-- Ordenada por -->
-            <div class="col-md-6">
-              <label class="form-label">Ordenada por <span class="text-danger">*</span></label>
-              <select class="form-select" [(ngModel)]="form.ordenada_por_id" name="ordenada_por">
-                <option [value]="undefined">Selecione</option>
-                <option *ngFor="let user of usuarios" [value]="user.id">
-                  {{ user.nome_completo }}
-                </option>
-              </select>
-              <small class="form-text text-muted">
-                Diretor/Chefe responsável
-              </small>
-            </div>
-          </div>
-
-          <!-- DOCUMENTOS DE REFERÊNCIA -->
-          <div class="row g-3 mb-4">
-            <div class="col-12">
-              <h5 class="border-bottom pb-2 mb-3">📎 Documentos de Referência (Opcional)</h5>
-            </div>
-
-            <!-- Tipo de Documento -->
-            <div class="col-md-6">
-              <label class="form-label">Tipo de Documento</label>
-              <select
-                class="form-select"
-                [(ngModel)]="form.tipo_documento_referencia_id"
-                name="tipo_doc">
-                <option [value]="undefined">Nenhum</option>
-                <option *ngFor="let tipo of tiposDocumento" [value]="tipo.id">
-                  {{ tipo.nome }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Número do Documento -->
-            <div class="col-md-6">
-              <label class="form-label">Número do Documento</label>
-              <input
-                type="text"
-                class="form-control"
-                [(ngModel)]="form.numero_documento_referencia"
-                name="num_doc"
-                placeholder="Ex: OF/001/2025">
-            </div>
-
-            <!-- Processo SEI -->
-            <div class="col-md-6">
-              <label class="form-label">Processo SEI</label>
-              <input
-                type="text"
-                class="form-control"
-                [(ngModel)]="form.processo_sei_referencia"
-                name="sei"
-                placeholder="Ex: 23080.123456/2025-78">
-            </div>
-
-            <!-- Processo Judicial -->
-            <div class="col-md-6">
-              <label class="form-label">Processo Judicial</label>
-              <input
-                type="text"
-                class="form-control"
-                [(ngModel)]="form.processo_judicial_referencia"
-                name="judicial"
-                placeholder="Ex: 0001234-56.2025.8.23.0001">
-            </div>
-          </div>
-
-          <!-- OBSERVAÇÕES -->
-          <div class="row g-3 mb-4">
-            <div class="col-12">
-              <h5 class="border-bottom pb-2 mb-3">💬 Observações</h5>
-            </div>
-
-            <div class="col-12">
-              <label class="form-label">Observações Internas</label>
-              <textarea
-                class="form-control"
-                rows="4"
-                [(ngModel)]="form.observacoes_administrativo"
-                name="obs"
-                placeholder="Observações internas do administrativo (não aparecem no PDF oficial)"></textarea>
-              <small class="form-text text-muted">
-                Estas observações são apenas para controle interno
-              </small>
-            </div>
-          </div>
-
-          <!-- BOTÕES -->
-          <div class="d-flex justify-content-end gap-2">
-            <button
-              type="button"
-              class="btn btn-outline-secondary"
-              (click)="cancelar()">
-              <i class="bi bi-x-lg"></i> Cancelar
-            </button>
-
-            <button
-              type="button"
-              class="btn btn-primary"
-              (click)="prepararAssinatura()">
-              <i class="bi bi-arrow-right"></i> Continuar para Assinatura
-            </button>
-          </div>
-        </div>
-
-        <!-- MENSAGEM SE NÃO BUSCOU AINDA -->
-        <div *ngIf="!ocorrenciaEncontrada" class="text-center py-5">
-          <i class="bi bi-search display-1 text-muted"></i>
-          <h5 class="mt-3 text-muted">Busque uma ocorrência para começar</h5>
-          <p class="text-muted">Digite o número da ocorrência acima e clique em "Buscar"</p>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- CONFIRMAÇÃO COM ASSINATURA DIGITAL -->
-  <div class="card border-primary" *ngIf="mostrarAssinatura">
-    <div class="card-header bg-primary text-white">
-      <h5 class="card-title mb-0">
-        <i class="bi bi-shield-lock"></i> Assinatura Digital
-      </h5>
-    </div>
-
-    <div class="card-body">
-      <!-- RESUMO DA OS -->
-      <div class="alert alert-info">
-        <h6 class="alert-heading">📋 Resumo da Ordem de Serviço</h6>
-        <hr>
-        <div class="row">
-          <div class="col-md-6">
-            <p class="mb-1"><strong>Ocorrência:</strong> {{ ocorrenciaEncontrada?.numero_ocorrencia }}</p>
-            <p class="mb-1"><strong>Perito:</strong> {{ ocorrenciaEncontrada?.perito_atribuido?.nome_completo }}</p>
-            <p class="mb-1"><strong>Prazo:</strong> {{ form.prazo_dias }} dia(s)</p>
-          </div>
-          <div class="col-md-6">
-            <p class="mb-1">
-              <strong>Processo SEI:</strong>
-              {{ form.processo_sei_referencia || '-' }}
-            </p>
-            <p class="mb-0">
-              <strong>Documento Ref.:</strong>
-              {{ form.numero_documento_referencia || '-' }}
-            </p>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- ASSINATURA -->
-      <form>
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- PASSO 2: DADOS DA OS (2 COLUNAS COM PROPORÇÃO ÁUREA) -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="card mb-4" *ngIf="ocorrenciaEncontrada">
+      <div class="card-header bg-primary">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-file-earmark-text"></i>
+          Passo 2: Dados da Ordem de Serviço
+        </h5>
+      </div>
+      <div class="card-body">
         <div class="row g-3">
-          <div class="col-12">
-            <p class="text-muted mb-3">
-              Para emitir esta Ordem de Serviço, confirme sua identidade:
-            </p>
+
+          <!-- COLUNA ESQUERDA (φ = 62%) - CAMPOS PRINCIPAIS -->
+          <div class="col-md-8 col-phi-left">
+            <div class="row g-3">
+
+              <!-- Prazo -->
+              <div class="col-12">
+                <label class="form-label">
+                  ⏱️ Prazo (em dias)
+                  <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  class="form-control"
+                  [(ngModel)]="form.prazo_dias"
+                  placeholder="Ex: 10"
+                  min="1"
+                  max="365">
+                <small class="form-text text-muted">
+                  <i class="bi bi-info-circle"></i>
+                  Prazo padrão: 10 dias úteis
+                </small>
+              </div>
+
+              <!-- Tipo de Documento -->
+              <div class="col-12">
+                <label class="form-label">
+                  📄 Tipo de Documento de Referência
+                </label>
+                <select
+                  class="form-select"
+                  [(ngModel)]="form.tipo_documento_referencia_id">
+                  <option [value]="undefined">Selecione o tipo</option>
+                  <option *ngFor="let tipo of tiposDocumento" [value]="tipo.id">
+                    {{ tipo.nome }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Processo SEI -->
+              <div class="col-12">
+                <label class="form-label">
+                  📋 Processo SEI
+                </label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="form.processo_sei_referencia"
+                  placeholder="Ex: 00000.000000/2025-00">
+              </div>
+
+              <!-- Número do Documento -->
+              <div class="col-12">
+                <label class="form-label">
+                  🔢 Nº do Documento
+                </label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="form.numero_documento_referencia"
+                  placeholder="Ex: 1234/2025">
+              </div>
+
+            </div>
           </div>
 
+          <!-- COLUNA DIREITA (1-φ = 38%) - CAMPOS SECUNDÁRIOS -->
+          <div class="col-md-4 col-phi-right">
+            <div class="row g-3">
+
+              <!-- Ordenada Por -->
+              <div class="col-12">
+                <label class="form-label">
+                  👤 Ordenada Por
+                  <span class="text-danger">*</span>
+                </label>
+                <select
+                  class="form-select"
+                  [(ngModel)]="form.ordenada_por_id">
+                  <option [value]="undefined">Selecione</option>
+                  <option *ngFor="let usuario of usuarios" [value]="usuario.id">
+                    {{ usuario.nome_completo }}
+                  </option>
+                </select>
+                <small class="form-text text-muted">
+                  <i class="bi bi-info-circle"></i>
+                  Diretor ou responsável
+                </small>
+              </div>
+
+              <!-- Processo Judicial -->
+              <div class="col-12">
+                <label class="form-label">
+                  ⚖️ Processo Judicial
+                </label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="form.processo_judicial_referencia"
+                  placeholder="Ex: 0000000-00.2025.0.00.0000">
+              </div>
+
+            </div>
+          </div>
+
+          <!-- OBSERVAÇÕES (FULL WIDTH) -->
+          <div class="col-12">
+            <hr class="my-4">
+            <label class="form-label">
+              💬 Observações Administrativas
+            </label>
+            <textarea
+              class="form-control"
+              [(ngModel)]="form.observacoes_administrativo"
+              rows="4"
+              placeholder="Observações internas (não aparecem no PDF oficial)"></textarea>
+            <small class="form-text text-muted">
+              <i class="bi bi-info-circle"></i>
+              Estas observações são apenas para uso interno
+            </small>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTÕES DE AÇÃO -->
+    <div class="d-flex justify-content-between gap-3 mt-4" *ngIf="ocorrenciaEncontrada">
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="cancelar()">
+        <i class="bi bi-arrow-left"></i>
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-success btn-lg"
+        (click)="prepararAssinatura()">
+        <i class="bi bi-arrow-right"></i>
+        Próximo: Assinar Digitalmente
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PASSO 3: ASSINATURA DIGITAL -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div *ngIf="mostrarAssinatura">
+    <div class="card mb-4 border-primary">
+      <div class="card-header bg-primary">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-shield-check"></i>
+          Passo 3: Assinatura Digital
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info">
+          <h6 class="alert-heading">
+            <i class="bi bi-info-circle"></i>
+            Confirmação de Identidade
+          </h6>
+          <hr>
+          <p class="mb-2">
+            <strong>Ocorrência:</strong> {{ ocorrenciaEncontrada?.numero_ocorrencia }}
+          </p>
+          <p class="mb-2">
+            <strong>Perito:</strong> {{ ocorrenciaEncontrada?.perito_atribuido?.nome_completo }}
+          </p>
+          <p class="mb-0">
+            <strong>Prazo:</strong> {{ form.prazo_dias }} dia(s)
+          </p>
+        </div>
+
+        <div class="row g-3">
+          <!-- Email -->
           <div class="col-md-6">
-            <label class="form-label">Email de Confirmação <span class="text-danger">*</span></label>
+            <label class="form-label">
+              📧 Email de Confirmação
+              <span class="text-danger">*</span>
+            </label>
             <input
               type="email"
               class="form-control"
               [(ngModel)]="emailConfirmacao"
-              name="email"
-              placeholder="seu@email.com"
-              autocomplete="email">
+              placeholder="seu.email@exemplo.com">
+            <small class="form-text text-muted">
+              <i class="bi bi-info-circle"></i>
+              Confirme seu email corporativo
+            </small>
           </div>
 
+          <!-- Senha -->
           <div class="col-md-6">
-            <label class="form-label">Senha <span class="text-danger">*</span></label>
+            <label class="form-label">
+              🔐 Senha de Confirmação
+              <span class="text-danger">*</span>
+            </label>
             <input
               type="password"
               class="form-control"
               [(ngModel)]="senhaConfirmacao"
-              name="senha"
-              placeholder="Digite sua senha"
-              autocomplete="current-password"
-              (keyup.enter)="confirmarCriacao()">
+              placeholder="••••••••">
+            <small class="form-text text-muted">
+              <i class="bi bi-info-circle"></i>
+              Digite sua senha de acesso ao sistema
+            </small>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div class="alert alert-warning mt-3">
-          <small>
-            <i class="bi bi-info-circle"></i>
-            <strong>Atenção:</strong> Ao confirmar, você estará assinando digitalmente esta Ordem de Serviço.
-            O perito será notificado e o documento ficará registrado no sistema.
-          </small>
-        </div>
+    <!-- BOTÕES DE AÇÃO -->
+    <div class="d-flex justify-content-between gap-3 mt-4">
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="voltarParaFormulario()">
+        <i class="bi bi-arrow-left"></i>
+        Voltar
+      </button>
 
-        <!-- BOTÕES -->
-        <div class="d-flex justify-content-end gap-2 mt-4">
-          <button
-            type="button"
-            class="btn btn-outline-secondary"
-            (click)="voltarParaFormulario()"
-            [disabled]="loading">
-            <i class="bi bi-arrow-left"></i> Voltar
-          </button>
-
-          <button
-            type="button"
-            class="btn btn-success btn-lg"
-            (click)="confirmarCriacao()"
-            [disabled]="loading || !emailConfirmacao || !senhaConfirmacao">
-            <span *ngIf="!loading">
-              <i class="bi bi-check-circle"></i> Confirmar e Emitir OS
-            </span>
-            <span *ngIf="loading">
-              <span class="spinner-border spinner-border-sm me-2"></span>
-              Emitindo...
-            </span>
-          </button>
-        </div>
-      </form>
+      <button
+        type="button"
+        class="btn btn-success btn-lg"
+        (click)="confirmarCriacao()"
+        [disabled]="loading || !emailConfirmacao || !senhaConfirmacao">
+        <span class="spinner-border spinner-border-sm" *ngIf="loading"></span>
+        <i class="bi bi-check-circle" *ngIf="!loading"></i>
+        Emitir Ordem de Serviço
+      </button>
     </div>
   </div>
+
+  <!-- EMPTY STATE -->
+  <div class="text-center py-5" *ngIf="!ocorrenciaEncontrada && !numeroOcorrenciaBusca">
+    <i class="bi bi-search"></i>
+    <h5>Busque uma Ocorrência</h5>
+    <p>Digite o número da ocorrência para começar</p>
+  </div>
+
 </div>
