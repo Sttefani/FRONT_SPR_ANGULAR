@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import Swal from 'sweetalert2';
 
 import { OcorrenciaService } from '../../services/ocorrencia.service';
@@ -49,7 +51,18 @@ export class OcorrenciasFormComponent implements OnInit {
   temProcedimento = false;
   procedimentoEncontrado = false;
   procedimentoVinculado: any = null;
-  secoesAbertas = { identificacao: true, local: false, documentacao: false, atribuicao: false, exames: false, observacoes: false };
+
+  // ✅ ADICIONAR 'endereco' AQUI
+  secoesAbertas = {
+    identificacao: true,
+    local: false,
+    endereco: true,  // ← ADICIONADO
+    documentacao: false,
+    atribuicao: false,
+    exames: false,
+    observacoes: false
+  };
+
   servicosPericiais: ServicoPericial[] = [];
   unidadesDemandantes: UnidadeDemandante[] = [];
   cidades: Cidade[] = [];
@@ -73,6 +86,21 @@ export class OcorrenciasFormComponent implements OnInit {
   loadingAutoridades = false;
   modalExamesAberto = false;
 
+  // ✅ ADICIONAR OBJETO FORM PARA ENDEREÇO
+  form = {
+    endereco: {
+      tipo: 'EXTERNA' as 'INTERNA' | 'EXTERNA',
+      logradouro: '',
+      numero: '',
+      complemento: '',
+      bairro: '',
+      cep: '',
+      longitude:'',
+      latitude:'',
+      ponto_referencia: ''
+    }
+  };
+
   constructor(
     private fb: FormBuilder,
     private ocorrenciaService: OcorrenciaService,
@@ -90,6 +118,7 @@ export class OcorrenciasFormComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private usuarioService: UsuarioService,
+    private http: HttpClient  // ← ADICIONAR HttpClient
   ) {
     this.initForms();
   }
@@ -378,158 +407,149 @@ export class OcorrenciasFormComponent implements OnInit {
   }
 
   // ==========================================
-// MÉTODO PRINCIPAL - CARREGAR OCORRÊNCIA
-// ==========================================
-loadOcorrencia(id: number): void {
-  this.isLoading = true;
-  this.isEditMode = true;
+  // MÉTODO PRINCIPAL - CARREGAR OCORRÊNCIA
+  // ==========================================
+  loadOcorrencia(id: number): void {
+    this.isLoading = true;
+    this.isEditMode = true;
 
-  this.ocorrenciaService.getById(id).subscribe({
-    next: (ocorrencia: any) => {
-      console.log('📦 DADOS CARREGADOS:', ocorrencia); // Debug opcional
+    this.ocorrenciaService.getById(id).subscribe({
+      next: (ocorrencia: any) => {
+        console.log('📦 DADOS CARREGADOS:', ocorrencia);
 
-      // Valida permissões de acesso
-      if (!this.podeEditarOcorrencia(ocorrencia)) {
-        this.isLoading = false;
-        return; // Já mostra o erro e redireciona dentro do método
+        if (!this.podeEditarOcorrencia(ocorrencia)) {
+          this.isLoading = false;
+          return;
+        }
+
+        this.carregarDadosComplementares(ocorrencia);
+        this.preencherFormulario(ocorrencia);
+
+       if (ocorrencia.endereco) {
+        this.form.endereco = {
+          tipo: ocorrencia.endereco.tipo || 'EXTERNA',
+          logradouro: ocorrencia.endereco.logradouro || '',
+          numero: ocorrencia.endereco.numero || '',
+          complemento: ocorrencia.endereco.complemento || '',
+          bairro: ocorrencia.endereco.bairro || '',
+          cep: ocorrencia.endereco.cep || '',
+          latitude: ocorrencia.endereco.latitude || '',        // ← ADICIONAR
+          longitude: ocorrencia.endereco.longitude || '',      // ← ADICIONAR
+          ponto_referencia: ocorrencia.endereco.ponto_referencia || ''
+        };
       }
 
-      // Carrega dados complementares
-      this.carregarDadosComplementares(ocorrencia);
-
-      // Preenche o formulário
-      this.preencherFormulario(ocorrencia);
-
-      this.isLoading = false;
-    },
-    error: (err: any) => {
-      console.error('❌ Erro ao carregar ocorrência:', err);
-      this.isLoading = false;
-      Swal.fire({
-        title: 'Erro',
-        text: 'Não foi possível carregar a ocorrência.',
-        icon: 'error',
-        confirmButtonText: 'Voltar'
-      }).then(() => {
-        this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
-      });
-    }
-  });
-}
-
-// ==========================================
-// VALIDAÇÃO DE PERMISSÕES
-// ==========================================
-private podeEditarOcorrencia(ocorrencia: any): boolean {
-  const user = this.authService.getCurrentUser();
-  const isSuperAdmin = this.authService.isSuperAdmin();
-  const isAdmin = user?.perfil === 'ADMINISTRATIVO';
-
-  // Super Admin e Administrativo podem editar qualquer coisa
-  if (isSuperAdmin || isAdmin) {
-    return true;
-  }
-
-  // Verifica se está finalizada
-  if (this.estaFinalizada(ocorrencia)) {
-    Swal.fire({
-      title: 'Ocorrência Finalizada',
-      text: 'Esta ocorrência está finalizada e não pode ser editada.',
-      icon: 'warning',
-      confirmButtonText: 'Voltar'
-    }).then(() => {
-      this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        console.error('❌ Erro ao carregar ocorrência:', err);
+        this.isLoading = false;
+        Swal.fire({
+          title: 'Erro',
+          text: 'Não foi possível carregar a ocorrência.',
+          icon: 'error',
+          confirmButtonText: 'Voltar'
+        }).then(() => {
+          this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+        });
+      }
     });
-    return false;
   }
 
-  // Verifica se o perito atribuído é o usuário logado
-  if (ocorrencia.perito_atribuido) {
-    if (Number(user?.id) !== Number(ocorrencia.perito_atribuido.id)) {
+  private podeEditarOcorrencia(ocorrencia: any): boolean {
+    const user = this.authService.getCurrentUser();
+    const isSuperAdmin = this.authService.isSuperAdmin();
+    const isAdmin = user?.perfil === 'ADMINISTRATIVO';
+
+    if (isSuperAdmin || isAdmin) {
+      return true;
+    }
+
+    if (this.estaFinalizada(ocorrencia)) {
       Swal.fire({
-        title: 'Acesso Negado',
-        text: 'Esta ocorrência está atribuída a outro perito.',
-        icon: 'error',
+        title: 'Ocorrência Finalizada',
+        text: 'Esta ocorrência está finalizada e não pode ser editada.',
+        icon: 'warning',
         confirmButtonText: 'Voltar'
       }).then(() => {
         this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
       });
       return false;
     }
+
+    if (ocorrencia.perito_atribuido) {
+      if (Number(user?.id) !== Number(ocorrencia.perito_atribuido.id)) {
+        Swal.fire({
+          title: 'Acesso Negado',
+          text: 'Esta ocorrência está atribuída a outro perito.',
+          icon: 'error',
+          confirmButtonText: 'Voltar'
+        }).then(() => {
+          this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+        });
+        return false;
+      }
+    }
+
+    return true;
   }
 
-  return true;
-}
-
-// ==========================================
-// VERIFICA SE ESTÁ FINALIZADA
-// ==========================================
-private estaFinalizada(ocorrencia: any): boolean {
-  return ocorrencia.esta_finalizada === true ||
-         !!ocorrencia.finalizada_por ||
-         !!ocorrencia.data_finalizacao;
-}
-
-// ==========================================
-// CARREGA DADOS COMPLEMENTARES
-// ==========================================
-private carregarDadosComplementares(ocorrencia: any): void {
-  // Carrega listas de seleção
-  this.loadUnidades();
-  this.loadCargos();
-  this.loadCidades();
-  this.loadPeritos();
-
-  // Carrega classificações do serviço específico
-  if (ocorrencia.servico_pericial?.id) {
-    this.loadClassificacoes(ocorrencia.servico_pericial.id);
+  private estaFinalizada(ocorrencia: any): boolean {
+    return ocorrencia.esta_finalizada === true ||
+           !!ocorrencia.finalizada_por ||
+           !!ocorrencia.data_finalizacao;
   }
 
-  // Preenche autoridade se existir
-  if (ocorrencia.autoridade) {
-    this.cargoSelecionado = ocorrencia.autoridade.cargo?.id || null;
-    this.autoridadeSelecionada = ocorrencia.autoridade;
-    this.autoridadeBusca = ocorrencia.autoridade.nome || '';
+  private carregarDadosComplementares(ocorrencia: any): void {
+    this.loadUnidades();
+    this.loadCargos();
+    this.loadCidades();
+    this.loadPeritos();
 
-    // Carrega lista de autoridades do cargo
-    if (this.cargoSelecionado) {
-      this.autoridadeService.getAll('', this.cargoSelecionado).subscribe({
-        next: (response: any) => {
-          this.autoridades = response.results || [];
-        },
-        error: (err: any) => {
-          console.error('❌ Erro ao carregar autoridades:', err);
-        }
-      });
+    if (ocorrencia.servico_pericial?.id) {
+      this.loadClassificacoes(ocorrencia.servico_pericial.id);
+    }
+
+    if (ocorrencia.autoridade) {
+      this.cargoSelecionado = ocorrencia.autoridade.cargo?.id || null;
+      this.autoridadeSelecionada = ocorrencia.autoridade;
+      this.autoridadeBusca = ocorrencia.autoridade.nome || '';
+
+      if (this.cargoSelecionado) {
+        this.autoridadeService.getAll('', this.cargoSelecionado).subscribe({
+          next: (response: any) => {
+            this.autoridades = response.results || [];
+          },
+          error: (err: any) => {
+            console.error('❌ Erro ao carregar autoridades:', err);
+          }
+        });
+      }
     }
   }
-}
 
-// ==========================================
-// PREENCHE O FORMULÁRIO
-// ==========================================
-private preencherFormulario(ocorrencia: any): void {
-  this.ocorrenciaForm.patchValue({
-    servico_pericial_id: ocorrencia.servico_pericial?.id || null,
-    unidade_demandante_id: ocorrencia.unidade_demandante?.id || null,
-    autoridade_id: ocorrencia.autoridade?.id || null,
-    cidade_id: ocorrencia.cidade?.id || null,
-    classificacao_id: ocorrencia.classificacao?.id || null,
-    data_fato: ocorrencia.data_fato || null,
-    hora_fato: ocorrencia.hora_fato || null,
-    procedimento_cadastrado_id: ocorrencia.procedimento_cadastrado?.id || null,
-    tipo_documento_origem_id: ocorrencia.tipo_documento_origem?.id || null,
-    numero_documento_origem: ocorrencia.numero_documento_origem || '',
-    data_documento_origem: ocorrencia.data_documento_origem || null,
-    processo_sei_numero: ocorrencia.processo_sei_numero || '',
-    perito_atribuido_id: ocorrencia.perito_atribuido?.id || null,
-    historico: ocorrencia.historico || ''
-  });
+  private preencherFormulario(ocorrencia: any): void {
+    this.ocorrenciaForm.patchValue({
+      servico_pericial_id: ocorrencia.servico_pericial?.id || null,
+      unidade_demandante_id: ocorrencia.unidade_demandante?.id || null,
+      autoridade_id: ocorrencia.autoridade?.id || null,
+      cidade_id: ocorrencia.cidade?.id || null,
+      classificacao_id: ocorrencia.classificacao?.id || null,
+      data_fato: ocorrencia.data_fato || null,
+      hora_fato: ocorrencia.hora_fato || null,
+      procedimento_cadastrado_id: ocorrencia.procedimento_cadastrado?.id || null,
+      tipo_documento_origem_id: ocorrencia.tipo_documento_origem?.id || null,
+      numero_documento_origem: ocorrencia.numero_documento_origem || '',
+      data_documento_origem: ocorrencia.data_documento_origem || null,
+      processo_sei_numero: ocorrencia.processo_sei_numero || '',
+      perito_atribuido_id: ocorrencia.perito_atribuido?.id || null,
+      historico: ocorrencia.historico || ''
+    });
 
-  // Carrega dados adicionais
-  this.examesSelecionados = ocorrencia.exames_solicitados || [];
-  this.procedimentoVinculado = ocorrencia.procedimento_cadastrado || null;
-}
+    this.examesSelecionados = ocorrencia.exames_solicitados || [];
+    this.procedimentoVinculado = ocorrencia.procedimento_cadastrado || null;
+  }
+
   abrirModalExames(): void {
     const servicoId = this.ocorrenciaForm.get('servico_pericial_id')?.value;
     if (!servicoId) {
@@ -557,6 +577,37 @@ private preencherFormulario(ocorrencia: any): void {
     this.examesSelecionados = this.examesSelecionados.filter(e => e.id !== exame.id);
   }
 
+  onTipoOcorrenciaChange(): void {
+  if (this.form.endereco.tipo === 'INTERNA') {
+    this.form.endereco.logradouro = '';
+    this.form.endereco.numero = '';
+    this.form.endereco.complemento = '';
+    this.form.endereco.bairro = '';
+    this.form.endereco.cep = '';
+    this.form.endereco.latitude = '';      // ← ADICIONAR
+    this.form.endereco.longitude = '';     // ← ADICIONAR
+    this.form.endereco.ponto_referencia = '';
+  }
+}
+
+  // ✅ MÉTODO PARA SALVAR ENDEREÇO
+  private salvarEndereco(ocorrenciaId: number): Observable<any> {
+    const enderecoPayload = {
+      ocorrencia: ocorrenciaId,
+      tipo: this.form.endereco.tipo,
+      logradouro: this.form.endereco.logradouro || '',
+      numero: this.form.endereco.numero || '',
+      complemento: this.form.endereco.complemento || '',
+      bairro: this.form.endereco.bairro || '',
+      cep: this.form.endereco.cep || '',
+      ponto_referencia: this.form.endereco.ponto_referencia || ''
+    };
+
+  const baseUrl = 'http://localhost:8000/api'; // ← Ajuste se sua URL for diferente
+  return this.http.post(`${baseUrl}/enderecos-ocorrencia/`, enderecoPayload);
+  }
+
+  // ✅ MÉTODO onSubmit ATUALIZADO
   onSubmit(): void {
     if (this.ocorrenciaForm.invalid) {
       this.ocorrenciaForm.markAllAsTouched();
@@ -608,14 +659,30 @@ private preencherFormulario(ocorrencia: any): void {
 
     request.subscribe({
       next: (ocorrencia: any) => {
-        const action = this.isEditMode ? 'atualizada' : 'cadastrada';
-        Swal.fire({
-          title: 'Sucesso!',
-          text: `Ocorrência ${action} com sucesso! Número: ${ocorrencia.numero_ocorrencia}`,
-          icon: 'success',
-          confirmButtonText: 'Ok'
-        }).then(() => {
-          this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+        // ✅ SALVAR ENDEREÇO APÓS CRIAR/ATUALIZAR OCORRÊNCIA
+        this.salvarEndereco(ocorrencia.id).subscribe({
+          next: () => {
+            const action = this.isEditMode ? 'atualizada' : 'cadastrada';
+            Swal.fire({
+              title: 'Sucesso!',
+              text: `Ocorrência ${action} com sucesso! Número: ${ocorrencia.numero_ocorrencia}`,
+              icon: 'success',
+              confirmButtonText: 'Ok'
+            }).then(() => {
+              this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+            });
+          },
+          error: (enderecoErr: any) => {
+            console.error('Erro ao salvar endereço:', enderecoErr);
+            Swal.fire({
+              title: 'Aviso',
+              text: 'Ocorrência salva, mas houve erro ao salvar o endereço.',
+              icon: 'warning',
+              confirmButtonText: 'Ok'
+            }).then(() => {
+              this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+            });
+          }
         });
       },
       error: (err: any) => {

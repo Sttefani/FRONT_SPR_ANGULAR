@@ -323,6 +323,160 @@
           }
         </div>
 
+        <!-- ========== SEÇÃO: TIPO DE OCORRÊNCIA E ENDEREÇO ========== -->
+        <div class="form-section">
+          <div class="section-header" (click)="toggleSecao('endereco')">
+            <div>
+              <i class="bi bi-pin-map"></i>
+              <h3>Tipo de Ocorrência e Endereço</h3>
+            </div>
+            <i class="bi" [ngClass]="secoesAbertas.endereco ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+          </div>
+
+          @if (secoesAbertas.endereco) {
+            <div class="section-content">
+              <!-- Tipo de Ocorrência -->
+              <div class="form-group required">
+                <label>Tipo de Ocorrência</label>
+                <div class="tipo-ocorrencia-toggle">
+                  <label class="radio-option">
+                    <input
+                      type="radio"
+                      name="tipo_ocorrencia"
+                      [(ngModel)]="form.endereco.tipo"
+                      [ngModelOptions]="{standalone: true}"
+                      value="INTERNA"
+                      (change)="onTipoOcorrenciaChange()">
+                    <span class="radio-label">
+                      <i class="bi bi-building"></i> Interna (Laboratório)
+                    </span>
+                  </label>
+
+                  <label class="radio-option">
+                    <input
+                      type="radio"
+                      name="tipo_ocorrencia"
+                      [(ngModel)]="form.endereco.tipo"
+                      [ngModelOptions]="{standalone: true}"
+                      value="EXTERNA"
+                      (change)="onTipoOcorrenciaChange()">
+                    <span class="radio-label">
+                      <i class="bi bi-geo-alt-fill"></i> Externa (Cena de Crime)
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Campos de Endereço (só aparecem se EXTERNA) -->
+              @if (form.endereco.tipo === 'EXTERNA') {
+                <div class="endereco-section">
+                  <h5 class="section-subtitle">
+                    <i class="bi bi-geo-alt"></i> Endereço da Ocorrência
+                  </h5>
+
+                  <!-- Linha 1: Logradouro, Número, Complemento -->
+                  <div class="form-row">
+                    <div class="form-group required" style="grid-column: span 2;">
+                      <label>Logradouro</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="form.endereco.logradouro"
+                        [ngModelOptions]="{standalone: true}"
+                        class="form-control"
+                        placeholder="Ex: Rua das Flores, Av. Brasil..."
+                        [required]="form.endereco.tipo === 'EXTERNA'">
+                    </div>
+
+                    <div class="form-group required">
+                      <label>Número</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="form.endereco.numero"
+                        [ngModelOptions]="{standalone: true}"
+                        class="form-control"
+                        placeholder="Ex: 123, S/N..."
+                        [required]="form.endereco.tipo === 'EXTERNA'">
+                    </div>
+
+                    <div class="form-group">
+                      <label>Complemento</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="form.endereco.complemento"
+                        [ngModelOptions]="{standalone: true}"
+                        class="form-control"
+                        placeholder="Ex: Apto 101, Bloco B...">
+                    </div>
+                  </div>
+
+                  <!-- Linha 2: Bairro, CEP -->
+                  <div class="form-row">
+                    <div class="form-group required" style="grid-column: span 2;">
+                      <label>Bairro</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="form.endereco.bairro"
+                        [ngModelOptions]="{standalone: true}"
+                        class="form-control"
+                        placeholder="Ex: Centro, São José..."
+                        [required]="form.endereco.tipo === 'EXTERNA'">
+                    </div>
+
+                    <div class="form-group">
+                      <label>CEP</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="form.endereco.cep"
+                        [ngModelOptions]="{standalone: true}"
+                        class="form-control"
+                        placeholder="00000-000"
+                        maxlength="9">
+                    </div>
+                  </div>
+
+                  <!-- Linha 3: Coordenadas Geográficas -->
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Latitude</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="form.endereco.latitude"
+                        [ngModelOptions]="{standalone: true}"
+                        class="form-control"
+                        placeholder="Ex: -23.550520">
+                      <small class="form-hint">Opcional - Para geolocalização</small>
+                    </div>
+
+                    <div class="form-group">
+                      <label>Longitude</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="form.endereco.longitude"
+                        [ngModelOptions]="{standalone: true}"
+                        class="form-control"
+                        placeholder="Ex: -46.633308">
+                      <small class="form-hint">Opcional - Para geolocalização</small>
+                    </div>
+                  </div>
+
+                  <!-- Linha 4: Ponto de Referência -->
+                  <div class="form-row">
+                    <div class="form-group" style="grid-column: span 3;">
+                      <label>Ponto de Referência</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="form.endereco.ponto_referencia"
+                        [ngModelOptions]="{standalone: true}"
+                        class="form-control"
+                        placeholder="Ex: Próximo ao hospital, em frente à escola...">
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
         <!-- ========== SEÇÃO: DOCUMENTAÇÃO ========== -->
         <div class="form-section">
           <div class="section-header" (click)="toggleSecao('documentacao')">
