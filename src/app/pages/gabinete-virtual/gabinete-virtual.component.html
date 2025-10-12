@@ -49,19 +49,26 @@
         }
 
         <!-- Análise Gerencial (Só Admin e Super Admin) -->
-        @if (isGerencial()) {
-          <div class="nav-section">
-            <h4 class="nav-section-title">Análise Gerencial</h4>
-            <ul class="nav-list">
-              <li class="nav-item">
-                <a routerLink="/gabinete-virtual/relatorios-gerenciais" routerLinkActive="active" class="nav-link">
-                  <span class="nav-icon">📊</span>
-                  <span class="nav-text">Relatórios Gerenciais</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        }
+        <!-- Análise Gerencial (Só Admin e Super Admin) -->
+@if (isGerencial()) {
+  <div class="nav-section">
+    <h4 class="nav-section-title">Análise Gerencial</h4>
+    <ul class="nav-list">
+      <li class="nav-item">
+        <a routerLink="/gabinete-virtual/relatorios-gerenciais" routerLinkActive="active" class="nav-link">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">Relatórios de Ocorrências</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/gabinete-virtual/relatorios-os" routerLinkActive="active" class="nav-link">
+          <span class="nav-icon">📋</span>
+          <span class="nav-text">Relatórios de OS</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+}
 
         <!-- Cadastros Administrativos -->
         <div class="nav-section">

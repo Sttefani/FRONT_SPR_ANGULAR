@@ -473,11 +473,19 @@ export class ListaOrdensServicoComponent implements OnInit {
     return this.ordemServicoService.getUrgenciaInfo(urgencia);
   }
 
-  getDiasRestantesTexto(os: OrdemServico): string {
+ getDiasRestantesTexto(os: OrdemServico): string {
+  // ✅ 1º: Verificar se está concluída ANTES
+  if (os.status === 'CONCLUIDA') {
+    if (os.concluida_com_atraso) {  // ✅ CORRETO
+      return 'Finalizada com atraso';
+    }
+    return 'Cumprida no prazo ✓';
+  }
+
   const dias = os.dias_restantes;
 
   if (dias === null) {
-    return 'Prazo não iniciado';  // ← MUDANÇA AQUI!
+    return 'Prazo não iniciado';
   }
 
   if (dias < 0) {

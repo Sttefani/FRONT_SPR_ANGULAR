@@ -94,6 +94,7 @@ export interface OrdemServico {
   prazo_acumulado_total: number;
   acao_necessaria: string | null;
   reiteracoes: any[];
+  concluida_com_atraso: boolean | null;  // ← ADICIONAR ESTA LINHA AQUI
   perito_destinatario: {
     id: number;
     nome_completo: string;
@@ -345,4 +346,48 @@ export class OrdemServicoService {
       `${this.baseUrl}/ordens-servico/pendentes-ciencia/`
     );
   }
+  // ===========================================================================
+// RELATÓRIOS GERENCIAIS
+// ===========================================================================
+
+getRelatoriosGerenciais(filtros?: {
+  data_inicio?: string;
+  data_fim?: string;
+  perito_id?: number;
+  unidade_id?: number;
+  servico_id?: number;
+  status?: string;
+}): Observable<any> {
+  let params = new HttpParams();
+
+  if (filtros) {
+    Object.keys(filtros).forEach(key => {
+      const value = (filtros as any)[key];
+      if (value !== null && value !== undefined && value !== '') {
+        params = params.set(key, value.toString());
+      }
+    });
+  }
+
+  return this.http.get<any>(`${this.baseUrl}/ordens-servico/relatorios-gerenciais/`, { params });
+}
+
+// Método para gerar PDF dos relatórios (implementar depois no backend se necessário)
+imprimirRelatoriosOS(filtros?: any): Observable<Blob> {
+  let params = new HttpParams();
+
+  if (filtros) {
+    Object.keys(filtros).forEach(key => {
+      const value = (filtros as any)[key];
+      if (value !== null && value !== undefined && value !== '') {
+        params = params.set(key, value.toString());
+      }
+    });
+  }
+
+  return this.http.get(`${this.baseUrl}/ordens-servico/relatorios-gerenciais-pdf/`, {
+    params,
+    responseType: 'blob'
+  });
+}
 }

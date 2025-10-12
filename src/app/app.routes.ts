@@ -79,6 +79,12 @@ export const routes: Routes = [
         canActivate: [perfilGuard],
         data: { requiredPerfis: ['ADMINISTRATIVO', 'SUPERUSER'] }
       },
+      {
+        path: 'relatorios-os',
+        loadComponent: () => import('./pages/relatorios-os/relatorios-os.component').then(m => m.RelatoriosOsComponent),
+        canActivate: [perfilGuard],
+        data: { requiredPerfis: ['ADMINISTRATIVO', 'SUPERUSER'] }
+      },
 
       // =====================================================================
       // SERVIÇOS PERICIAIS

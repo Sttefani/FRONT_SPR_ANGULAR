@@ -414,25 +414,33 @@ export class DetalhesOrdemServicoComponent implements OnInit {
   }
 
   getDiasRestantesTexto(): string {
-    if (!this.ordemServico) return '';
+  if (!this.ordemServico) return '';
 
-    const dias = this.ordemServico.dias_restantes;
-
-    if (dias === null) {
-      return 'Prazo não iniciado';
+  // ✅ 1º: VERIFICAR SE ESTÁ CONCLUÍDA
+  if (this.ordemServico.status === 'CONCLUIDA') {
+    // Verificar se concluiu com atraso (baseado na data real de conclusão)
+    if (this.ordemServico.concluida_com_atraso) {
+      return 'Finalizada com atraso';
     }
-
-    if (dias < 0) {
-      return `Vencida há ${Math.abs(dias)} dia(s)`;
-    }
-
-    if (dias === 0) {
-      return 'Vence hoje!';
-    }
-
-    return `${dias} dia(s) restante(s)`;
+    return 'Cumprida no prazo ✓';
   }
 
+  const dias = this.ordemServico.dias_restantes;
+
+  if (dias === null) {
+    return 'Prazo não iniciado';
+  }
+
+  if (dias < 0) {
+    return `Vencida há ${Math.abs(dias)} dia(s)`;
+  }
+
+  if (dias === 0) {
+    return 'Vence hoje!';
+  }
+
+  return `${dias} dia(s) restante(s)`;
+}
   formatarData(data: string | null): string {
     if (!data) return '-';
 

@@ -1,0 +1,337 @@
+<div class="container">
+  <div class="page-header">
+    <h1><i class="bi bi-clipboard-data-fill"></i> Relatórios de Ordens de Serviço</h1>
+    <p>Análise de produtividade, prazos e desempenho das ordens de serviço do sistema.</p>
+  </div>
+
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label for="data_inicio">Data de Início</label>
+      <input type="date" id="data_inicio" [(ngModel)]="filtros.data_inicio">
+    </div>
+
+    <div class="filter-group">
+      <label for="data_fim">Data de Fim</label>
+      <input type="date" id="data_fim" [(ngModel)]="filtros.data_fim">
+    </div>
+
+    <div class="filter-group">
+      <label for="peritoFiltro">Perito</label>
+      <select id="peritoFiltro" [(ngModel)]="filtros.perito_id">
+        <option [ngValue]="null">Todos</option>
+        @for (perito of peritosDisponiveis; track perito.id) {
+          <option [value]="perito.id">{{ perito.nome_completo }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="unidadeFiltro">Unidade Demandante</label>
+      <select id="unidadeFiltro" [(ngModel)]="filtros.unidade_id">
+        <option [ngValue]="null">Todas</option>
+        @for (unidade of unidadesDisponiveis; track unidade.id) {
+          <option [value]="unidade.id">{{ unidade.nome }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="servicoFiltro">Serviço Pericial</label>
+      <select id="servicoFiltro" [(ngModel)]="filtros.servico_id">
+        <option [ngValue]="null">Todos</option>
+        @for (servico of servicosDisponiveis; track servico.id) {
+          <option [value]="servico.id">{{ servico.sigla }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="statusFiltro">Status</label>
+      <select id="statusFiltro" [(ngModel)]="filtros.status">
+        <option [ngValue]="null">Todos</option>
+        @for (status of statusDisponiveis; track status.value) {
+          <option [value]="status.value">{{ status.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-actions">
+      <button class="btn-primary" (click)="aplicarFiltros()">
+        <i class="bi bi-funnel-fill"></i> Aplicar Filtros
+      </button>
+      <button class="btn-secondary" (click)="limparFiltros()">
+        <i class="bi bi-x-circle"></i> Limpar
+      </button>
+      <button
+        class="btn-pdf"
+        (click)="gerarPDF()"
+        [disabled]="isGerandoPDF || isLoading"
+        title="Gerar PDF dos relatórios">
+        @if (isGerandoPDF) {
+          <i class="bi bi-hourglass-split"></i>
+          <span>Gerando PDF...</span>
+        } @else {
+          <i class="bi bi-file-earmark-pdf-fill"></i>
+          <span>Gerar PDF</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Gerando relatórios...</p>
+    </div>
+  }
+
+  @if (!isLoading && relatorios) {
+
+    <!-- RESUMO GERAL -->
+    <div class="data-section cards-resumo">
+      <h2><i class="bi bi-pie-chart-fill"></i> Resumo Geral</h2>
+      <div class="cards-grid">
+        <div class="card-stat card-total">
+          <div class="card-icon">📋</div>
+          <div class="card-content">
+            <span class="card-label">Total Emitidas</span>
+            <span class="card-value">{{ relatorios.resumo_geral.total_emitidas | number }}</span>
+          </div>
+        </div>
+
+        <div class="card-stat card-warning">
+          <div class="card-icon">🔒</div>
+          <div class="card-content">
+            <span class="card-label">Aguardando Ciência</span>
+            <span class="card-value">{{ relatorios.resumo_geral.aguardando_ciencia | number }}</span>
+          </div>
+        </div>
+
+        <div class="card-stat card-info">
+          <div class="card-icon">📂</div>
+          <div class="card-content">
+            <span class="card-label">Abertas</span>
+            <span class="card-value">{{ relatorios.resumo_geral.abertas | number }}</span>
+          </div>
+        </div>
+
+        <div class="card-stat card-primary">
+          <div class="card-icon">⚙️</div>
+          <div class="card-content">
+            <span class="card-label">Em Andamento</span>
+            <span class="card-value">{{ relatorios.resumo_geral.em_andamento | number }}</span>
+          </div>
+        </div>
+
+        <div class="card-stat card-danger">
+          <div class="card-icon">⚠️</div>
+          <div class="card-content">
+            <span class="card-label">Vencidas</span>
+            <span class="card-value">{{ relatorios.resumo_geral.vencidas | number }}</span>
+          </div>
+        </div>
+
+        <div class="card-stat card-success">
+          <div class="card-icon">✅</div>
+          <div class="card-content">
+            <span class="card-label">Concluídas</span>
+            <span class="card-value">{{ relatorios.resumo_geral.concluidas | number }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAXA DE CUMPRIMENTO -->
+    <div class="data-section taxa-cumprimento">
+      <h2><i class="bi bi-speedometer2"></i> Taxa de Cumprimento de Prazos</h2>
+      <div class="cumprimento-content">
+        <div class="cumprimento-stats">
+          <div class="stat-item stat-success">
+            <span class="stat-label">✓ Cumpridas no Prazo</span>
+            <span class="stat-value">{{ relatorios.taxa_cumprimento.cumpridas_no_prazo | number }}</span>
+            <span class="stat-percent" [ngClass]="getPercentualClass(relatorios.taxa_cumprimento.percentual_no_prazo)">
+              {{ relatorios.taxa_cumprimento.percentual_no_prazo }}%
+            </span>
+          </div>
+
+          <div class="stat-item stat-danger">
+            <span class="stat-label">⚠ Cumpridas com Atraso</span>
+            <span class="stat-value">{{ relatorios.taxa_cumprimento.cumpridas_com_atraso | number }}</span>
+            <span class="stat-percent percentual-ruim">
+              {{ relatorios.taxa_cumprimento.percentual_com_atraso }}%
+            </span>
+          </div>
+        </div>
+
+        <div class="progress-bar-container">
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar-fill success" [style.width.%]="relatorios.taxa_cumprimento.percentual_no_prazo"></div>
+            <div class="progress-bar-fill danger" [style.width.%]="relatorios.taxa_cumprimento.percentual_com_atraso"></div>
+          </div>
+          <div class="progress-labels">
+            <span class="label-success">{{ relatorios.taxa_cumprimento.percentual_no_prazo }}% no prazo</span>
+            <span class="label-danger">{{ relatorios.taxa_cumprimento.percentual_com_atraso }}% com atraso</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRAZOS MÉDIOS -->
+    <div class="data-section prazos-section">
+      <h2><i class="bi bi-clock-history"></i> Estatísticas de Prazos</h2>
+      <div class="prazos-grid">
+        <div class="prazo-card">
+          <div class="prazo-icon">⏱️</div>
+          <div class="prazo-info">
+            <span class="prazo-label">Tempo Médio de Conclusão</span>
+            <span class="prazo-value">{{ relatorios.prazos.tempo_medio_conclusao_dias }} dias</span>
+          </div>
+        </div>
+
+        <div class="prazo-card">
+          <div class="prazo-icon">📅</div>
+          <div class="prazo-info">
+            <span class="prazo-label">Prazo Médio Concedido</span>
+            <span class="prazo-value">{{ relatorios.prazos.prazo_medio_concedido }} dias</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REITERAÇÕES -->
+    @if (relatorios.reiteracoes.total_reiteracoes > 0) {
+      <div class="data-section reiteracoes-section">
+        <h2><i class="bi bi-arrow-repeat"></i> Análise de Reiterações</h2>
+        <div class="reiteracoes-grid">
+          <div class="reit-card">
+            <span class="reit-label">OS Originais</span>
+            <span class="reit-value">{{ relatorios.reiteracoes.total_originais | number }}</span>
+          </div>
+          <div class="reit-card reit-warning">
+            <span class="reit-label">Total de Reiterações</span>
+            <span class="reit-value">{{ relatorios.reiteracoes.total_reiteracoes | number }}</span>
+          </div>
+          <div class="reit-card">
+            <span class="reit-label">1ª Reiteração</span>
+            <span class="reit-value">{{ relatorios.reiteracoes.primeira_reiteracao | number }}</span>
+          </div>
+          <div class="reit-card">
+            <span class="reit-label">2ª Reiteração</span>
+            <span class="reit-value">{{ relatorios.reiteracoes.segunda_reiteracao | number }}</span>
+          </div>
+          <div class="reit-card reit-danger">
+            <span class="reit-label">3ª ou mais</span>
+            <span class="reit-value">{{ relatorios.reiteracoes.terceira_ou_mais | number }}</span>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- PRODUÇÃO POR PERITO -->
+    @if (relatorios.producao_por_perito.length > 0) {
+      <div class="data-section">
+        <h2><i class="bi bi-people-fill"></i> Produção por Perito</h2>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Perito</th>
+              <th class="text-right">Total</th>
+              <th class="text-right">Concluídas</th>
+              <th class="text-right">✓ No Prazo</th>
+              <th class="text-right">⚠ Com Atraso</th>
+              <th class="text-right">Taxa %</th>
+              <th class="text-right">Em Andamento</th>
+              <th class="text-right">Vencidas</th>
+              <th class="text-right">Aguardando</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of relatorios.producao_por_perito; track $index) {
+              <tr>
+                <td data-label="Perito">{{ item.perito }}</td>
+                <td class="text-right" data-label="Total">{{ item.total_emitidas | number }}</td>
+                <td class="text-right" data-label="Concluídas">{{ item.concluidas | number }}</td>
+                <td class="text-right text-success" data-label="No Prazo">{{ item.cumpridas_no_prazo | number }}</td>
+                <td class="text-right text-danger" data-label="Com Atraso">{{ item.cumpridas_com_atraso | number }}</td>
+                <td class="text-right" data-label="Taxa %">
+                  <span [ngClass]="getPercentualClass(item.taxa_cumprimento_prazo)" class="badge-taxa">
+                    {{ item.taxa_cumprimento_prazo }}%
+                  </span>
+                </td>
+                <td class="text-right" data-label="Em Andamento">{{ item.em_andamento | number }}</td>
+                <td class="text-right text-danger" data-label="Vencidas">{{ item.vencidas | number }}</td>
+                <td class="text-right text-muted" data-label="Aguardando">{{ item.aguardando_ciencia | number }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- POR UNIDADE DEMANDANTE -->
+    @if (relatorios.por_unidade_demandante.length > 0) {
+      <div class="data-section">
+        <h2><i class="bi bi-building"></i> Por Unidade Demandante</h2>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Unidade</th>
+              <th class="text-right">Total</th>
+              <th class="text-right">Concluídas</th>
+              <th class="text-right">Em Andamento</th>
+              <th class="text-right">Vencidas</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of relatorios.por_unidade_demandante; track $index) {
+              <tr>
+                <td data-label="Unidade">{{ item.unidade_demandante__nome || 'Sem unidade' }}</td>
+                <td class="text-right" data-label="Total">{{ item.total | number }}</td>
+                <td class="text-right" data-label="Concluídas">{{ item.concluidas | number }}</td>
+                <td class="text-right" data-label="Em Andamento">{{ item.em_andamento | number }}</td>
+                <td class="text-right text-danger" data-label="Vencidas">{{ item.vencidas | number }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- POR SERVIÇO PERICIAL -->
+    @if (relatorios.por_servico_pericial.length > 0) {
+      <div class="data-section">
+        <h2><i class="bi bi-gear-fill"></i> Por Serviço Pericial</h2>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Serviço</th>
+              <th class="text-right">Total</th>
+              <th class="text-right">Concluídas</th>
+              <th class="text-right">Em Andamento</th>
+              <th class="text-right">Vencidas</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of relatorios.por_servico_pericial; track $index) {
+              <tr>
+                <td data-label="Serviço">
+                  {{ item.ocorrencia__servico_pericial__sigla }} - {{ item.ocorrencia__servico_pericial__nome }}
+                </td>
+                <td class="text-right" data-label="Total">{{ item.total | number }}</td>
+                <td class="text-right" data-label="Concluídas">{{ item.concluidas | number }}</td>
+                <td class="text-right" data-label="Em Andamento">{{ item.em_andamento | number }}</td>
+                <td class="text-right text-danger" data-label="Vencidas">{{ item.vencidas | number }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+  } @else if (!isLoading) {
+    <div class="empty-state">
+      <i class="bi bi-info-circle"></i>
+      <p>Nenhum dado encontrado para os filtros selecionados.</p>
+    </div>
+  }
+</div>
