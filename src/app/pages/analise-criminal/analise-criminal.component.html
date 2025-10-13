@@ -1,0 +1,197 @@
+<div class="analise-container">
+
+  @if (isLoading) {
+    <div class="loading-overlay">
+      <div class="loading-content">
+        <div class="spinner-golden"></div>
+        <h3>Carregando Análise Criminal</h3>
+        <p>Baixando mapas e estatísticas de Roraima...</p>
+        <div class="loading-steps">
+          <div class="step" [class.active]="loadingStep >= 1">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Conectando à API</span>
+          </div>
+          <div class="step" [class.active]="loadingStep >= 2">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Carregando estatísticas</span>
+          </div>
+          <div class="step" [class.active]="loadingStep >= 3">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Baixando tiles do mapa</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="header-analise">
+    <div>
+      <h1><i class="bi bi-map"></i> Análise Criminal</h1>
+      <p class="subtitle">Visualização geográfica e estatísticas de ocorrências</p>
+    </div>
+
+    @if (semResultados && !isLoading) {
+      <div class="header-notification warning">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div class="notification-text">
+          <strong>Nenhuma ocorrência geográfica encontrada</strong>
+          <small>Tente ajustar os filtros ou cadastre ocorrências com coordenadas.</small>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="filtros-card">
+    <div class="filtros-header">
+      <i class="bi bi-funnel"></i>
+      <h3>Filtros</h3>
+    </div>
+
+    <div class="filtros-grid">
+      <div class="form-group">
+        <label>Data Início</label>
+        <input
+          type="date"
+          [(ngModel)]="filtros.data_inicio"
+          class="form-control-filtro">
+      </div>
+
+      <div class="form-group">
+        <label>Data Fim</label>
+        <input
+          type="date"
+          [(ngModel)]="filtros.data_fim"
+          class="form-control-filtro">
+      </div>
+
+      <div class="form-group">
+        <label>Classificação</label>
+        <select [(ngModel)]="filtros.classificacao_id" class="form-control-filtro">
+          <option [value]="null">Todas</option>
+          @for (c of classificacoes; track c.id) {
+            <option [value]="c.id">{{ c.codigo }} - {{ c.nome }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Cidade</label>
+        <select [(ngModel)]="filtros.cidade_id" class="form-control-filtro">
+          <option [value]="null">Todas</option>
+          @for (cidade of cidades; track cidade.id) {
+            <option [value]="cidade.id">{{ cidade.nome }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Bairro</label>
+        <input
+          type="text"
+          [(ngModel)]="filtros.bairro"
+          class="form-control-filtro"
+          placeholder="Digite o bairro">
+      </div>
+
+      <div class="filtros-actions">
+        <button class="btn-filtrar" (click)="aplicarFiltros()">
+          <i class="bi bi-search"></i>
+          Filtrar
+        </button>
+        <button class="btn-limpar" (click)="limparFiltros()">
+          <i class="bi bi-x-circle"></i>
+          Limpar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (!isLoading && estatisticas) {
+    <div class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-icon">
+          <i class="bi bi-file-earmark-text"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Total de Ocorrências</span>
+          <span class="stat-value">{{ estatisticas.total_ocorrencias }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card classificacao">
+        <div class="stat-header">
+          <i class="bi bi-bar-chart"></i>
+          <h4>Top 5 Classificações</h4>
+        </div>
+        <div class="stat-list">
+          @for (item of estatisticas.por_classificacao.slice(0, 5); track item.classificacao) {
+            <div class="stat-item">
+              <span class="item-label">{{ item.classificacao }}</span>
+              <span class="item-badge">{{ item.quantidade }}</span>
+            </div>
+          }
+          @if (estatisticas.por_classificacao.length === 0) {
+            <p class="empty-state">Nenhum dado disponível</p>
+          }
+        </div>
+      </div>
+
+      <div class="stat-card cidade">
+        <div class="stat-header">
+          <i class="bi bi-building"></i>
+          <h4>Top 5 Cidades</h4>
+        </div>
+        <div class="stat-list">
+          @for (item of estatisticas.por_cidade.slice(0, 5); track item.cidade) {
+            <div class="stat-item">
+              <span class="item-label">{{ item.cidade }}</span>
+              <span class="item-badge">{{ item.quantidade }}</span>
+            </div>
+          }
+          @if (estatisticas.por_cidade.length === 0) {
+            <p class="empty-state">Nenhum dado disponível</p>
+          }
+        </div>
+      </div>
+
+      <div class="stat-card bairro">
+        <div class="stat-header">
+          <i class="bi bi-geo-alt"></i>
+          <h4>Top 5 Bairros</h4>
+        </div>
+        <div class="stat-list">
+          @for (item of estatisticas.por_bairro.slice(0, 5); track item.bairro) {
+            <div class="stat-item">
+              <span class="item-label">{{ item.bairro }}</span>
+              <span class="item-badge">{{ item.quantidade }}</span>
+            </div>
+          }
+          @if (estatisticas.por_bairro.length === 0) {
+            <p class="empty-state">Sem dados de bairros (ocorrências internas)</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="mapa-card">
+      <div class="mapa-header">
+        <div>
+          <i class="bi bi-map"></i>
+          <h3>Mapa de Calor - {{ ocorrenciasGeo.length }} ocorrências</h3>
+        </div>
+        <button class="btn-toggle-view" (click)="alternarVisualizacao()">
+          @if (visualizacao === 'heatmap') {
+            <i class="bi bi-pin-map"></i>
+            Ver Marcadores
+          } @else {
+            <i class="bi bi-fire"></i>
+            Ver Mapa de Calor
+          }
+        </button>
+      </div>
+
+      <div id="map" class="mapa"></div>
+
+      </div>
+  }
+</div>

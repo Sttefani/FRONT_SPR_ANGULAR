@@ -129,6 +129,13 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/ocorrencias-form/ocorrencias-form.component').then(m => m.OcorrenciasFormComponent),
         canActivate: [AuthGuard]
       },
+        // ✅ ANÁLISE CRIMINAL
+      {
+        path: 'operacional/analise-criminal',
+        loadComponent: () => import('./pages/analise-criminal/analise-criminal.component').then(m => m.AnaliseCriminalComponent),
+        canActivate: [AuthGuard]
+      },
+
 
       // ORDENS DE SERVIÇO
       // =====================================================================
