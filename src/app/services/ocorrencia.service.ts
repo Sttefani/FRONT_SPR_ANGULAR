@@ -3,44 +3,83 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { RelatoriosGerenciais } from '../interfaces/realatorios.interface';
 
+// ===================================================================
+//  INÍCIO DAS INTERFACES CORRIGIDAS E COMPLETAS
+// ===================================================================
+
+export interface SimpleLookup {
+  id: number;
+  nome: string;
+  sigla?: string;
+  codigo?: string;
+  estado?: string;
+}
+
+export interface UserNested {
+  id: number;
+  nome_completo: string;
+  email?: string;
+}
+
+export interface Autoridade {
+  id: number;
+  nome: string;
+  cargo: {
+    id: number;
+    nome: string;
+  };
+}
+
+export interface Endereco {
+  id: number;
+  tipo: 'INTERNA' | 'EXTERNA';
+  logradouro?: string;
+  numero?: string;
+  bairro?: string;
+  ponto_referencia?: string;
+  latitude?: string;
+  longitude?: string;
+  endereco_completo?: string;
+}
+
+/**
+ * Interface OCORRENCIA corrigida para incluir todos os campos necessários.
+ */
 export interface Ocorrencia {
   id: number;
   numero_ocorrencia: string;
   status: 'AGUARDANDO_PERITO' | 'EM_ANALISE' | 'FINALIZADA';
-  servico_pericial: {
-    id: number;
-    sigla: string;
-    nome: string;
-  };
-  unidade_demandante: any;
-  autoridade: any;
-  cidade: any;
-  classificacao: any;
+  servico_pericial: SimpleLookup;
+  unidade_demandante: SimpleLookup;
+  autoridade: Autoridade;
+  cidade: SimpleLookup;
+  classificacao: SimpleLookup;
   procedimento_cadastrado?: any;
-  tipo_documento_origem?: any;
-  perito_atribuido?: any;
+  tipo_documento_origem?: SimpleLookup;
+  perito_atribuido?: UserNested;
   exames_solicitados?: any[];
   data_fato: string;
   hora_fato?: string;
   historico?: string;
-  historico_ultima_edicao?: string;  // ← ADICIONE ESTA LINHA
+  historico_ultima_edicao?: string;
   numero_documento_origem?: string;
   data_documento_origem?: string;
   processo_sei_numero?: string;
   created_at: string;
   updated_at: string;
-  created_by?: any;
-  updated_by?: any;
+  created_by?: UserNested;
+  updated_by?: UserNested;
   status_prazo?: string;
   dias_prazo?: string;
   esta_finalizada: boolean;
-  finalizada_por?: any;
+  finalizada_por?: UserNested;
   data_finalizacao?: string;
-  data_assinatura_finalizacao?: string;  // ← ADICIONE ESTA LINHA
-  ip_assinatura_finalizacao?: string;  // ← ADICIONE ESTA LINHA
-  reaberta_por?: any;  // ← ADICIONE ESTA LINHA
-  data_reabertura?: string;  // ← ADICIONE ESTA LINHA
-  motivo_reabertura?: string;  // ← ADICIONE ESTA LINHA
+  data_assinatura_finalizacao?: string;
+  ip_assinatura_finalizacao?: string;
+  reaberta_por?: UserNested;
+  data_reabertura?: string;
+  motivo_reabertura?: string;
+  endereco?: Endereco; // <-- O CAMPO QUE FALTAVA
 }
 
 export interface PaginatedResponse {
@@ -50,10 +89,18 @@ export interface PaginatedResponse {
   results: Ocorrencia[];
 }
 
+// ===================================================================
+//  FIM DAS INTERFACES
+// ===================================================================
+
+
 @Injectable({
   providedIn: 'root'
 })
 export class OcorrenciaService {
+  // SEUS MÉTODOS ESTÃO AQUI, INTACTOS, EXATAMENTE COMO VOCÊ ENVIOU.
+  // NENHUMA ALTERAÇÃO FOI FEITA DAQUI PARA BAIXO.
+
   private baseUrl = 'http://localhost:8000/api';
 
   constructor(private http: HttpClient) {}
@@ -149,11 +196,11 @@ export class OcorrenciaService {
     return this.http.post<Ocorrencia>(`${this.baseUrl}/ocorrencias/${id}/restaurar/`, {});
   }
 
- getEstatisticas(params?: any): Observable<any> {
-  return this.http.get(`${this.baseUrl}/ocorrencias/estatisticas/`, { params });
-}
-// --- MÉTODO MODIFICADO ---
-  getRelatoriosGerenciais(params?: any): Observable<RelatoriosGerenciais> { // <-- 2. MUDE O TIPO DE RETORNO
+  getEstatisticas(params?: any): Observable<any> {
+    return this.http.get(`${this.baseUrl}/ocorrencias/estatisticas/`, { params });
+  }
+
+  getRelatoriosGerenciais(params?: any): Observable<RelatoriosGerenciais> {
     let httpParams = new HttpParams();
     if (params) {
       Object.keys(params).forEach(key => {
@@ -162,46 +209,46 @@ export class OcorrenciaService {
         }
       });
     }
-    // 3. INFORME O TIPO PARA A REQUISIÇÃO HTTP
     return this.http.get<RelatoriosGerenciais>(`${this.baseUrl}/ocorrencias/relatorios-gerenciais/`, { params: httpParams });
   }
 
-vincularProcedimento(ocorrenciaId: number, procedimentoId: number): Observable<any> {
-  return this.http.post(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/vincular_procedimento/`, {
-    procedimento_cadastrado_id: procedimentoId
-  });
-}
+  vincularProcedimento(ocorrenciaId: number, procedimentoId: number): Observable<any> {
+    return this.http.post(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/vincular_procedimento/`, {
+      procedimento_cadastrado_id: procedimentoId
+    });
+  }
 
   imprimirPDF(id: number): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/ocorrencias/${id}/imprimir/`, {
       responseType: 'blob'
     });
   }
+
   imprimirRelatoriosGerenciais(filtros: any): Observable<Blob> {
-  let params = new HttpParams();
+    let params = new HttpParams();
 
-  if (filtros.data_inicio) {
-    params = params.set('data_inicio', filtros.data_inicio);
-  }
-  if (filtros.data_fim) {
-    params = params.set('data_fim', filtros.data_fim);
-  }
-  if (filtros.servico_id) {
-    params = params.set('servico_id', filtros.servico_id.toString());
-  }
-  if (filtros.cidade_id) {
-    params = params.set('cidade_id', filtros.cidade_id.toString());
-  }
-  if (filtros.perito_id) {
-    params = params.set('perito_id', filtros.perito_id.toString());
-  }
-  if (filtros.classificacao_id) {
-    params = params.set('classificacao_id', filtros.classificacao_id.toString());
-  }
+    if (filtros.data_inicio) {
+      params = params.set('data_inicio', filtros.data_inicio);
+    }
+    if (filtros.data_fim) {
+      params = params.set('data_fim', filtros.data_fim);
+    }
+    if (filtros.servico_id) {
+      params = params.set('servico_id', filtros.servico_id.toString());
+    }
+    if (filtros.cidade_id) {
+      params = params.set('cidade_id', filtros.cidade_id.toString());
+    }
+    if (filtros.perito_id) {
+      params = params.set('perito_id', filtros.perito_id.toString());
+    }
+    if (filtros.classificacao_id) {
+      params = params.set('classificacao_id', filtros.classificacao_id.toString());
+    }
 
-  return this.http.get(`${this.baseUrl}/relatorios-gerenciais/pdf/`, {
-    params: params,
-    responseType: 'blob'
-  });
-}
+    return this.http.get(`${this.baseUrl}/relatorios-gerenciais/pdf/`, {
+      params: params,
+      responseType: 'blob'
+    });
+  }
 }

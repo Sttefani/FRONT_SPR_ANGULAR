@@ -22,6 +22,16 @@ export interface EstatisticaCriminal {
   }>;
 }
 
+// ✅ 1. É uma boa prática separar a interface do endereço.
+export interface EnderecoGeo {
+  latitude: number;
+  longitude: number;
+  bairro: string;
+  logradouro: string;
+  modo_entrada?: string; // ✅ 2. Propriedade adicionada
+  coordenadas_manuais?: boolean; // ✅ 3. Propriedade adicionada
+}
+
 export interface OcorrenciaGeo {
   id: number;
   numero_ocorrencia: string;
@@ -29,12 +39,7 @@ export interface OcorrenciaGeo {
     codigo: string;
     nome: string;
   };
-  endereco: {
-    latitude: number;   // ✅ CORRIGIDO DE string PARA number
-    longitude: number;  // ✅ CORRIGIDO DE string PARA number
-    bairro: string;
-    logradouro: string;
-  };
+  endereco?: EnderecoGeo; // ✅ 4. Usando a interface corrigida e garantindo que seja opcional
   data_fato: string;
   cidade: {
     nome: string;
@@ -61,3 +66,4 @@ export class AnaliseCriminalService {
     });
   }
 }
+

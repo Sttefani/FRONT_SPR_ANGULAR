@@ -1,12 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router'; // <-- ADICIONE ESTA IMPORTAÇÃO
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule], // <-- ADICIONE RouterLink AQUI
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
@@ -19,23 +20,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(private authService: AuthService) { }
 
   ngOnInit(): void {
-  this.updateDateTime();
-  setInterval(() => {
     this.updateDateTime();
-  }, 1000);
+    setInterval(() => {
+      this.updateDateTime();
+    }, 1000);
 
-  // DEBUG - Verificar estado inicial
-  console.log('=== HEADER INICIOU ===');
-  console.log('Token existe:', !!localStorage.getItem('access_token'));
-  console.log('Usuário logado (service):', this.authService.isLoggedIn());
-
-  this.userSubscription = this.authService.currentUser$.subscribe(user => {
-    console.log('Observable currentUser$ emitiu:', user);
-    this.currentUser = user;
-    this.isLoggedIn = !!user;
-    console.log('isLoggedIn agora é:', this.isLoggedIn);
-  });
-}
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.isLoggedIn = !!user;
+    });
+  }
 
   ngOnDestroy(): void {
     this.userSubscription.unsubscribe();

@@ -21,7 +21,6 @@ import { AuthService } from '../../services/auth.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { ExameSelectorModalComponent } from './exame-selector-modal.component';
 
-// Interfaces
 interface UnidadeDemandante { id: number; sigla: string; nome: string; }
 interface Cidade { id: number; nome: string; }
 interface Classificacao { id: number; codigo: string; nome: string; }
@@ -44,6 +43,7 @@ export class OcorrenciasFormComponent implements OnInit {
   buscaProcedimentoForm!: FormGroup;
   isEditMode = false;
   ocorrenciaId: number | null = null;
+  existingEnderecoId: number | null = null; // <-- ADICIONE ESTA LINHA
   isLoading = false;
   isSaving = false;
   message = '';
@@ -52,11 +52,10 @@ export class OcorrenciasFormComponent implements OnInit {
   procedimentoEncontrado = false;
   procedimentoVinculado: any = null;
 
-  // ✅ ADICIONAR 'endereco' AQUI
   secoesAbertas = {
     identificacao: true,
     local: false,
-    endereco: true,  // ← ADICIONADO
+    endereco: true,
     documentacao: false,
     atribuicao: false,
     exames: false,
@@ -85,19 +84,21 @@ export class OcorrenciasFormComponent implements OnInit {
   loadingCargos = false;
   loadingAutoridades = false;
   modalExamesAberto = false;
+  mostrarEnderecoOpcional = false;
 
-  // ✅ ADICIONAR OBJETO FORM PARA ENDEREÇO
   form = {
     endereco: {
       tipo: 'EXTERNA' as 'INTERNA' | 'EXTERNA',
+      modo_entrada: 'ENDERECO_CONVENCIONAL' as 'ENDERECO_CONVENCIONAL' | 'COORDENADAS_DIRETAS',
       logradouro: '',
       numero: '',
       complemento: '',
       bairro: '',
       cep: '',
-      longitude:'',
-      latitude:'',
-      ponto_referencia: ''
+      latitude: '',
+      longitude: '',
+      ponto_referencia: '',
+      coordenadas_manuais: false
     }
   };
 
@@ -118,7 +119,7 @@ export class OcorrenciasFormComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private usuarioService: UsuarioService,
-    private http: HttpClient  // ← ADICIONAR HttpClient
+    private http: HttpClient
   ) {
     this.initForms();
   }
@@ -164,6 +165,62 @@ export class OcorrenciasFormComponent implements OnInit {
       perito_atribuido_id: [null],
       historico: ['']
     });
+  }
+
+  onModoEntradaChange(): void {
+    if (this.form.endereco.modo_entrada === 'COORDENADAS_DIRETAS') {
+      this.form.endereco.logradouro = '';
+      this.form.endereco.numero = '';
+      this.form.endereco.complemento = '';
+      this.form.endereco.bairro = '';
+      this.form.endereco.cep = '';
+      this.form.endereco.coordenadas_manuais = true;
+    } else {
+      this.form.endereco.coordenadas_manuais = false;
+    }
+  }
+
+  onCoordenadasManuaisChange(): void {
+    if (this.form.endereco.modo_entrada === 'ENDERECO_CONVENCIONAL' &&
+        (this.form.endereco.latitude || this.form.endereco.longitude)) {
+      this.form.endereco.coordenadas_manuais = true;
+    }
+  }
+
+  validarCoordenadas(): boolean {
+    const lat = parseFloat(this.form.endereco.latitude);
+    const lng = parseFloat(this.form.endereco.longitude);
+
+    const latValida = lat >= 0 && lat <= 5.5;
+    const lngValida = lng >= -64 && lng <= -59;
+
+    if (!latValida || !lngValida) {
+      Swal.fire({
+        title: '⚠️ Coordenadas Inválidas',
+        html: `
+          <p>As coordenadas estão fora dos limites de Roraima!</p>
+          <ul style="text-align: left; margin: 10px 0;">
+            <li>Latitude válida: 0° a +5.5° (Norte do Equador)</li>
+            <li>Longitude válida: -59° a -64° (Oeste de Greenwich)</li>
+          </ul>
+          <p><small>Coordenadas informadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}</small></p>
+        `,
+        icon: 'warning',
+        confirmButtonText: 'Corrigir'
+      });
+      return false;
+    }
+    return true;
+  }
+
+  get camposEnderecoObrigatorios(): boolean {
+    return this.form.endereco.tipo === 'EXTERNA' &&
+           this.form.endereco.modo_entrada === 'ENDERECO_CONVENCIONAL';
+  }
+
+  get camposCoordenadasObrigatorios(): boolean {
+    return this.form.endereco.tipo === 'EXTERNA' &&
+           this.form.endereco.modo_entrada === 'COORDENADAS_DIRETAS';
   }
 
   onServicoPericialChange(servicoId: number | null): void {
@@ -406,56 +463,58 @@ export class OcorrenciasFormComponent implements OnInit {
     (this.secoesAbertas as any)[secao] = true;
   }
 
-  // ==========================================
-  // MÉTODO PRINCIPAL - CARREGAR OCORRÊNCIA
-  // ==========================================
   loadOcorrencia(id: number): void {
-    this.isLoading = true;
-    this.isEditMode = true;
+  this.isLoading = true;
+  this.isEditMode = true;
 
-    this.ocorrenciaService.getById(id).subscribe({
-      next: (ocorrencia: any) => {
-        console.log('📦 DADOS CARREGADOS:', ocorrencia);
+  this.ocorrenciaService.getById(id).subscribe({
+    next: (ocorrencia: any) => {
+      console.log('📦 DADOS CARREGADOS:', ocorrencia);
 
-        if (!this.podeEditarOcorrencia(ocorrencia)) {
-          this.isLoading = false;
-          return;
-        }
+      if (!this.podeEditarOcorrencia(ocorrencia)) {
+        this.isLoading = false;
+        return;
+      }
 
-        this.carregarDadosComplementares(ocorrencia);
-        this.preencherFormulario(ocorrencia);
+      this.carregarDadosComplementares(ocorrencia);
+      this.preencherFormulario(ocorrencia);
 
-       if (ocorrencia.endereco) {
+      if (ocorrencia.endereco) {
+        // <<< ALTERAÇÃO AQUI: Guardamos o ID do endereço existente na variável do componente
+        this.existingEnderecoId = ocorrencia.endereco.id;
+
+        // O resto do código preenche o formulário normalmente
         this.form.endereco = {
           tipo: ocorrencia.endereco.tipo || 'EXTERNA',
+          modo_entrada: ocorrencia.endereco.modo_entrada || 'ENDERECO_CONVENCIONAL',
           logradouro: ocorrencia.endereco.logradouro || '',
           numero: ocorrencia.endereco.numero || '',
           complemento: ocorrencia.endereco.complemento || '',
           bairro: ocorrencia.endereco.bairro || '',
           cep: ocorrencia.endereco.cep || '',
-          latitude: ocorrencia.endereco.latitude || '',        // ← ADICIONAR
-          longitude: ocorrencia.endereco.longitude || '',      // ← ADICIONAR
-          ponto_referencia: ocorrencia.endereco.ponto_referencia || ''
+          latitude: ocorrencia.endereco.latitude || '',
+          longitude: ocorrencia.endereco.longitude || '',
+          ponto_referencia: ocorrencia.endereco.ponto_referencia || '',
+          coordenadas_manuais: ocorrencia.endereco.coordenadas_manuais || false
         };
       }
 
-        this.isLoading = false;
-      },
-      error: (err: any) => {
-        console.error('❌ Erro ao carregar ocorrência:', err);
-        this.isLoading = false;
-        Swal.fire({
-          title: 'Erro',
-          text: 'Não foi possível carregar a ocorrência.',
-          icon: 'error',
-          confirmButtonText: 'Voltar'
-        }).then(() => {
-          this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
-        });
-      }
-    });
-  }
-
+      this.isLoading = false;
+    },
+    error: (err: any) => {
+      console.error('❌ Erro ao carregar ocorrência:', err);
+      this.isLoading = false;
+      Swal.fire({
+        title: 'Erro',
+        text: 'Não foi possível carregar a ocorrência.',
+        icon: 'error',
+        confirmButtonText: 'Voltar'
+      }).then(() => {
+        this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+      });
+    }
+  });
+}
   private podeEditarOcorrencia(ocorrencia: any): boolean {
     const user = this.authService.getCurrentUser();
     const isSuperAdmin = this.authService.isSuperAdmin();
@@ -578,41 +637,82 @@ export class OcorrenciasFormComponent implements OnInit {
   }
 
   onTipoOcorrenciaChange(): void {
-  if (this.form.endereco.tipo === 'INTERNA') {
-    this.form.endereco.logradouro = '';
-    this.form.endereco.numero = '';
-    this.form.endereco.complemento = '';
-    this.form.endereco.bairro = '';
-    this.form.endereco.cep = '';
-    this.form.endereco.latitude = '';      // ← ADICIONAR
-    this.form.endereco.longitude = '';     // ← ADICIONAR
-    this.form.endereco.ponto_referencia = '';
+    if (this.form.endereco.tipo === 'INTERNA') {
+      this.form.endereco.logradouro = '';
+      this.form.endereco.numero = '';
+      this.form.endereco.complemento = '';
+      this.form.endereco.bairro = '';
+      this.form.endereco.cep = '';
+      this.form.endereco.latitude = '';
+      this.form.endereco.longitude = '';
+      this.form.endereco.ponto_referencia = '';
+      this.form.endereco.modo_entrada = 'ENDERECO_CONVENCIONAL';
+      this.form.endereco.coordenadas_manuais = false;
+    }
   }
-}
 
-  // ✅ MÉTODO PARA SALVAR ENDEREÇO
   private salvarEndereco(ocorrenciaId: number): Observable<any> {
     const enderecoPayload = {
       ocorrencia: ocorrenciaId,
       tipo: this.form.endereco.tipo,
+      modo_entrada: this.form.endereco.modo_entrada,
       logradouro: this.form.endereco.logradouro || '',
       numero: this.form.endereco.numero || '',
       complemento: this.form.endereco.complemento || '',
       bairro: this.form.endereco.bairro || '',
       cep: this.form.endereco.cep || '',
-      ponto_referencia: this.form.endereco.ponto_referencia || ''
+      latitude: this.form.endereco.latitude || null,
+      longitude: this.form.endereco.longitude || null,
+      ponto_referencia: this.form.endereco.ponto_referencia || '',
+      coordenadas_manuais: this.form.endereco.coordenadas_manuais
     };
 
-  const baseUrl = 'http://localhost:8000/api'; // ← Ajuste se sua URL for diferente
-  return this.http.post(`${baseUrl}/enderecos-ocorrencia/`, enderecoPayload);
+   const baseUrl = 'http://localhost:8000/api';
+
+  // <<< ESTA É A LÓGICA CORRIGIDA E FINAL >>>
+
+  // Se estiver no modo de edição E tivermos um ID de endereço guardado...
+  if (this.isEditMode && this.existingEnderecoId) {
+    // ...monte a URL para ATUALIZAR o endereço específico e use PUT.
+    const url = `${baseUrl}/enderecos-ocorrencia/${this.existingEnderecoId}/`;
+    return this.http.put(url, enderecoPayload);
+  } else {
+    // ...caso contrário (é uma nova ocorrência), use a URL para CRIAR e use POST.
+    const url = `${baseUrl}/enderecos-ocorrencia/`;
+    return this.http.post(url, enderecoPayload);
+  }
   }
 
-  // ✅ MÉTODO onSubmit ATUALIZADO
   onSubmit(): void {
     if (this.ocorrenciaForm.invalid) {
       this.ocorrenciaForm.markAllAsTouched();
       Swal.fire('Atenção', 'Preencha todos os campos obrigatórios.', 'warning');
       return;
+    }
+
+    if (this.form.endereco.tipo === 'EXTERNA') {
+      if (this.form.endereco.modo_entrada === 'ENDERECO_CONVENCIONAL') {
+        if (!this.form.endereco.logradouro || !this.form.endereco.numero) {
+          Swal.fire({
+            title: 'Campos Obrigatórios',
+            text: 'No modo "Endereço Convencional", preencha Logradouro e Número.',
+            icon: 'warning'
+          });
+          return;
+        }
+      } else if (this.form.endereco.modo_entrada === 'COORDENADAS_DIRETAS') {
+        if (!this.form.endereco.latitude || !this.form.endereco.longitude) {
+          Swal.fire({
+            title: 'Coordenadas Obrigatórias',
+            text: 'No modo "Coordenadas GPS", preencha Latitude e Longitude.',
+            icon: 'warning'
+          });
+          return;
+        }
+        if (!this.validarCoordenadas()) {
+          return;
+        }
+      }
     }
 
     this.isSaving = true;
@@ -659,7 +759,6 @@ export class OcorrenciasFormComponent implements OnInit {
 
     request.subscribe({
       next: (ocorrencia: any) => {
-        // ✅ SALVAR ENDEREÇO APÓS CRIAR/ATUALIZAR OCORRÊNCIA
         this.salvarEndereco(ocorrencia.id).subscribe({
           next: () => {
             const action = this.isEditMode ? 'atualizada' : 'cadastrada';

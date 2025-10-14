@@ -1009,3 +1009,295 @@
     grid-column: span 1;
   }
 }
+// ========================================
+// ESTILOS PARA SEÇÃO DE ENDEREÇO
+// ========================================
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #ddd, transparent);
+  margin: 20px 0;
+}
+
+// ========================================
+// MODO DE ENTRADA
+// ========================================
+
+.modo-entrada-container {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 2px solid #dee2e6;
+}
+
+.label-destaque {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 15px;
+
+  i {
+    color: #d4a02a;
+    margin-right: 8px;
+  }
+}
+
+.modo-entrada-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.modo-option {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .modo-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+
+    i {
+      font-size: 32px;
+      color: #6c757d;
+      margin-bottom: 10px;
+      transition: all 0.3s ease;
+    }
+
+    span {
+      font-size: 15px;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 5px;
+      text-align: center;
+    }
+
+    small {
+      font-size: 12px;
+      color: #6c757d;
+      text-align: center;
+    }
+  }
+
+  &:hover .modo-content {
+    border-color: #d4a02a;
+    box-shadow: 0 4px 12px rgba(212, 160, 42, 0.15);
+    transform: translateY(-2px);
+
+    i {
+      color: #d4a02a;
+    }
+  }
+
+  &.active .modo-content {
+    border-color: #d4a02a;
+    background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+    box-shadow: 0 6px 16px rgba(212, 160, 42, 0.2);
+
+    i {
+      color: #d4a02a;
+      transform: scale(1.1);
+    }
+
+    span {
+      color: #d4a02a;
+    }
+  }
+}
+
+// ========================================
+// BOXES DE COORDENADAS
+// ========================================
+
+.coordenadas-opcionais-box,
+.coordenadas-gps-box {
+  margin: 20px 0;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px dashed #dee2e6;
+  background: #f8f9fa;
+}
+
+.coordenadas-gps-box {
+  border-color: #d4a02a;
+  border-style: solid;
+  background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+}
+
+.box-header,
+.box-header-gps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+
+  i {
+    font-size: 20px;
+    color: #6c757d;
+  }
+
+  strong {
+    color: #495057;
+    font-size: 15px;
+  }
+}
+
+.box-header-gps i {
+  color: #d4a02a;
+}
+
+.badge-opcional {
+  margin-left: auto;
+  padding: 4px 12px;
+  background: #e9ecef;
+  color: #6c757d;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-obrigatorio {
+  margin-left: auto;
+  padding: 4px 12px;
+  background: #d4a02a;
+  color: white;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.hint-text,
+.hint-text-gps {
+  font-size: 13px;
+  color: #6c757d;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+
+  i {
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+}
+
+.hint-text-gps {
+  color: #d4a02a;
+  font-weight: 500;
+
+  i {
+    color: #d4a02a;
+  }
+}
+
+.form-control-destaque {
+  border: 2px solid #d4a02a !important;
+  background: white !important;
+
+  &:focus {
+    box-shadow: 0 0 0 0.2rem rgba(212, 160, 42, 0.25) !important;
+  }
+}
+
+.form-hint-gps {
+  color: #d4a02a;
+  font-weight: 500;
+}
+
+.alert-coordenadas-manuais {
+  margin-top: 15px;
+  padding: 12px 16px;
+  background: #d1ecf1;
+  border: 1px solid #bee5eb;
+  border-radius: 6px;
+  color: #0c5460;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  i {
+    font-size: 18px;
+    color: #17a2b8;
+  }
+}
+
+// ========================================
+// ENDEREÇO OPCIONAL COLLAPSIBLE (MODO GPS)
+// ========================================
+
+.endereco-opcional-collapsible {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px dashed #dee2e6;
+}
+
+.btn-toggle-endereco {
+  width: 100%;
+  padding: 12px 16px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  i {
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    background: #f8f9fa;
+    border-color: #d4a02a;
+    color: #d4a02a;
+  }
+}
+
+.endereco-opcional-content {
+  margin-top: 15px;
+  padding: 15px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+// ========================================
+// RESPONSIVIDADE
+// ========================================
+
+@media (max-width: 768px) {
+  .modo-entrada-toggle {
+    grid-template-columns: 1fr;
+  }
+
+  .modo-option .modo-content {
+    padding: 15px;
+
+    i {
+      font-size: 28px;
+    }
+  }
+}

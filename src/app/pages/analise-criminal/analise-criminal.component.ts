@@ -169,19 +169,29 @@ export class AnaliseCriminalComponent implements OnInit {
   }
 
   createMarker(ocorrencia: OcorrenciaGeo): void {
-      const popupContent = `
-        <div style="font-size: 12px;">
-          <strong>${ocorrencia.numero_ocorrencia}</strong><br>
-          <span style="color: #dc3545;">${ocorrencia.classificacao?.nome || 'N/A'}</span><br>
-          ${ocorrencia.endereco?.logradouro || ''}, ${ocorrencia.endereco?.bairro || ''}<br>
-          ${ocorrencia.data_fato || ''}
-        </div>`;
-      L.marker([Number(ocorrencia.endereco!.latitude), Number(ocorrencia.endereco!.longitude)], {
-        icon: this.createLeafletIcon()
-      })
-      .bindPopup(popupContent)
-      .addTo(this.markersLayer);
-  }
+  const modoEntrada = ocorrencia.endereco?.modo_entrada === 'COORDENADAS_DIRETAS'
+    ? '📍 GPS'
+    : '🏠 Endereço';
+
+  const coordsManuais = ocorrencia.endereco?.coordenadas_manuais
+    ? '(Manual)'
+    : '(Auto)';
+
+  const popupContent = `
+    <div style="font-size: 12px;">
+      <strong>${ocorrencia.numero_ocorrencia}</strong><br>
+      <span style="color: #dc3545;">${ocorrencia.classificacao?.nome || 'N/A'}</span><br>
+      ${ocorrencia.endereco?.logradouro || ''}, ${ocorrencia.endereco?.bairro || ''}<br>
+      ${ocorrencia.data_fato || ''}<br>
+      <small style="color: #6c757d;">${modoEntrada} ${coordsManuais}</small>
+    </div>`;
+
+  L.marker([Number(ocorrencia.endereco!.latitude), Number(ocorrencia.endereco!.longitude)], {
+    icon: this.createLeafletIcon()
+  })
+  .bindPopup(popupContent)
+  .addTo(this.markersLayer);
+}
 
   aplicarFiltros(): void {
     this.loadDados();

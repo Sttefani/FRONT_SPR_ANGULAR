@@ -101,6 +101,53 @@
           <span class="value">{{ ocorrencia.classificacao.codigo }} - {{ ocorrencia.classificacao.nome }}</span>
         </div>
       </div>
+      <!-- ======================================================= -->
+<!-- ✅ INÍCIO DO NOVO CARD DE ENDEREÇO (COLE ISTO AQUI) -->
+<!-- ======================================================= -->
+
+@if (ocorrencia.endereco) {
+  <div class="info-card">
+    <h3><i class="bi bi-geo-alt-fill"></i> Endereço do Fato</h3>
+
+    <!-- Mostra o tipo da ocorrência (Externa/Interna) -->
+    <div class="info-row">
+      <span class="label">Tipo:</span>
+      <span class="value">{{ ocorrencia.endereco.tipo === 'EXTERNA' ? 'Externa (Local de Crime)' : 'Interna (Laboratório)' }}</span>
+    </div>
+
+    <!-- O container abaixo só será exibido se o tipo for EXTERNA -->
+    @if (ocorrencia.endereco.tipo === 'EXTERNA') {
+
+      <!-- Usa a propriedade 'endereco_completo' do serializer -->
+      @if (ocorrencia.endereco.endereco_completo && ocorrencia.endereco.endereco_completo !== 'Endereço não informado') {
+        <div class="info-row">
+          <span class="label">Local:</span>
+          <span class="value">{{ ocorrencia.endereco.endereco_completo }}</span>
+        </div>
+      }
+
+      <!-- Mostra o ponto de referência se ele existir -->
+      @if (ocorrencia.endereco.ponto_referencia) {
+        <div class="info-row">
+          <span class="label">Ponto de Referência:</span>
+          <span class="value">{{ ocorrencia.endereco.ponto_referencia }}</span>
+        </div>
+      }
+
+      <!-- Mostra as coordenadas GPS se elas existirem -->
+      @if (ocorrencia.endereco.latitude && ocorrencia.endereco.longitude) {
+        <div class="info-row">
+          <span class="label">Coordenadas GPS:</span>
+          <span class="value">{{ ocorrencia.endereco.latitude }}, {{ ocorrencia.endereco.longitude }}</span>
+        </div>
+      }
+    }
+  </div>
+}
+
+<!-- ======================================================= -->
+<!-- FIM DO NOVO CARD DE ENDEREÇO -->
+<!-- ======================================================= -->
 
       <!-- Card Procedimento -->
 <div class="info-card">

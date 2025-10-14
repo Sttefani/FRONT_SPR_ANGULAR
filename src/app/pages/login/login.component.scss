@@ -1,3 +1,7 @@
+// ==========================================================
+// SEU CÓDIGO CSS ORIGINAL E INTACTO
+// ==========================================================
+
 .login-main {
   position: fixed;
   top: 85px;
@@ -170,4 +174,25 @@
   .login-footer {
     padding: 18px 30px;
   }
+}
+
+// ==========================================================
+// ADIÇÃO PARA O LOGO (NÃO ALTERA NADA ACIMA)
+// ==========================================================
+
+.login-title-container {
+  display: left;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.login-logo {
+  height: 70px;
+  width: auto;
+}
+
+// Ajuste na margem original do H2 para garantir o alinhamento vertical
+.login-header h2 {
+  margin: 0;
 }

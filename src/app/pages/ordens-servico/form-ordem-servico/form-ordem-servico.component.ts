@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { UsuarioService } from '../../../services/usuario.service';
 import Swal from 'sweetalert2'; // ✅ ADICIONADO
+import { expand, of, reduce } from 'rxjs';
 
 
 @Component({
@@ -78,13 +79,18 @@ export class FormOrdemServicoComponent implements OnInit {
   }
 
   carregarTiposDocumento(): void {
-    this.http.get<any>('http://localhost:8000/api/tipos-documento/').subscribe({
-      next: (response) => {
-        this.tiposDocumento = response.results || [];
+  this.http.get<any>('http://localhost:8000/api/tipos-documento/')
+    .pipe(
+      expand(response => response.next ? this.http.get<any>(response.next) : of()),
+      reduce((acc: any[], response) => [...acc, ...(response.results || [])], [])
+    )
+    .subscribe({
+      next: (todosResultados) => {
+        this.tiposDocumento = todosResultados;
       },
       error: (err) => console.error('Erro ao carregar tipos documento:', err)
     });
-  }
+}
 
   // ===========================================================================
   // BUSCA DE OCORRÊNCIA

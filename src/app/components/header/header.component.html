@@ -1,16 +1,19 @@
 <header class="header">
   <div class="header-container">
-    <!-- Lado Esquerdo - SPR-CRIMINALÍSTICA -->
-    <div class="header-left">
-      <span class="spr-text">SPR-CRIMINALÍSTICA</span>
-    </div>
 
-    <!-- Centro - Nome do Instituto -->
+    <!-- Lado Esquerdo: Logo e Nome do Setor -->
+    <div class="header-left">
+    <!-- Apenas a imagem e o texto, lado a lado -->
+    <img src="/PCRR_PNG-1.png" alt="Logo PCRR" class="header-logo">
+    <span class="spr-text">SPR-CRIMINALÍSTICA</span>
+   </div>
+
+    <!-- Centro: Nome do Instituto -->
     <div class="header-center">
       <h1 class="institute-name">INSTITUTO DE CRIMINALÍSTICA</h1>
     </div>
 
-    <!-- Lado Direito - Info do usuário e logout -->
+    <!-- Lado Direito: Info do Usuário e Logout -->
     <div class="header-right">
       <div class="user-info">
         <div class="datetime">{{ currentDateTime }}</div>
@@ -22,10 +25,7 @@
         }
       </div>
       @if (isLoggedIn) {
-        <button
-          class="logout-btn"
-          (click)="logout()"
-          title="Sair do sistema">
+        <button class="logout-btn" (click)="logout()" title="Sair do sistema">
           SAIR
         </button>
       }

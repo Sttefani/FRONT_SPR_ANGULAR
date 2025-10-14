@@ -3,9 +3,14 @@
 <main class="login-main">
   <div class="login-container">
     <div class="login-card">
+
       <div class="login-header">
-        <h2>SPR-Criminalística</h2>
-        <p>Acesso ao Sistemma</p>
+        <!-- Container para o logo e título -->
+        <div class="login-title-container">
+          <img src="/PCRR_PNG-1.png" alt="Logo PCRR" class="login-logo">
+          <h2>SPR-Criminalística</h2>
+        </div>
+        <p>Acesso ao Sistema</p>
       </div>
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
@@ -68,8 +73,9 @@
         <p>Não possui cadastro?</p>
         <a routerLink="/cadastro" class="cadastro-link">Cadastre-se aqui</a>
       </div>
-    </div>
-  </div>
-</main>
+
+    </div> <!-- Fim de .login-card -->
+  </div> <!-- Fim de .login-container -->
+</main> <!-- Fim de .login-main -->
 
 <app-footer></app-footer>
