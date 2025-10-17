@@ -2,28 +2,29 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { Movimentacao, CriarMovimentacao } from '../interfaces/movimentacao.interface';
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 @Injectable({
   providedIn: 'root'
 })
 export class MovimentacaoService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   // Listar movimentações ativas de uma ocorrência
   listar(ocorrenciaId: number): Observable<Movimentacao[]> {
-  return this.http.get<any>(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/movimentacoes/`)
-    .pipe(
-      map(response => {
-        // Se vier paginado (com results), pega os results
-        if (response && response.results) {
-          return response.results;
-        }
-        // Se vier array direto, retorna direto
-        return response;
-      })
-    );
-}
+    return this.http.get<any>(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/movimentacoes/`)
+      .pipe(
+        map(response => {
+          // Se vier paginado (com results), pega os results
+          if (response && response.results) {
+            return response.results;
+          }
+          // Se vier array direto, retorna direto
+          return response;
+        })
+      );
+  }
 
   // Criar nova movimentação (com assinatura digital)
   criar(ocorrenciaId: number, dados: CriarMovimentacao): Observable<Movimentacao> {
@@ -54,18 +55,18 @@ export class MovimentacaoService {
 
   // Listar lixeira
   listarLixeira(ocorrenciaId: number): Observable<Movimentacao[]> {
-  return this.http.get<any>(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/movimentacoes/lixeira/`)
-    .pipe(
-      map(response => {
-        // Se vier paginado (com results), pega os results
-        if (response && response.results) {
-          return response.results;
-        }
-        // Se vier array direto, retorna direto
-        return response;
-      })
-    );
-}
+    return this.http.get<any>(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/movimentacoes/lixeira/`)
+      .pipe(
+        map(response => {
+          // Se vier paginado (com results), pega os results
+          if (response && response.results) {
+            return response.results;
+          }
+          // Se vier array direto, retorna direto
+          return response;
+        })
+      );
+  }
 
   // Restaurar da lixeira
   restaurar(ocorrenciaId: number, movimentacaoId: number): Observable<Movimentacao> {

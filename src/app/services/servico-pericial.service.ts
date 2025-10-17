@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 export interface ServicoPericial {
   id: number;
@@ -29,7 +29,7 @@ export interface PaginatedResponse {
   providedIn: 'root'
 })
 export class ServicoPericialService {
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) {}
 
@@ -46,18 +46,19 @@ export class ServicoPericialService {
   }
 
   getAllForDropdown(): Observable<ServicoPericial[]> {
-  return this.http.get<any>(`${this.baseUrl}/servicos-periciais/`)
-    .pipe(
-      map(response => {
-        // Se for array direto, retorna
-        if (Array.isArray(response)) {
-          return response;
-        }
-        // Se for objeto paginado, extrai results
-        return response.results || [];
-      })
-    );
-}
+    return this.http.get<any>(`${this.baseUrl}/servicos-periciais/`)
+      .pipe(
+        map(response => {
+          // Se for array direto, retorna
+          if (Array.isArray(response)) {
+            return response;
+          }
+          // Se for objeto paginado, extrai results
+          return response.results || [];
+        })
+      );
+  }
+
   getById(id: number): Observable<ServicoPericial> {
     return this.http.get<ServicoPericial>(`${this.baseUrl}/servicos-periciais/${id}/`);
   }

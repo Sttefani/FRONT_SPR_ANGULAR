@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 export interface Cargo {
   id: number;
@@ -36,7 +37,7 @@ export interface PaginatedResponse {
   providedIn: 'root'
 })
 export class CargoService {
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) {}
 
@@ -75,8 +76,8 @@ export class CargoService {
   restaurar(id: number): Observable<Cargo> {
     return this.http.post<Cargo>(`${this.baseUrl}/cargos/${id}/restaurar/`, {});
   }
-  getAllForDropdown(): Observable<Cargo[]> {
-  return this.http.get<Cargo[]>(`${this.baseUrl}/cargos/dropdown/`);
-}
 
+  getAllForDropdown(): Observable<Cargo[]> {
+    return this.http.get<Cargo[]>(`${this.baseUrl}/cargos/dropdown/`);
+  }
 }

@@ -1,18 +1,19 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 export interface Cidade {
   id: number;
   nome: string;
   created_at: string;
   updated_at: string;
-  created_by?: {  // ← ADICIONE
+  created_by?: {
     id: number;
     nome_completo: string;
     email: string;
   };
-  updated_by?: {  // ← ADICIONE
+  updated_by?: {
     id: number;
     nome_completo: string;
     email: string;
@@ -36,7 +37,7 @@ export interface PaginatedResponse {
   providedIn: 'root'
 })
 export class CidadeService {
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) {}
 
@@ -75,7 +76,8 @@ export class CidadeService {
   restaurar(id: number): Observable<Cidade> {
     return this.http.post<Cidade>(`${this.baseUrl}/cidades/${id}/restaurar/`, {});
   }
+
   getAllForDropdown(): Observable<Cidade[]> {
-  return this.http.get<Cidade[]>(`${this.baseUrl}/cidades/dropdown/`);
-}
+    return this.http.get<Cidade[]>(`${this.baseUrl}/cidades/dropdown/`);
+  }
 }

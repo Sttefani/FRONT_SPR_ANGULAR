@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PaginatedResponse, ServicoPericial } from './servico-pericial.service';
 import { map } from 'rxjs/operators';
-
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 export interface Exame {
   id: number;
@@ -44,7 +44,7 @@ export interface Exame {
   providedIn: 'root'
 })
 export class ExameService {
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) {}
 

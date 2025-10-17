@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 export interface LoginRequest {
   email: string;
@@ -38,7 +39,7 @@ export interface AlterarSenhaRequest {
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = 'http://localhost:8000'; // URL da sua API Django
+  private baseUrl = environment.authUrl;  // ← LINHA MODIFICADA
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -72,7 +73,7 @@ export class AuthService {
         perfil: payload.perfil || 'PERITO',
         deve_alterar_senha: payload.deve_alterar_senha || false,
         is_superuser: payload.is_superuser || false,
-        servicos_periciais: payload.servicos_periciais || [] // ← ADICIONAR
+        servicos_periciais: payload.servicos_periciais || []
       };
       this.currentUserSubject.next(userData);
     } catch (error) {
@@ -103,7 +104,7 @@ export class AuthService {
             perfil: payload.perfil || 'PERITO',
             deve_alterar_senha: payload.deve_alterar_senha || false,
             is_superuser: payload.is_superuser || false,
-            servicos_periciais: payload.servicos_periciais || [] // ← ADICIONAR
+            servicos_periciais: payload.servicos_periciais || []
           };
 
           // Atualiza o usuário atual

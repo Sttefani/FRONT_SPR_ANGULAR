@@ -36,9 +36,14 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
   servicoPericialFiltro: number | null = null;
   viewMode: 'todas' | 'pendentes' | 'finalizadas' | 'lixeira' = 'todas';
 
+  // --- Paginação Modificada ---
   count = 0;
   currentPage = 1;
   pageSize = 10;
+  totalPages = 0;
+  paginaInput = 1; // ✅ ADICIONADO para o campo "Ir para página"
+
+  // (nextUrl e previousUrl mantidos para referência interna, mas não mais controlam a UI diretamente)
   nextUrl: string | null = null;
   previousUrl: string | null = null;
 
@@ -46,7 +51,6 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
   isAdministrativo = false;
   isPerito = false;
   isOperacional = false;
-
   private userSubscription?: Subscription;
 
   constructor(
@@ -57,101 +61,82 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
- ngOnInit(): void {
-  console.log('===== ngOnInit INICIOU =====');
-
-  // INICIALIZAR IMEDIATAMENTE
-  const user = this.authService.getCurrentUser();
-  console.log('getCurrentUser() retornou:', user);
-
-  if (user) {
-    this.isSuperAdmin = this.authService.isSuperAdmin();
-    this.isAdministrativo = user.perfil === 'ADMINISTRATIVO';
-    this.isPerito = user.perfil === 'PERITO';
-    this.isOperacional = user.perfil === 'OPERACIONAL';
-
-    console.log('🔐 Perfis carregados (INICIAL):', {
-      perfil_do_usuario: user.perfil,
-      isSuperAdmin: this.isSuperAdmin,
-      isAdministrativo: this.isAdministrativo,
-      isPerito: this.isPerito,
-      isOperacional: this.isOperacional,
-      userId: user.id
-    });
-  } else {
-    console.warn('⚠️ getCurrentUser() retornou NULL!');
+  ngOnInit(): void {
+    this.setupUserPermissions();
+    this.loadServicos();
+    this.loadPeritos();
+    this.buscarOcorrencias(false); // Carga inicial sem resetar a página
   }
 
-  // TAMBÉM se inscrever para mudanças futuras
-  this.userSubscription = this.authService.currentUser$.subscribe(changedUser => {
-    console.log('📡 Observable currentUser$ emitiu:', changedUser);
-
-    if (changedUser) {
-      this.isSuperAdmin = this.authService.isSuperAdmin();
-      this.isAdministrativo = changedUser.perfil === 'ADMINISTRATIVO';
-      this.isPerito = changedUser.perfil === 'PERITO';
-      this.isOperacional = changedUser.perfil === 'OPERACIONAL';
-
-      console.log('🔐 Perfis ATUALIZADOS (Observable):', {
-        perfil_do_usuario: changedUser.perfil,
-        isSuperAdmin: this.isSuperAdmin,
-        isAdministrativo: this.isAdministrativo,
-        isPerito: this.isPerito,
-        isOperacional: this.isOperacional,
-        userId: changedUser.id
-      });
-    } else {
-      this.isSuperAdmin = false;
-      this.isAdministrativo = false;
-      this.isPerito = false;
-      this.isOperacional = false;
-      console.log('🔓 Usuário deslogado - permissões resetadas');
-    }
-  });
-
-  this.loadServicos();
-  this.loadOcorrencias();
-  this.loadPeritos();
-
-  console.log('===== ngOnInit FINALIZOU =====');
-}
   ngOnDestroy(): void {
-    // Limpar subscription para evitar memory leak
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
   }
 
+  private setupUserPermissions(): void {
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.isSuperAdmin = this.authService.isSuperAdmin();
+      this.isAdministrativo = user.perfil === 'ADMINISTRATIVO';
+      this.isPerito = user.perfil === 'PERITO';
+      this.isOperacional = user.perfil === 'OPERACIONAL';
+    }
+    this.userSubscription = this.authService.currentUser$.subscribe(changedUser => {
+      if (changedUser) {
+        this.isSuperAdmin = this.authService.isSuperAdmin();
+        this.isAdministrativo = changedUser.perfil === 'ADMINISTRATIVO';
+        this.isPerito = changedUser.perfil === 'PERITO';
+        this.isOperacional = changedUser.perfil === 'OPERACIONAL';
+      } else {
+        this.isSuperAdmin = false; this.isAdministrativo = false; this.isPerito = false; this.isOperacional = false;
+      }
+    });
+  }
+
   loadServicos(): void {
     this.servicoPericialService.getAllForDropdown().subscribe({
-      next: (data: ServicoPericial[]) => {
-        this.servicosPericiais = data;
-      },
-      error: (err: any) => {
-        console.error('Erro ao carregar serviços:', err);
-      }
+      next: (data: ServicoPericial[]) => { this.servicosPericiais = data; },
+      error: (err: any) => { console.error('Erro ao carregar serviços:', err); }
     });
   }
 
   loadPeritos(): void {
     this.usuarioService.getPeritosList().subscribe({
-      next: (data: any[]) => {
-        this.peritos = data;
-        console.log('Peritos:', this.peritos);
-      },
-      error: (err: any) => {
-        console.error('Erro:', err);
-      }
+      next: (data: any[]) => { this.peritos = data; },
+      error: (err: any) => { console.error('Erro:', err); }
     });
   }
 
-  loadOcorrencias(): void {
-    this.isLoading = true;
+  // ✅ FUNÇÃO CENTRALIZADA PARA BUSCAR DADOS
+  buscarOcorrencias(resetPage: boolean = true): void {
+    if (this.viewMode === 'lixeira') {
+      this.loadLixeira();
+      return;
+    }
 
-    const params: any = {};
-    if (this.searchTerm) params.search = this.searchTerm;
+    if (resetPage) {
+      this.currentPage = 1;
+    }
+
+    this.isLoading = true;
+    const params: any = {
+      page: this.currentPage,
+      page_size: this.pageSize
+    };
+
+    // Adiciona filtros das abas
+    if (this.viewMode === 'pendentes') params.status__in = 'AGUARDANDO_PERITO,EM_ANALISE';
+    if (this.viewMode === 'finalizadas') params.status = 'FINALIZADA';
+
+    // Adiciona filtros do formulário
+    if (this.numeroOcorrenciaBusca.trim()) params.numero_ocorrencia = this.numeroOcorrenciaBusca.trim();
+    if (this.searchTerm.trim()) params.search = this.searchTerm.trim();
     if (this.statusFiltro) params.status = this.statusFiltro;
     if (this.servicoPericialFiltro) params.servico_pericial = this.servicoPericialFiltro;
+    if (this.dataInicio) params.data_fato_de = this.dataInicio;
+    if (this.dataFim) params.data_fato_ate = this.dataFim;
+    if (this.peritoFiltro) params.perito_atribuido = this.peritoFiltro;
 
     this.ocorrenciaService.getAll(params).subscribe({
       next: (data) => {
@@ -159,130 +144,8 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
         this.count = data.count;
         this.nextUrl = data.next;
         this.previousUrl = data.previous;
-        this.isLoading = false;
-      },
-      error: (err: any) => {
-        console.error('Erro ao carregar ocorrências:', err);
-        this.message = 'Erro ao carregar ocorrências.';
-        this.messageType = 'error';
-        this.ocorrencias = [];
-        this.isLoading = false;
-      }
-    });
-  }
-
-  loadPendentes(): void {
-    this.isLoading = true;
-    this.ocorrenciaService.getPendentes().subscribe({
-      next: (data) => {
-        this.ocorrencias = data.results;
-        this.count = data.count;
-        this.isLoading = false;
-      },
-      error: (err: any) => {
-        console.error('Erro ao carregar pendentes:', err);
-        this.message = 'Erro ao carregar ocorrências pendentes.';
-        this.messageType = 'error';
-        this.isLoading = false;
-      }
-    });
-  }
-
-  loadFinalizadas(): void {
-    this.isLoading = true;
-    this.ocorrenciaService.getFinalizadas().subscribe({
-      next: (data) => {
-        this.ocorrencias = data.results;
-        this.count = data.count;
-        this.isLoading = false;
-      },
-      error: (err: any) => {
-        console.error('Erro ao carregar finalizadas:', err);
-        this.message = 'Erro ao carregar ocorrências finalizadas.';
-        this.messageType = 'error';
-        this.isLoading = false;
-      }
-    });
-  }
-
-  loadLixeira(): void {
-    this.isLoadingLixeira = true;
-    this.ocorrenciaService.getLixeira().subscribe({
-      next: (data) => {
-        this.ocorrenciasLixeira = data;
-        this.isLoadingLixeira = false;
-      },
-      error: (err: any) => {
-        console.error('Erro ao carregar lixeira:', err);
-        this.message = 'Erro ao carregar a lixeira.';
-        this.messageType = 'error';
-        this.ocorrenciasLixeira = [];
-        this.isLoadingLixeira = false;
-      }
-    });
-  }
-
-  onSearch(): void {
-    this.currentPage = 1;
-    this.loadOcorrencias();
-  }
-
-  buscarOcorrencias(): void {
-    this.currentPage = 1;
-    this.isLoading = true;
-
-    const params: any = {};
-
-    if (this.numeroOcorrenciaBusca.trim()) {
-      params.numero_ocorrencia = this.numeroOcorrenciaBusca.trim();
-    }
-
-    if (this.searchTerm.trim()) {
-      params.search = this.searchTerm.trim();
-    }
-
-    if (this.statusFiltro) {
-      params.status = this.statusFiltro;
-    }
-
-    if (this.servicoPericialFiltro) {
-      params.servico_pericial = this.servicoPericialFiltro;
-    }
-
-    // REMOVA ISSO:
-if (this.dataInicio) {
-  params.data_inicio = this.dataInicio;
-}
-
-if (this.dataFim) {
-  params.data_fim = this.dataFim;
-}
-
-// COLOQUE ISSO NO LUGAR:
-if (this.dataInicio && !this.dataFim) {
-  // Apenas uma data: buscar apenas esse dia
-  params.data_fato_de = this.dataInicio;
-  params.data_fato_ate = this.dataInicio;
-} else if (!this.dataInicio && this.dataFim) {
-  // Apenas data fim: buscar apenas esse dia
-  params.data_fato_de = this.dataFim;
-  params.data_fato_ate = this.dataFim;
-} else if (this.dataInicio && this.dataFim) {
-  // Intervalo: usar ambas
-  params.data_fato_de = this.dataInicio;
-  params.data_fato_ate = this.dataFim;
-}
-
-    if (this.peritoFiltro) {
-      params.perito_atribuido = this.peritoFiltro;
-    }
-
-    this.ocorrenciaService.getAll(params).subscribe({
-      next: (data) => {
-        this.ocorrencias = data.results;
-        this.count = data.count;
-        this.nextUrl = data.next;
-        this.previousUrl = data.previous;
+        this.totalPages = Math.ceil(this.count / this.pageSize);
+        this.paginaInput = this.currentPage;
         this.isLoading = false;
       },
       error: (err: any) => {
@@ -303,179 +166,91 @@ if (this.dataInicio && !this.dataFim) {
     this.peritoFiltro = null;
     this.dataInicio = '';
     this.dataFim = '';
-    this.loadOcorrencias();
+    this.buscarOcorrencias(true);
   }
 
-  goToNextPage(): void {
-    if (this.nextUrl) {
-      this.isLoading = true;
-      this.ocorrenciaService.getByUrl(this.nextUrl).subscribe({
-        next: (data) => {
-          this.ocorrencias = data.results;
-          this.count = data.count;
-          this.nextUrl = data.next;
-          this.previousUrl = data.previous;
-          this.currentPage++;
-          this.isLoading = false;
-        },
-        error: (err: any) => {
-          console.error('Erro ao carregar página:', err);
-          this.isLoading = false;
-        }
-      });
+  // ✅ FUNÇÕES DE MUDANÇA DE ABA SIMPLIFICADAS
+  switchView(newView: 'todas' | 'pendentes' | 'finalizadas' | 'lixeira'): void {
+    if (this.viewMode === newView) return;
+    this.viewMode = newView;
+    this.limparFiltros(); // Limpa os filtros e já recarrega a view correta
+  }
+
+  loadLixeira(): void {
+    this.isLoadingLixeira = true;
+    this.ocorrenciaService.getLixeira().subscribe({
+      next: (data) => { this.ocorrenciasLixeira = data; this.isLoadingLixeira = false; },
+      error: (err: any) => { this.isLoadingLixeira = false; /* Tratar erro */ }
+    });
+  }
+
+  // ✅ LÓGICA DE PAGINAÇÃO ATUALIZADA
+  irParaPagina(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPages) {
+      this.currentPage = pagina;
+      this.buscarOcorrencias(false); // Busca sem resetar a página
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
-  goToPreviousPage(): void {
-    if (this.previousUrl) {
-      this.isLoading = true;
-      this.ocorrenciaService.getByUrl(this.previousUrl).subscribe({
-        next: (data) => {
-          this.ocorrencias = data.results;
-          this.count = data.count;
-          this.nextUrl = data.next;
-          this.previousUrl = data.previous;
-          this.currentPage--;
-          this.isLoading = false;
-        },
-        error: (err: any) => {
-          console.error('Erro ao carregar página:', err);
-          this.isLoading = false;
-        }
-      });
+  irParaPaginaDigitada(): void {
+    const pagina = parseInt(this.paginaInput.toString(), 10);
+    if (pagina >= 1 && pagina <= this.totalPages) {
+      this.irParaPagina(pagina);
+    } else {
+      Swal.fire({ title: 'Página inválida!', text: `Digite um número entre 1 e ${this.totalPages}`, icon: 'warning', confirmButtonText: 'OK' });
+      this.paginaInput = this.currentPage;
     }
   }
 
-  get totalPages(): number {
-    return Math.ceil(this.count / this.pageSize);
+  getPaginas(): number[] {
+    const paginas: number[] = [];
+    const inicio = Math.max(1, this.currentPage - 2);
+    const fim = Math.min(this.totalPages, this.currentPage + 2);
+    for (let i = inicio; i <= fim; i++) {
+      paginas.push(i);
+    }
+    return paginas;
   }
 
-  switchToTodas(): void {
-    this.viewMode = 'todas';
-    this.searchTerm = '';
-    this.statusFiltro = '';
-    this.currentPage = 1;
-    this.loadOcorrencias();
-  }
+  // (As funções antigas `goToNextPage` e `goToPreviousPage` são removidas pois o HTML agora chama `irParaPagina` diretamente)
 
-  switchToPendentes(): void {
-    this.viewMode = 'pendentes';
-    this.searchTerm = '';
-    this.statusFiltro = '';
-    this.currentPage = 1;
-    this.loadPendentes();
-  }
+  onCreate(): void { this.router.navigate(['/gabinete-virtual/operacional/ocorrencias/novo']); }
+  onView(id: number): void { this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', id]); }
 
-  switchToFinalizadas(): void {
-    this.viewMode = 'finalizadas';
-    this.searchTerm = '';
-    this.statusFiltro = '';
-    this.currentPage = 1;
-    this.loadFinalizadas();
-  }
+  onEdit(id: number): void {
+    const ocorrencia = this.ocorrencias.find(o => o.id === id);
+    if (!ocorrencia) return;
 
-  switchToLixeira(): void {
-    this.viewMode = 'lixeira';
-    this.searchTerm = '';
-    this.loadLixeira();
-  }
-
-  onCreate(): void {
-    this.router.navigate(['/gabinete-virtual/operacional/ocorrencias/novo']);
-  }
-
-  onView(id: number): void {
-    this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', id]);
-  }
-
-onEdit(id: number): void {
-  const ocorrencia = this.ocorrencias.find(o => o.id === id);
-  if (!ocorrencia) return;
-
-  // SE FOI REABERTA, ignora verificação de finalizada
-  if (ocorrencia.reaberta_por) {
-    // Verifica permissão normalmente
-    if (!this.podeEditar(ocorrencia)) {
-      Swal.fire({
-        title: 'Acesso Negado',
-        text: 'Você não tem permissão para editar esta ocorrência.',
-        icon: 'error',
-        confirmButtonText: 'Entendi'
-      });
+    if (ocorrencia.reaberta_por) {
+      if (!this.podeEditar(ocorrencia)) {
+        Swal.fire({ title: 'Acesso Negado', text: 'Você não tem permissão para editar esta ocorrência.', icon: 'error', confirmButtonText: 'Entendi' });
+        return;
+      }
+      this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', id, 'editar']);
       return;
     }
 
+    const jaFinalizada = ocorrencia.esta_finalizada === true || !!ocorrencia.finalizada_por || !!ocorrencia.data_finalizacao;
+
+    if (jaFinalizada) {
+      Swal.fire({ title: 'Ocorrência Finalizada', html: `<p>A ocorrência <strong>${ocorrencia.numero_ocorrencia}</strong> está finalizada e não pode ser editada.</p><p>Solicite ao administrador do sistema que reabra a ocorrência.</p>`, icon: 'warning', confirmButtonText: 'Entendi' });
+      return;
+    }
     this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', id, 'editar']);
-    return;
   }
 
-  // SE NÃO foi reaberta, verifica se está finalizada
-  const jaFinalizada = ocorrencia.esta_finalizada === true ||
-                       !!ocorrencia.finalizada_por ||
-                       !!ocorrencia.data_finalizacao;
-
-  if (jaFinalizada) {
-    Swal.fire({
-      title: 'Ocorrência Finalizada',
-      html: `
-        <p>A ocorrência <strong>${ocorrencia.numero_ocorrencia}</strong> está finalizada e não pode ser editada.</p>
-        <p>Solicite ao administrador do sistema que reabra a ocorrência.</p>
-      `,
-      icon: 'warning',
-      confirmButtonText: 'Entendi'
-    });
-    return;
-  }
-
-  // Verifica se tem perito atribuído - com Number() na comparação
-  if (ocorrencia.perito_atribuido && !this.isSuperAdmin) {
-    const user = this.authService.getCurrentUser();
-    // ← MUDANÇA AQUI: Number() nas duas partes
-    if (Number(user?.id) !== Number(ocorrencia.perito_atribuido.id)) {
-      Swal.fire({
-        title: 'Acesso Negado',
-        html: `
-          <p>Esta ocorrência está atribuída ao perito <strong>${ocorrencia.perito_atribuido.nome_completo}</strong>.</p>
-          <p>Somente o perito responsável ou o administrador do sistema pode editá-la.</p>
-        `,
-        icon: 'error',
-        confirmButtonText: 'Entendi'
-      });
-      return;
-    }
-  }
-
-  // Verificação final com podeEditar()
-  if (!this.podeEditar(ocorrencia)) {
-    Swal.fire({
-      title: 'Acesso Negado',
-      text: 'Você não tem permissão para editar esta ocorrência.',
-      icon: 'error',
-      confirmButtonText: 'Entendi'
-    });
-    return;
-  }
-
-  this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', id, 'editar']);
-}
   onDelete(ocorrencia: Ocorrencia): void {
-    Swal.fire({
-      title: 'Confirmar exclusão',
-      text: `Tem certeza que deseja mover a ocorrência "${ocorrencia.numero_ocorrencia}" para a lixeira?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sim, deletar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
+    Swal.fire({ title: 'Confirmar exclusão', text: `Tem certeza que deseja mover a ocorrência "${ocorrencia.numero_ocorrencia}" para a lixeira?`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Sim, deletar', cancelButtonText: 'Cancelar' })
+    .then((result) => {
       if (result.isConfirmed) {
         this.ocorrenciaService.delete(ocorrencia.id).subscribe({
           next: () => {
             this.message = `Ocorrência "${ocorrencia.numero_ocorrencia}" movida para a lixeira.`;
             this.messageType = 'success';
-            this.loadOcorrencias();
+            this.buscarOcorrencias(false);
           },
           error: (err: any) => {
-            console.error('Erro ao deletar:', err);
             this.message = 'Erro ao mover para a lixeira.';
             this.messageType = 'error';
           }
@@ -485,23 +260,16 @@ onEdit(id: number): void {
   }
 
   onRestore(ocorrencia: Ocorrencia): void {
-    Swal.fire({
-      title: 'Restaurar ocorrência',
-      text: `Restaurar "${ocorrencia.numero_ocorrencia}"?`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Sim, restaurar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
+    Swal.fire({ title: 'Restaurar ocorrência', text: `Restaurar "${ocorrencia.numero_ocorrencia}"?`, icon: 'question', showCancelButton: true, confirmButtonText: 'Sim, restaurar', cancelButtonText: 'Cancelar' })
+    .then((result) => {
       if (result.isConfirmed) {
         this.ocorrenciaService.restaurar(ocorrencia.id).subscribe({
           next: () => {
             this.message = `Ocorrência "${ocorrencia.numero_ocorrencia}" restaurada com sucesso.`;
             this.messageType = 'success';
-            this.ocorrenciasLixeira = this.ocorrenciasLixeira.filter(o => o.id !== ocorrencia.id);
+            this.loadLixeira();
           },
           error: (err: any) => {
-            console.error('Erro ao restaurar:', err);
             this.message = 'Erro ao restaurar a ocorrência.';
             this.messageType = 'error';
           }
@@ -512,35 +280,19 @@ onEdit(id: number): void {
 
   getStatusLabel(status: string | undefined): string {
     if (!status) return 'N/D';
-
-    const labels: any = {
-      'AGUARDANDO_PERITO': 'Aguardando Perito',
-      'EM_ANALISE': 'Em Análise',
-      'FINALIZADA': 'Finalizada'
-    };
+    const labels: any = { 'AGUARDANDO_PERITO': 'Aguardando Perito', 'EM_ANALISE': 'Em Análise', 'FINALIZADA': 'Finalizada' };
     return labels[status] || status;
   }
 
   getStatusClass(status: string | undefined): string {
     if (!status) return '';
-
-    const classes: any = {
-      'AGUARDANDO_PERITO': 'status-aguardando',
-      'EM_ANALISE': 'status-analise',
-      'FINALIZADA': 'status-finalizada'
-    };
+    const classes: any = { 'AGUARDANDO_PERITO': 'status-aguardando', 'EM_ANALISE': 'status-analise', 'FINALIZADA': 'status-finalizada' };
     return classes[status] || '';
   }
 
   getPrazoClass(statusPrazo: string | undefined): string {
     if (!statusPrazo) return '';
-
-    const classes: any = {
-      'NO_PRAZO': 'prazo-ok',
-      'PRORROGADO': 'prorrogado',
-      'ATRASADO': 'atrasado',
-      'CONCLUIDO': 'concluido'
-    };
+    const classes: any = { 'NO_PRAZO': 'prazo-ok', 'PRORROGADO': 'prorrogado', 'ATRASADO': 'atrasado', 'CONCLUIDO': 'concluido' };
     return classes[statusPrazo] || '';
   }
 
@@ -550,34 +302,23 @@ onEdit(id: number): void {
   }
 
   podeEditar(ocorrencia: Ocorrencia): boolean {
-  // SE FOI REABERTA, pode editar (não está mais finalizada)
-  if (ocorrencia.reaberta_por) {
+    if (ocorrencia.reaberta_por) {
+      if (this.isSuperAdmin) return true;
+      if (ocorrencia.perito_atribuido) {
+        const user = this.authService.getCurrentUser();
+        return Number(user?.id) === Number(ocorrencia.perito_atribuido.id);
+      }
+      return this.isPerito || this.isOperacional;
+    }
+    const jaFinalizada = ocorrencia.esta_finalizada === true || !!ocorrencia.finalizada_por || !!ocorrencia.data_finalizacao;
+    if (jaFinalizada) {
+      return false;
+    }
     if (this.isSuperAdmin) return true;
-
     if (ocorrencia.perito_atribuido) {
       const user = this.authService.getCurrentUser();
       return Number(user?.id) === Number(ocorrencia.perito_atribuido.id);
     }
-
     return this.isPerito || this.isOperacional;
   }
-
-  // SE NÃO FOI REABERTA, verifica se está finalizada
-  const jaFinalizada = ocorrencia.esta_finalizada === true ||
-                       !!ocorrencia.finalizada_por ||
-                       !!ocorrencia.data_finalizacao;
-
-  if (jaFinalizada) {
-    return false;
-  }
-
-  if (this.isSuperAdmin) return true;
-
-  if (ocorrencia.perito_atribuido) {
-    const user = this.authService.getCurrentUser();
-    return Number(user?.id) === Number(ocorrencia.perito_atribuido.id);
-  }
-
-  return this.isPerito || this.isOperacional;
-}
 }

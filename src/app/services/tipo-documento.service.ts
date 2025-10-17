@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 export interface TipoDocumento {
   id: number;
@@ -36,7 +37,7 @@ export interface PaginatedResponse {
   providedIn: 'root'
 })
 export class TipoDocumentoService {
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) {}
 
@@ -53,8 +54,8 @@ export class TipoDocumentoService {
   }
 
   getAllForDropdown(): Observable<any[]> {
-  return this.http.get<any[]>(`${this.baseUrl}/tipos-documento/dropdown/`);
-}
+    return this.http.get<any[]>(`${this.baseUrl}/tipos-documento/dropdown/`);
+  }
 
   getById(id: number): Observable<TipoDocumento> {
     return this.http.get<TipoDocumento>(`${this.baseUrl}/tipos-documento/${id}/`);

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { RelatoriosGerenciais } from '../interfaces/realatorios.interface';
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 // ===================================================================
 //  INÍCIO DAS INTERFACES CORRIGIDAS E COMPLETAS
@@ -79,7 +80,7 @@ export interface Ocorrencia {
   reaberta_por?: UserNested;
   data_reabertura?: string;
   motivo_reabertura?: string;
-  endereco?: Endereco; // <-- O CAMPO QUE FALTAVA
+  endereco?: Endereco;
 }
 
 export interface PaginatedResponse {
@@ -98,10 +99,7 @@ export interface PaginatedResponse {
   providedIn: 'root'
 })
 export class OcorrenciaService {
-  // SEUS MÉTODOS ESTÃO AQUI, INTACTOS, EXATAMENTE COMO VOCÊ ENVIOU.
-  // NENHUMA ALTERAÇÃO FOI FEITA DAQUI PARA BAIXO.
-
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) {}
 
@@ -212,11 +210,11 @@ export class OcorrenciaService {
     return this.http.get<RelatoriosGerenciais>(`${this.baseUrl}/ocorrencias/relatorios-gerenciais/`, { params: httpParams });
   }
 
-  vincularProcedimento(ocorrenciaId: number, procedimentoId: number): Observable<any> {
-    return this.http.post(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/vincular_procedimento/`, {
-      procedimento_cadastrado_id: procedimentoId
-    });
-  }
+  vincularProcedimento(ocorrenciaId: number, procedimentoId: number | null): Observable<any> {
+  return this.http.post(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/vincular_procedimento/`, {
+    procedimento_cadastrado_id: procedimentoId
+  });
+}
 
   imprimirPDF(id: number): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/ocorrencias/${id}/imprimir/`, {

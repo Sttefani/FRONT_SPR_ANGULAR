@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 export interface UnidadeDemandante {
   id: number;
@@ -37,7 +38,7 @@ export interface PaginatedResponse {
   providedIn: 'root'
 })
 export class UnidadeDemandanteService {
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) {}
 
@@ -80,5 +81,4 @@ export class UnidadeDemandanteService {
   restaurar(id: number): Observable<UnidadeDemandante> {
     return this.http.post<UnidadeDemandante>(`${this.baseUrl}/unidades-demandantes/${id}/restaurar/`, {});
   }
-
 }

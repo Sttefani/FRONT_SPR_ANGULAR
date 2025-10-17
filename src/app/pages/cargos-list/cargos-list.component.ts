@@ -6,6 +6,7 @@ import { CargoService, Cargo } from '../../services/cargo.service';
 import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
 
+
 @Component({
   selector: 'app-cargos-list',
   standalone: true,

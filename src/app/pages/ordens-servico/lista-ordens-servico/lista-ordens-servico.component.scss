@@ -39,6 +39,156 @@
 }
 
 // ============================================================================
+// LAYOUT PRINCIPAL E OUTROS ESTILOS (SEM ALTERAÇÃO)
+// ... (todo o seu código SCSS até a seção de paginação) ...
+// ============================================================================
+
+// (Vou omitir o código que não muda para ser mais direto, mas ele está incluído no bloco final completo)
+
+// ... seu código do header, filtros, tabela, etc ...
+
+// ============================================================================
+// ✅ PAGINAÇÃO INLINE E DISCRETA (SEÇÃO MODIFICADA)
+// ============================================================================
+.paginacao-container {
+  // 1. Transforma o container em Flexbox
+  display: flex;
+  justify-content: space-between; // Coloca espaço entre os itens
+  align-items: center; // Alinha verticalmente no centro
+  flex-wrap: wrap; // Permite quebrar a linha em telas muito pequenas
+
+  // Remove o visual de "card" para integrar melhor
+  background: transparent;
+  padding: var(--space-md) 0;
+  border: none;
+  box-shadow: none;
+  font-size: 0.875rem;
+
+  // Centraliza os botões de página (1, 2, 3...)
+  .pagination {
+    flex-grow: 1; // Permite que ocupe o espaço disponível
+    justify-content: center;
+
+    .page-item {
+      margin: 0 2px;
+      .page-link {
+        background: var(--cor-off-white);
+        border: 1px solid var(--cor-cinza-claro);
+        color: var(--cor-cinza);
+        padding: 0.35rem 0.7rem;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        &:hover {
+          background-color: var(--cor-cinza-claro);
+          border-color: var(--cor-cinza);
+          color: var(--cor-cinza-escuro);
+          transform: translateY(-1px);
+          box-shadow: none;
+        }
+      }
+      &.active .page-link {
+        background: var(--cor-dourado);
+        border-color: var(--cor-dourado-escuro);
+        color: var(--cor-preto);
+        box-shadow: var(--shadow-sm);
+        transform: none;
+      }
+      &.disabled .page-link {
+        opacity: 0.6;
+        background-color: transparent;
+        border-color: var(--cor-cinza-claro);
+        pointer-events: none;
+      }
+    }
+  }
+
+  // Alinha o "Ir para página" à direita
+  .ir-para-pagina {
+    font-size: 0.85rem;
+    margin-top: 0; // Remove a margem superior que o separava antes
+
+    input.form-control-sm {
+      border: 1px solid var(--cor-cinza-claro);
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--cor-cinza-escuro);
+      height: auto;
+      width: 70px;
+      padding: 0.35rem 0.5rem;
+      &:focus {
+        border-color: var(--cor-dourado);
+        box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.2);
+        outline: none;
+      }
+    }
+
+    .btn-sm {
+      border: 1px solid var(--cor-cinza-claro);
+      background: var(--cor-off-white);
+      color: var(--cor-cinza-escuro);
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      &:hover {
+        background: var(--cor-dourado);
+        border-color: var(--cor-dourado);
+        color: var(--cor-preto);
+        transform: none;
+        box-shadow: none;
+      }
+    }
+  }
+}
+
+// ============================================================================
+// EMPTY STATE, LOADING, RESPONSIVIDADE (SEM ALTERAÇÃO)
+// ... (resto do seu código SCSS) ...
+// ============================================================================
+
+// (Aqui está o arquivo completo para você copiar)
+
+// src/app/pages/ordens-servico/lista-ordens-servico/lista-ordens-servico.component.scss
+
+// ============================================================================
+// PROPORÇÃO ÁUREA φ = 1.618
+// ============================================================================
+:host {
+  --phi: 1.618;
+  --phi-inverse: 0.618;
+
+  // Paleta Profissional (Sistema)
+  --cor-dourado: #DAA520;
+  --cor-dourado-escuro: #B8860B;
+  --cor-mostarda: #D4A017;
+  --cor-preto: #000000;
+  --cor-cinza-escuro: #1a1a1a;
+  --cor-cinza: #4a4a4a;
+  --cor-cinza-claro: #cbd5e0;
+  --cor-branco: #ffffff;
+  --cor-off-white: #f7fafc;
+
+  // Cores de status (mantendo padrão)
+  --cor-sucesso: #28a745;
+  --cor-perigo: #dc3545;
+  --cor-alerta: #ff9800;
+  --cor-info: #3182ce;
+
+  // Espaçamento baseado em φ
+  --space-xs: 0.382rem;
+  --space-sm: 0.618rem;
+  --space-md: 1rem;
+  --space-lg: 1.618rem;
+  --space-xl: 2.618rem;
+  --space-xxl: 4.236rem;
+
+  // Sombras
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+}
+
+// ============================================================================
 // LAYOUT PRINCIPAL
 // ============================================================================
 .container-fluid {
@@ -630,34 +780,44 @@
 }
 
 // ============================================================================
-// PAGINAÇÃO AVANÇADA
+// ✅ PAGINAÇÃO INLINE E DISCRETA (SEÇÃO MODIFICADA)
 // ============================================================================
 .paginacao-container {
-  background: var(--cor-branco);
-  padding: var(--space-lg);
-  border-radius: 12px;
-  border: 2px solid var(--cor-cinza-claro);
-  box-shadow: var(--shadow-sm);
+  // 1. Transforma o container em Flexbox
+  display: flex;
+  justify-content: center; // Centraliza o conteúdo principal
+  align-items: center;     // Alinha verticalmente no centro
+  flex-wrap: wrap;         // Permite quebrar a linha em telas pequenas
+  gap: var(--space-md);    // Espaço entre os grupos (paginação e "ir para")
+
+  // Remove o visual de "card" para integrar melhor
+  background: transparent;
+  padding: var(--space-md) 0;
+  border: none;
+  box-shadow: none;
+  font-size: 0.875rem; // Diminui o tamanho da fonte
 
   .pagination {
+    margin-bottom: 0; // Remove margem padrão do Bootstrap
+
     .page-item {
-      margin: 0 var(--space-xs);
+      margin: 0 2px; // Reduz o espaçamento entre os botões
 
       .page-link {
         background: var(--cor-off-white);
-        border: 2px solid var(--cor-dourado);
-        color: var(--cor-dourado-escuro);
-        padding: var(--space-sm) var(--space-md);
-        border-radius: 8px;
-        font-weight: 700;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: pointer;
+        border: 1px solid var(--cor-cinza-claro);
+        color: var(--cor-cinza);
+        padding: 0.35rem 0.7rem; // Menor preenchimento
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.2s ease;
 
         &:hover {
-          background: var(--cor-dourado);
-          color: var(--cor-preto);
-          transform: translateY(-2px);
-          box-shadow: var(--shadow-sm);
+          background-color: var(--cor-cinza-claro);
+          border-color: var(--cor-cinza);
+          color: var(--cor-cinza-escuro);
+          transform: translateY(-1px);
+          box-shadow: none;
         }
       }
 
@@ -665,45 +825,64 @@
         background: var(--cor-dourado);
         border-color: var(--cor-dourado-escuro);
         color: var(--cor-preto);
-        box-shadow: 0 0 0 4px rgba(218, 165, 32, 0.2);
-        transform: scale(1.1);
+        box-shadow: var(--shadow-sm);
+        transform: none;
       }
 
       &.disabled .page-link {
-        opacity: 0.4;
-        cursor: not-allowed;
+        opacity: 0.6;
+        background-color: transparent;
+        border-color: var(--cor-cinza-claro);
         pointer-events: none;
       }
     }
   }
 
+  // Posiciona o "Ir para página" à direita do grupo principal
   .ir-para-pagina {
-    input {
-      border: 2px solid var(--cor-dourado);
-      border-radius: 8px;
+    // Em telas maiores, usa margem automática para empurrar para a direita
+    @media (min-width: 768px) {
+      margin-left: auto;
+    }
+
+    font-size: 0.85rem;
+    margin-top: 0;
+
+    .form-control-sm {
+      border: 1px solid var(--cor-cinza-claro);
+      border-radius: 6px;
       text-align: center;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--cor-cinza-escuro);
+      height: auto;
+      width: 70px;
+      padding: 0.35rem 0.5rem;
 
       &:focus {
-        border-color: var(--cor-dourado-escuro);
+        border-color: var(--cor-dourado);
         box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.2);
         outline: none;
       }
     }
 
-    .btn {
-      border: 2px solid var(--cor-dourado);
-      background: var(--cor-dourado);
-      color: var(--cor-preto);
+    .btn-sm {
+      border: 1px solid var(--cor-cinza-claro);
+      background: var(--cor-off-white);
+      color: var(--cor-cinza-escuro);
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
 
       &:hover {
-        background: var(--cor-dourado-escuro);
-        transform: translateY(-2px);
+        background: var(--cor-dourado);
+        border-color: var(--cor-dourado);
+        color: var(--cor-preto);
+        transform: none;
+        box-shadow: none;
       }
     }
   }
 }
+
 
 // ============================================================================
 // EMPTY STATE

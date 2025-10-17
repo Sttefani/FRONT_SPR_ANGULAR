@@ -1,0 +1,85 @@
+<div class="pagination-container" *ngIf="totalItens > 0">
+  <!-- Controles superiores -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <label class="mb-0 text-muted small">Mostrar:</label>
+      <select
+        class="form-select form-select-sm"
+        style="width: auto;"
+        [(ngModel)]="itensPorPagina"
+        (change)="mudarQuantidade()">
+        <option *ngFor="let qtd of quantidadeOptions" [value]="qtd">
+          {{ qtd }} por página
+        </option>
+      </select>
+    </div>
+
+    <div class="text-muted small">
+      <strong>{{ indicePrimeiro }}-{{ indiceUltimo }}</strong> de <strong>{{ totalItens }}</strong> registro(s)
+    </div>
+  </div>
+
+  <!-- Botões de navegação -->
+  <nav *ngIf="totalPaginas > 1">
+    <ul class="pagination justify-content-center mb-0">
+      <!-- Primeira página -->
+      <li class="page-item" [class.disabled]="paginaAtual === 1">
+        <a class="page-link" (click)="irParaPagina(1)" title="Primeira página">
+          <i class="bi bi-chevron-double-left"></i>
+        </a>
+      </li>
+
+      <!-- Página anterior -->
+      <li class="page-item" [class.disabled]="paginaAtual === 1">
+        <a class="page-link" (click)="irParaPagina(paginaAtual - 1)">
+          <i class="bi bi-chevron-left"></i> Anterior
+        </a>
+      </li>
+
+      <!-- Números das páginas -->
+      <li
+        class="page-item"
+        *ngFor="let pagina of getPaginas()"
+        [class.active]="pagina === paginaAtual">
+        <a class="page-link" (click)="irParaPagina(pagina)">
+          {{ pagina }}
+        </a>
+      </li>
+
+      <!-- Próxima página -->
+      <li class="page-item" [class.disabled]="paginaAtual === totalPaginas">
+        <a class="page-link" (click)="irParaPagina(paginaAtual + 1)">
+          Próxima <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+
+      <!-- Última página -->
+      <li class="page-item" [class.disabled]="paginaAtual === totalPaginas">
+        <a class="page-link" (click)="irParaPagina(totalPaginas)" title="Última página">
+          <i class="bi bi-chevron-double-right"></i>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Campo para ir direto para página -->
+    <div class="ir-para-pagina mt-3">
+      <div class="d-flex justify-content-center align-items-center gap-2">
+        <label class="mb-0 small text-muted">Ir para página:</label>
+        <input
+          type="number"
+          class="form-control form-control-sm"
+          style="width: 80px;"
+          [(ngModel)]="paginaInput"
+          [min]="1"
+          [max]="totalPaginas"
+          (keyup.enter)="irParaPaginaDigitada()">
+        <button
+          class="btn btn-sm btn-outline-primary"
+          (click)="irParaPaginaDigitada()">
+          <i class="bi bi-arrow-right"></i>
+        </button>
+        <small class="text-muted">de {{ totalPaginas }}</small>
+      </div>
+    </div>
+  </nav>
+</div>

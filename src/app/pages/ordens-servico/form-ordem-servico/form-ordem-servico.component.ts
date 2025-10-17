@@ -5,11 +5,11 @@ import { Router, RouterModule } from '@angular/router';
 import { OrdemServicoService, CriarOrdemServicoPayload } from '../../../services/ordem-servico.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../../../environments/environment';  // ← LINHA ADICIONADA
 import { HttpClient } from '@angular/common/http';
 import { UsuarioService } from '../../../services/usuario.service';
-import Swal from 'sweetalert2'; // ✅ ADICIONADO
+import Swal from 'sweetalert2';
 import { expand, of, reduce } from 'rxjs';
-
 
 @Component({
   selector: 'app-form-ordem-servico',
@@ -79,18 +79,18 @@ export class FormOrdemServicoComponent implements OnInit {
   }
 
   carregarTiposDocumento(): void {
-  this.http.get<any>('http://localhost:8000/api/tipos-documento/')
-    .pipe(
-      expand(response => response.next ? this.http.get<any>(response.next) : of()),
-      reduce((acc: any[], response) => [...acc, ...(response.results || [])], [])
-    )
-    .subscribe({
-      next: (todosResultados) => {
-        this.tiposDocumento = todosResultados;
-      },
-      error: (err) => console.error('Erro ao carregar tipos documento:', err)
-    });
-}
+    this.http.get<any>(`${environment.apiUrl}/tipos-documento/`)  // ← LINHA MODIFICADA
+      .pipe(
+        expand(response => response.next ? this.http.get<any>(response.next) : of()),
+        reduce((acc: any[], response) => [...acc, ...(response.results || [])], [])
+      )
+      .subscribe({
+        next: (todosResultados) => {
+          this.tiposDocumento = todosResultados;
+        },
+        error: (err) => console.error('Erro ao carregar tipos documento:', err)
+      });
+  }
 
   // ===========================================================================
   // BUSCA DE OCORRÊNCIA
@@ -109,7 +109,7 @@ export class FormOrdemServicoComponent implements OnInit {
     this.ocorrenciaEncontrada = null;
 
     this.http.get<any>(
-      `http://localhost:8000/api/ocorrencias/?search=${numeroBuscado}`
+      `${environment.apiUrl}/ocorrencias/?search=${numeroBuscado}`  // ← LINHA MODIFICADA
     ).subscribe({
       next: (response) => {
         this.buscandoOcorrencia = false;
@@ -190,7 +190,6 @@ export class FormOrdemServicoComponent implements OnInit {
     this.error = null;
   }
 
-  // ✅ ÚNICA MUDANÇA: alert() substituído por Swal.fire()
   confirmarCriacao(): void {
     if (!this.validarFormularioPrincipal()) {
       return;
@@ -214,7 +213,6 @@ export class FormOrdemServicoComponent implements OnInit {
 
     this.ordemServicoService.criar(payload).subscribe({
       next: (response) => {
-        // ✅ TROCADO: alert(response.message) por Swal.fire()
         Swal.fire({
           title: 'Sucesso!',
           text: response.message,

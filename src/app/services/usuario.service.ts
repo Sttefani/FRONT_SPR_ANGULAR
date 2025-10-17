@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 export interface User {
   id: number;
@@ -28,7 +28,7 @@ export interface ServicoPericialNested {
   providedIn: 'root'
 })
 export class UsuarioService {
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) {}
 
@@ -61,25 +61,30 @@ export class UsuarioService {
   rejectUser(userId: number): Observable<any> {
     return this.http.post(`${this.baseUrl}/usuarios/${userId}/reprovar/`, {});
   }
-  reactivateUser(userId: number): Observable<any> {
-  return this.http.post(`${this.baseUrl}/usuarios/${userId}/reativar/`, {});
-}
-getAllUsers(statusFilter: string = 'todos'): Observable<any> {
-  let params: any = {};
 
-  if (statusFilter !== 'todos') {
-    params.status = statusFilter.toUpperCase();
+  reactivateUser(userId: number): Observable<any> {
+    return this.http.post(`${this.baseUrl}/usuarios/${userId}/reativar/`, {});
   }
 
-  return this.http.get<any>(`${this.baseUrl}/usuarios/`, { params });
-}
-resetPasswordToCpf(userId: number): Observable<any> {
-  return this.http.post(`${this.baseUrl}/usuarios/${userId}/resetar-senha-cpf/`, {});
-}
-getAllForDropdown(): Observable<User[]> {
-  return this.http.get<User[]>(`${this.baseUrl}/usuarios/dropdown/`);
-}
-getPeritosList(): Observable<any[]> {
-  return this.http.get<any[]>(`${this.baseUrl}/usuarios/peritos_dropdown/`);
-}
+  getAllUsers(statusFilter: string = 'todos'): Observable<any> {
+    let params: any = {};
+
+    if (statusFilter !== 'todos') {
+      params.status = statusFilter.toUpperCase();
+    }
+
+    return this.http.get<any>(`${this.baseUrl}/usuarios/`, { params });
+  }
+
+  resetPasswordToCpf(userId: number): Observable<any> {
+    return this.http.post(`${this.baseUrl}/usuarios/${userId}/resetar-senha-cpf/`, {});
+  }
+
+  getAllForDropdown(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.baseUrl}/usuarios/dropdown/`);
+  }
+
+  getPeritosList(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/usuarios/peritos_dropdown/`);
+  }
 }

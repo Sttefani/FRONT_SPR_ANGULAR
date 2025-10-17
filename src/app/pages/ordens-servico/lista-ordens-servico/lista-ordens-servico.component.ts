@@ -3,6 +3,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 import { OrdemServicoService, OrdemServico, FiltrosOrdemServico } from '../../../services/ordem-servico.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -34,7 +35,7 @@ export class ListaOrdensServicoComponent implements OnInit {
   // Paginação
   totalItens = 0;
   paginaAtual = 1;
-  itensPorPagina = 25;
+  itensPorPagina = 10; // ✅ ALTERADO PARA 10 FIXO
   totalPaginas = 0;
   paginaInput = 1;
 
@@ -66,12 +67,12 @@ export class ListaOrdensServicoComponent implements OnInit {
     { value: 'verde', label: '🟢 OK' }
   ];
 
-  quantidadeOptions = [10, 25, 50, 100];
+  // ✅ REMOVIDA A LINHA quantidadeOptions
 
   // Exibição
   modoExibicao: 'tabela' | 'cards' = 'tabela';
   mostrarFiltros = false;
-  apiUrl = 'http://localhost:8000/api/ordens-servico';
+  apiUrl = `${environment.apiUrl}/ordens-servico`;
 
   constructor(
     private ordemServicoService: OrdemServicoService,
@@ -121,7 +122,7 @@ export class ListaOrdensServicoComponent implements OnInit {
   }
 
   carregarPeritos(): void {
-    this.http.get<Perito[]>('http://localhost:8000/api/usuarios/peritos_dropdown/').subscribe({
+    this.http.get<Perito[]>(`${environment.apiUrl}/usuarios/peritos_dropdown/`).subscribe({
       next: (peritos) => {
         this.peritos = peritos;
         console.log('✅ Peritos carregados:', this.peritos.length);
@@ -134,7 +135,7 @@ export class ListaOrdensServicoComponent implements OnInit {
   }
 
   carregarUnidades(): void {
-    this.http.get<any>('http://localhost:8000/api/unidades-demandantes/').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/unidades-demandantes/`).subscribe({
       next: (response) => {
         this.unidades = response.results || response;
         console.log('✅ Unidades carregadas:', this.unidades.length);
@@ -236,6 +237,7 @@ export class ListaOrdensServicoComponent implements OnInit {
   }
 
   mudarQuantidadePorPagina(): void {
+    // ESTA FUNÇÃO NÃO É MAIS USADA, MAS PODE SER DEIXADA AQUI SEM PROBLEMAS
     this.paginaAtual = 1;
     this.carregarOrdens();
   }
@@ -254,7 +256,7 @@ export class ListaOrdensServicoComponent implements OnInit {
 
   salvarPreferencias(): void {
     const prefs = {
-      itensPorPagina: this.itensPorPagina,
+      // ✅ REMOVIDA a preferência itensPorPagina
       modoExibicao: this.modoExibicao,
       ordenarPor: this.ordenarPor
     };
@@ -265,7 +267,7 @@ export class ListaOrdensServicoComponent implements OnInit {
     const prefs = localStorage.getItem('os_preferencias');
     if (prefs) {
       const parsed = JSON.parse(prefs);
-      this.itensPorPagina = parsed.itensPorPagina || 25;
+      // ✅ REMOVIDA a preferência itensPorPagina
       this.modoExibicao = parsed.modoExibicao || 'tabela';
       this.ordenarPor = parsed.ordenarPor || '-created_at';
     }
@@ -473,31 +475,31 @@ export class ListaOrdensServicoComponent implements OnInit {
     return this.ordemServicoService.getUrgenciaInfo(urgencia);
   }
 
- getDiasRestantesTexto(os: OrdemServico): string {
-  // ✅ 1º: Verificar se está concluída ANTES
-  if (os.status === 'CONCLUIDA') {
-    if (os.concluida_com_atraso) {  // ✅ CORRETO
-      return 'Finalizada com atraso';
+  getDiasRestantesTexto(os: OrdemServico): string {
+    if (os.status === 'CONCLUIDA') {
+      if (os.concluida_com_atraso) {
+        return 'Finalizada com atraso';
+      }
+      return 'Cumprida no prazo ✓';
     }
-    return 'Cumprida no prazo ✓';
+
+    const dias = os.dias_restantes;
+
+    if (dias === null) {
+      return 'Prazo não iniciado';
+    }
+
+    if (dias < 0) {
+      return `Vencida há ${Math.abs(dias)} dia(s)`;
+    }
+
+    if (dias === 0) {
+      return 'Vence hoje!';
+    }
+
+    return `${dias} dia(s) restante(s)`;
   }
 
-  const dias = os.dias_restantes;
-
-  if (dias === null) {
-    return 'Prazo não iniciado';
-  }
-
-  if (dias < 0) {
-    return `Vencida há ${Math.abs(dias)} dia(s)`;
-  }
-
-  if (dias === 0) {
-    return 'Vence hoje!';
-  }
-
-  return `${dias} dia(s) restante(s)`;
-}
   alternarModoExibicao(): void {
     this.modoExibicao = this.modoExibicao === 'tabela' ? 'cards' : 'tabela';
     this.salvarPreferencias();

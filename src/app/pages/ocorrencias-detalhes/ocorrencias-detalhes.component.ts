@@ -166,42 +166,86 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     });
   }
 
-  vincularProcedimento(procedimentoId: number): void {
-    this.ocorrenciaService.vincularProcedimento(this.ocorrenciaId!, procedimentoId).subscribe({
-      next: () => {
-        Swal.fire('Sucesso!', 'Procedimento vinculado.', 'success');
-        this.loadOcorrencia(this.ocorrenciaId!);
-      },
-      error: (err) => {
-        const errorMsg = err.error?.error || 'Erro ao vincular procedimento';
-        Swal.fire('Erro', errorMsg, 'error');
-      }
-    });
+ vincularProcedimento(procedimentoId: number): void {
+  if (!this.ocorrenciaId) {
+    console.error("ID da ocorrência não encontrado. Ação cancelada.");
+    return;
   }
 
-  desvincularProcedimento(): void {
-    Swal.fire({
-      title: 'Confirmar Desvinculação',
-      text: 'Tem certeza que deseja desvincular este procedimento?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sim, desvincular',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#d33'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.ocorrenciaService.update(this.ocorrenciaId!, { procedimento_cadastrado_id: null }).subscribe({
-          next: () => {
-            Swal.fire('Desvinculado', 'Procedimento removido.', 'success');
-            this.loadOcorrencia(this.ocorrenciaId!);
-          },
-          error: (err) => {
-            Swal.fire('Erro', 'Erro ao desvincular.', 'error');
-          }
-        });
+  this.ocorrenciaService.vincularProcedimento(this.ocorrenciaId, procedimentoId).subscribe({
+    next: (response) => {
+      const successMsg = response?.message || 'Procedimento vinculado com sucesso.';
+      Swal.fire('Sucesso!', successMsg, 'success');
+      this.loadOcorrencia(this.ocorrenciaId!);
+    },
+    error: (err) => {
+      let errorMsg = 'Erro ao vincular o procedimento.';
+      if (err.error && typeof err.error === 'object') {
+        errorMsg = err.error.error || err.error.detail || errorMsg;
       }
-    });
+      Swal.fire('Ação Não Permitida', errorMsg, 'error');
+    }
+  });
+}
+  // No seu arquivo .ts do componente
+
+  /**
+ * Pede confirmação e desvincula o procedimento atual da ocorrência.
+ * Este método chama o mesmo endpoint de vinculação, mas envia 'null'
+ * para executar a lógica de desvinculação no backend com as mesmas
+ * regras de segurança e auditoria.
+ */
+desvincularProcedimento(): void {
+  // Guarda de segurança para garantir que o ID da ocorrência existe
+  if (!this.ocorrenciaId) {
+    console.error("ID da ocorrência não encontrado. Ação cancelada.");
+    return;
   }
+
+  // Exibe um modal de confirmação para o usuário
+  Swal.fire({
+    title: 'Confirmar Desvinculação',
+    text: 'Tem certeza que deseja desvincular este procedimento?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, desvincular',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#d33',
+    reverseButtons: true
+  }).then((result) => {
+    // Procede apenas se o usuário clicar em "Sim, desvincular"
+    if (result.isConfirmed) {
+      // Chama o endpoint, passando 'null' para indicar desvinculação
+      this.ocorrenciaService.vincularProcedimento(this.ocorrenciaId!, null).subscribe({
+        // Bloco executado em caso de SUCESSO na chamada da API
+        next: (response) => {
+          // Usa a mensagem de sucesso do backend ou uma padrão
+          const successMsg = response?.message || 'O procedimento foi removido com sucesso.';
+          Swal.fire('Desvinculado!', successMsg, 'success');
+
+          // Recarrega os dados da ocorrência para atualizar a tela
+          this.loadOcorrencia(this.ocorrenciaId!);
+        },
+        // Bloco executado em caso de ERRO na chamada da API
+        error: (err) => {
+          // Define uma mensagem padrão como último recurso
+          let errorMsg = 'Erro ao desvincular o procedimento.';
+
+          // Verifica se o corpo do erro (err.error) existe e é um objeto
+          if (err.error && typeof err.error === 'object') {
+            // Procura pela nossa chave customizada 'error',
+            // se não achar, procura pela chave padrão do Django 'detail'.
+            // Se não achar nenhuma das duas, mantém a mensagem padrão.
+            errorMsg = err.error.error || err.error.detail || errorMsg;
+          }
+
+          // Exibe o SweetAlert com a mensagem de erro correta
+          Swal.fire('Ação Não Permitida', errorMsg, 'error');
+        }
+      });
+    }
+  });
+}
 
   onEditar(): void {
     if (!this.ocorrencia || !this.ocorrenciaId) return;

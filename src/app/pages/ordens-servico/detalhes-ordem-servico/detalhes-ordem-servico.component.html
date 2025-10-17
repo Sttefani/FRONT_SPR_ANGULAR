@@ -145,7 +145,6 @@
       </div>
     }
 
-    <!-- AÇÃO NECESSÁRIA DO PERITO -->
     @if (ordemServico.acao_necessaria && !isAdministrativo()) {
       <div class="alert alert-warning">
         <h5 class="alert-heading">
@@ -187,7 +186,6 @@
       </div>
     }
 
-    <!-- ✅ BOTÃO JUSTIFICAR PARA PERITO (QUANDO VENCIDA) -->
     @if (!isAdministrativo() && ordemServico.dias_restantes !== null && ordemServico.dias_restantes < 0 && ordemServico.status !== 'CONCLUIDA' && !ordemServico.justificativa_atraso) {
       <div class="alert alert-danger">
         <h5 class="alert-heading">
@@ -206,7 +204,6 @@
       </div>
     }
 
-    <!-- ✅ AÇÃO DO ADMINISTRATIVO - REITERAR OS VENCIDA -->
     @if (isAdministrativo() && ordemServico.dias_restantes !== null && ordemServico.dias_restantes < 0 && ordemServico.status !== 'CONCLUIDA') {
       <div class="alert alert-danger">
         <h5 class="alert-heading">
@@ -241,7 +238,6 @@
       </div>
     }
 
-    <!-- ✅ AÇÃO DO ADMINISTRATIVO - DAR BAIXA NA OS -->
     @if (isAdministrativo() && (ordemServico.status === 'EM_ANDAMENTO' || ordemServico.status === 'ABERTA' || ordemServico.status === 'VENCIDA')) {
       <div class="alert alert-info">
         <h5 class="alert-heading">
@@ -271,7 +267,6 @@
       </div>
     }
 
-    <!-- ✅ MENSAGEM QUANDO JÁ ESTÁ CONCLUÍDA -->
     @if (ordemServico.status === 'CONCLUIDA') {
       <div class="alert alert-success">
         <h5 class="alert-heading">
@@ -578,7 +573,6 @@
   </div>
 }
 
-<!-- ✅ MODAL REITERAR (ADMINISTRATIVO) -->
 @if (mostrarModalReiterar) {
   <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-lg">

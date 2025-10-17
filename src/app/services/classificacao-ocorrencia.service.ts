@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 export interface ClassificacaoOcorrencia {
   id: number;
@@ -12,7 +13,7 @@ export interface ClassificacaoOcorrencia {
     nome: string;
   } | null;
   parent_id?: number | null;
-  servicos_periciais?: any[]; // <-- ADICIONE ESTA LINHA
+  servicos_periciais?: any[];
   created_at: string;
   updated_at: string;
   created_by?: {
@@ -37,7 +38,7 @@ export interface ClassificacaoOcorrencia {
   providedIn: 'root'
 })
 export class ClassificacaoOcorrenciaService {
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) {}
 

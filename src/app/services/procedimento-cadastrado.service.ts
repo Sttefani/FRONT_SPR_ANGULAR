@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 export interface ProcedimentoCadastrado {
   id: number;
@@ -44,7 +45,7 @@ export interface PaginatedResponse {
   providedIn: 'root'
 })
 export class ProcedimentoCadastradoService {
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) {}
 
@@ -83,24 +84,26 @@ export class ProcedimentoCadastradoService {
   restaurar(id: number): Observable<ProcedimentoCadastrado> {
     return this.http.post<ProcedimentoCadastrado>(`${this.baseUrl}/procedimentos-cadastrados/${id}/restaurar/`, {});
   }
+
   buscar(tipoProcedimentoId: number, numero: string, ano: number): Observable<any[]> {
-  let params = new HttpParams()
-    .set('tipo_procedimento', tipoProcedimentoId.toString())
-    .set('numero', numero)
-    .set('ano', ano.toString());
+    let params = new HttpParams()
+      .set('tipo_procedimento', tipoProcedimentoId.toString())
+      .set('numero', numero)
+      .set('ano', ano.toString());
 
-  return this.http.get<any[]>(`${this.baseUrl}/procedimentos-cadastrados/`, { params });
-}
-verificarExistente(tipoProcedimentoId: number, numero: string, ano: number): Observable<any> {
-  const params = new HttpParams()
-    .set('tipo_procedimento_id', tipoProcedimentoId.toString())
-    .set('numero', numero.toUpperCase())
-    .set('ano', ano.toString());
+    return this.http.get<any[]>(`${this.baseUrl}/procedimentos-cadastrados/`, { params });
+  }
 
-  return this.http.get<any>(`${this.baseUrl}/procedimentos-cadastrados/verificar_existente/`, { params });
-}
-getOcorrenciasVinculadas(procedimentoId: number): Observable<any> {
-  // A URL está correta, apontando para a sua @action personalizada
-  return this.http.get(`${this.baseUrl}/procedimentos-cadastrados/${procedimentoId}/ocorrencias_vinculadas/`);
-}
+  verificarExistente(tipoProcedimentoId: number, numero: string, ano: number): Observable<any> {
+    const params = new HttpParams()
+      .set('tipo_procedimento_id', tipoProcedimentoId.toString())
+      .set('numero', numero.toUpperCase())
+      .set('ano', ano.toString());
+
+    return this.http.get<any>(`${this.baseUrl}/procedimentos-cadastrados/verificar_existente/`, { params });
+  }
+
+  getOcorrenciasVinculadas(procedimentoId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/procedimentos-cadastrados/${procedimentoId}/ocorrencias_vinculadas/`);
+  }
 }

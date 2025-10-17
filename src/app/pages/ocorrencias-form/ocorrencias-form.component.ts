@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';  // ← LINHA ADICIONADA
 import { Observable } from 'rxjs';
 import Swal from 'sweetalert2';
 
@@ -43,7 +44,7 @@ export class OcorrenciasFormComponent implements OnInit {
   buscaProcedimentoForm!: FormGroup;
   isEditMode = false;
   ocorrenciaId: number | null = null;
-  existingEnderecoId: number | null = null; // <-- ADICIONE ESTA LINHA
+  existingEnderecoId: number | null = null;
   isLoading = false;
   isSaving = false;
   message = '';
@@ -464,57 +465,56 @@ export class OcorrenciasFormComponent implements OnInit {
   }
 
   loadOcorrencia(id: number): void {
-  this.isLoading = true;
-  this.isEditMode = true;
+    this.isLoading = true;
+    this.isEditMode = true;
 
-  this.ocorrenciaService.getById(id).subscribe({
-    next: (ocorrencia: any) => {
-      console.log('📦 DADOS CARREGADOS:', ocorrencia);
+    this.ocorrenciaService.getById(id).subscribe({
+      next: (ocorrencia: any) => {
+        console.log('📦 DADOS CARREGADOS:', ocorrencia);
 
-      if (!this.podeEditarOcorrencia(ocorrencia)) {
+        if (!this.podeEditarOcorrencia(ocorrencia)) {
+          this.isLoading = false;
+          return;
+        }
+
+        this.carregarDadosComplementares(ocorrencia);
+        this.preencherFormulario(ocorrencia);
+
+        if (ocorrencia.endereco) {
+          this.existingEnderecoId = ocorrencia.endereco.id;
+
+          this.form.endereco = {
+            tipo: ocorrencia.endereco.tipo || 'EXTERNA',
+            modo_entrada: ocorrencia.endereco.modo_entrada || 'ENDERECO_CONVENCIONAL',
+            logradouro: ocorrencia.endereco.logradouro || '',
+            numero: ocorrencia.endereco.numero || '',
+            complemento: ocorrencia.endereco.complemento || '',
+            bairro: ocorrencia.endereco.bairro || '',
+            cep: ocorrencia.endereco.cep || '',
+            latitude: ocorrencia.endereco.latitude || '',
+            longitude: ocorrencia.endereco.longitude || '',
+            ponto_referencia: ocorrencia.endereco.ponto_referencia || '',
+            coordenadas_manuais: ocorrencia.endereco.coordenadas_manuais || false
+          };
+        }
+
         this.isLoading = false;
-        return;
+      },
+      error: (err: any) => {
+        console.error('❌ Erro ao carregar ocorrência:', err);
+        this.isLoading = false;
+        Swal.fire({
+          title: 'Erro',
+          text: 'Não foi possível carregar a ocorrência.',
+          icon: 'error',
+          confirmButtonText: 'Voltar'
+        }).then(() => {
+          this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+        });
       }
+    });
+  }
 
-      this.carregarDadosComplementares(ocorrencia);
-      this.preencherFormulario(ocorrencia);
-
-      if (ocorrencia.endereco) {
-        // <<< ALTERAÇÃO AQUI: Guardamos o ID do endereço existente na variável do componente
-        this.existingEnderecoId = ocorrencia.endereco.id;
-
-        // O resto do código preenche o formulário normalmente
-        this.form.endereco = {
-          tipo: ocorrencia.endereco.tipo || 'EXTERNA',
-          modo_entrada: ocorrencia.endereco.modo_entrada || 'ENDERECO_CONVENCIONAL',
-          logradouro: ocorrencia.endereco.logradouro || '',
-          numero: ocorrencia.endereco.numero || '',
-          complemento: ocorrencia.endereco.complemento || '',
-          bairro: ocorrencia.endereco.bairro || '',
-          cep: ocorrencia.endereco.cep || '',
-          latitude: ocorrencia.endereco.latitude || '',
-          longitude: ocorrencia.endereco.longitude || '',
-          ponto_referencia: ocorrencia.endereco.ponto_referencia || '',
-          coordenadas_manuais: ocorrencia.endereco.coordenadas_manuais || false
-        };
-      }
-
-      this.isLoading = false;
-    },
-    error: (err: any) => {
-      console.error('❌ Erro ao carregar ocorrência:', err);
-      this.isLoading = false;
-      Swal.fire({
-        title: 'Erro',
-        text: 'Não foi possível carregar a ocorrência.',
-        icon: 'error',
-        confirmButtonText: 'Voltar'
-      }).then(() => {
-        this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
-      });
-    }
-  });
-}
   private podeEditarOcorrencia(ocorrencia: any): boolean {
     const user = this.authService.getCurrentUser();
     const isSuperAdmin = this.authService.isSuperAdmin();
@@ -667,20 +667,15 @@ export class OcorrenciasFormComponent implements OnInit {
       coordenadas_manuais: this.form.endereco.coordenadas_manuais
     };
 
-   const baseUrl = 'http://localhost:8000/api';
+    const baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
-  // <<< ESTA É A LÓGICA CORRIGIDA E FINAL >>>
-
-  // Se estiver no modo de edição E tivermos um ID de endereço guardado...
-  if (this.isEditMode && this.existingEnderecoId) {
-    // ...monte a URL para ATUALIZAR o endereço específico e use PUT.
-    const url = `${baseUrl}/enderecos-ocorrencia/${this.existingEnderecoId}/`;
-    return this.http.put(url, enderecoPayload);
-  } else {
-    // ...caso contrário (é uma nova ocorrência), use a URL para CRIAR e use POST.
-    const url = `${baseUrl}/enderecos-ocorrencia/`;
-    return this.http.post(url, enderecoPayload);
-  }
+    if (this.isEditMode && this.existingEnderecoId) {
+      const url = `${baseUrl}/enderecos-ocorrencia/${this.existingEnderecoId}/`;
+      return this.http.put(url, enderecoPayload);
+    } else {
+      const url = `${baseUrl}/enderecos-ocorrencia/`;
+      return this.http.post(url, enderecoPayload);
+    }
   }
 
   onSubmit(): void {

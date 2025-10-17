@@ -3,6 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 // =============================================================================
 // INTERFACES
@@ -94,7 +95,7 @@ export interface OrdemServico {
   prazo_acumulado_total: number;
   acao_necessaria: string | null;
   reiteracoes: any[];
-  concluida_com_atraso: boolean | null;  // ← ADICIONAR ESTA LINHA AQUI
+  concluida_com_atraso: boolean | null;
   perito_destinatario: {
     id: number;
     nome_completo: string;
@@ -167,7 +168,7 @@ export interface FiltrosOrdemServico {
   providedIn: 'root'
 })
 export class OrdemServicoService {
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) {}
 

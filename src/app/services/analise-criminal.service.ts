@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 export interface EstatisticaCriminal {
   total_ocorrencias: number;
@@ -50,7 +51,7 @@ export interface OcorrenciaGeo {
   providedIn: 'root'
 })
 export class AnaliseCriminalService {
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) {}
 
@@ -66,4 +67,3 @@ export class AnaliseCriminalService {
     });
   }
 }
-

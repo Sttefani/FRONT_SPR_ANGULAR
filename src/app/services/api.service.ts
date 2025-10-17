@@ -1,9 +1,7 @@
-// Cole este código dentro do seu arquivo api.service.ts
-
 import { Injectable } from '@angular/core';
-// Adicione HttpParams se não estiver importado
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
 
 // É uma boa prática definir uma interface para seus objetos de dados.
 // Isso ajuda com o autocompletar e a prevenção de erros.
@@ -18,7 +16,7 @@ export interface User {
   perfil: string;
   created_at: string;
   updated_at: string;
-  servicos_periciais?: ServicoPericialNested[];  // ← ADICIONE
+  servicos_periciais?: ServicoPericialNested[];
 }
 
 export interface ServicoPericialNested {
@@ -26,11 +24,12 @@ export interface ServicoPericialNested {
   sigla: string;
   nome: string;
 }
+
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:8000/api'; // URL da sua API Django
+  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
   constructor(private http: HttpClient) { }
 
@@ -38,5 +37,4 @@ export class ApiService {
   getData(): Observable<any> {
     return this.http.get(`${this.baseUrl}/endpoint`);
   }
-
 }
