@@ -897,4 +897,20 @@
       justify-content: center;
     }
   }
+  ::ng-deep .swal2-container select.swal2-input {
+  background-color: white !important;
+  color: #333 !important;
+
+  option {
+    background-color: white !important;
+    color: #333 !important;
+
+    &:checked,
+    &[selected] {
+      background-color: #DAA520 !important;
+      color: white !important;
+      font-weight: bold !important;
+    }
+  }
+}
 }

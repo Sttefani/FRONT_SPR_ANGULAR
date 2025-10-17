@@ -176,6 +176,7 @@ export class MovimentacaoTimelineComponent implements OnInit {
   }
 
   foiEditado(movimentacao: Movimentacao): boolean {
-    return movimentacao.created_at !== movimentacao.updated_at;
-  }
+  // Verifica se existe updated_by (só existe se realmente foi editado)
+  return !!movimentacao.updated_by;
+}
 }

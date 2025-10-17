@@ -90,44 +90,94 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   }
 
   abrirModalVincularProcedimento(): void {
-    Swal.fire({
-      title: 'Vincular Procedimento',
-      width: '600px',
-      html: `
-        <div style="text-align: left; padding: 10px;">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Procedimento *</label>
-          <select id="swal-tipo" class="swal2-input">
-            <option value="">Selecione</option>
-            ${this.tiposProcedimento.map(t => `<option value="${t.id}">${t.sigla} - ${t.nome}</option>`).join('')}
-          </select>
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Número *</label>
-          <input id="swal-numero" class="swal2-input" placeholder="Ex: 123">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Ano *</label>
-          <input id="swal-ano" type="number" class="swal2-input" value="${new Date().getFullYear()}">
-        </div>
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Buscar',
-      cancelButtonText: 'Cancelar',
-      preConfirm: () => {
-        const tipo = (document.getElementById('swal-tipo') as HTMLSelectElement).value;
-        const numero = (document.getElementById('swal-numero') as HTMLInputElement).value;
-        const ano = (document.getElementById('swal-ano') as HTMLInputElement).value;
+  Swal.fire({
+    title: 'Vincular Procedimento',
+    width: '600px',
+    html: `
+      <div style="text-align: left; padding: 10px;">
+        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333; font-size: 14px;">
+          Tipo de Procedimento *
+        </label>
+        <select id="swal-tipo" style="
+          width: 100%;
+          padding: 12px;
+          font-size: 14px;
+          font-weight: 500;
+          border: 2px solid #d9d9d9;
+          border-radius: 6px;
+          background-color: #ffffff;
+          color: #333333;
+          margin-bottom: 15px;
+          cursor: pointer;
+          appearance: auto;
+          -webkit-appearance: menulist;
+          -moz-appearance: menulist;
+        ">
+          <option value="" style="color: #999; background: #fff;">Selecione</option>
+          ${this.tiposProcedimento.map(t =>
+            `<option value="${t.id}" style="color: #333; background: #fff; padding: 8px;">
+              ${t.sigla} - ${t.nome}
+            </option>`
+          ).join('')}
+        </select>
 
-        if (!tipo || !numero || !ano) {
-          Swal.showValidationMessage('Preencha todos os campos');
-          return false;
-        }
+        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333; font-size: 14px;">
+          Número *
+        </label>
+        <input
+          id="swal-numero"
+          type="text"
+          placeholder="Ex: 123"
+          style="
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 2px solid #d9d9d9;
+            border-radius: 6px;
+            background-color: #ffffff;
+            color: #333333;
+            margin-bottom: 15px;
+          ">
 
-        return { tipo: Number(tipo), numero, ano: Number(ano) };
+        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333; font-size: 14px;">
+          Ano *
+        </label>
+        <input
+          id="swal-ano"
+          type="number"
+          value="${new Date().getFullYear()}"
+          style="
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 2px solid #d9d9d9;
+            border-radius: 6px;
+            background-color: #ffffff;
+            color: #333333;
+          ">
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Buscar',
+    cancelButtonText: 'Cancelar',
+    preConfirm: () => {
+      const tipo = (document.getElementById('swal-tipo') as HTMLSelectElement).value;
+      const numero = (document.getElementById('swal-numero') as HTMLInputElement).value;
+      const ano = (document.getElementById('swal-ano') as HTMLInputElement).value;
+
+      if (!tipo || !numero || !ano) {
+        Swal.showValidationMessage('Preencha todos os campos');
+        return false;
       }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.buscarEVincularProcedimento(result.value);
-      }
-    });
-  }
 
+      return { tipo: Number(tipo), numero, ano: Number(ano) };
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.buscarEVincularProcedimento(result.value);
+    }
+  });
+}
   buscarEVincularProcedimento(dados: any): void {
     this.procedimentoCadastradoService.verificarExistente(dados.tipo, dados.numero, dados.ano).subscribe({
       next: (response: any) => {
@@ -540,18 +590,32 @@ desvincularProcedimento(): void {
     return classes[status] || '';
   }
 
-  podeGerenciarProcedimento(): boolean {
-    if (!this.ocorrencia) return false;
+ podeGerenciarProcedimento(): boolean {
+  if (!this.ocorrencia) return false;
 
-    if (this.isSuperAdmin) return true;
+  // Se finalizada, ninguém pode
+  if (this.ocorrencia.esta_finalizada) return false;
 
-    if (this.isAdministrativo) return true;
+  // Super admin sempre pode
+  if (this.isSuperAdmin) return true;
 
-    if (this.ocorrencia.perito_atribuido) {
-      const user = this.authService.getCurrentUser();
-      return user?.id === this.ocorrencia.perito_atribuido.id;
-    }
+  // Se tem perito, só o perito pode
+  if (this.ocorrencia.perito_atribuido) {
+    const user = this.authService.getCurrentUser();
 
-    return false;
+    // ✅ CORREÇÃO: Converte AMBOS para Number antes de comparar
+    const meuId = Number(user?.id);
+    const peritoId = Number(this.ocorrencia.perito_atribuido.id);
+
+    console.log('🔍 Comparação corrigida:');
+    console.log('  - Meu ID (convertido):', meuId);
+    console.log('  - ID do perito (convertido):', peritoId);
+    console.log('  - Match?', meuId === peritoId ? '✅ SIM' : '❌ NÃO');
+
+    return meuId === peritoId;
   }
+
+  // Se não tem perito, qualquer um pode
+  return true;
+}
 }
