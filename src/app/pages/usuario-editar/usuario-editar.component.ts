@@ -32,7 +32,7 @@ export class UsuarioEditarComponent implements OnInit {
   perfilOptions = [
     { value: 'PERITO', label: 'Perito' },
     { value: 'OPERACIONAL', label: 'Operacional' },
-    { value: 'ADMIN', label: 'Administrativo' }
+    { value: 'ADMINISTRATIVO', label: 'Administrativo' }
   ];
 
   constructor(
