@@ -40,6 +40,23 @@ export const routes: Routes = [
         path: '',
         loadComponent: () => import('./pages/dashboard-inicial/dashboard-inicial.component').then(m => m.DashboardInicialComponent)
       },
+      // =====================================================================
+      // 🤖 ASSISTENTE IA (ADICIONE AQUI)
+      // =====================================================================
+      {
+        path: 'assistente-ia',
+        loadComponent: () => import('./pages/IA/ia-chat.component').then(m => m.IaChatComponent),
+        canActivate: [AuthGuard]
+      },
+
+      // =====================================================================
+      // GERÊNCIA (SUPER ADMIN)
+      // =====================================================================
+      {
+        path: 'gerencia/usuarios',
+        loadComponent: () => import('./pages/usuario-list/usuario-list.component').then(m => m.UsuarioListComponent),
+        canActivate: [superAdminGuard]
+      },
 
       // =====================================================================
       // GERÊNCIA (SUPER ADMIN)
