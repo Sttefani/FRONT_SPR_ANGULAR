@@ -7,6 +7,9 @@ import { superAdminGuard } from './guards/super-admin.guard';
 import { perfilGuard } from './guards/perfil.guard';
 import { TiposDocumentoListComponent } from './pages/tipos-documento-list/tipos-documento-list.component';
 import { TiposDocumentoFormComponent } from './pages/tipos-documento-form/tipos-documento-form.component';
+import { GerarLaudoThcComponent } from './pages/gerar-laudo-thc/gerar-laudo-thc.component';
+import { GerarLaudoThcListaComponent } from './pages/gerar-laudo-thc-lista/gerar-laudo-thc-lista.component';
+import { GerarLaudoThcDetalhesComponent } from './pages/gerar-laudo-thc-detalhes/gerar-laudo-thc-detalhes.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -48,14 +51,31 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/IA/ia-chat.component').then(m => m.IaChatComponent),
         canActivate: [AuthGuard]
       },
-
-      // =====================================================================
-      // GERÊNCIA (SUPER ADMIN)
-      // =====================================================================
+      // ✅ CORREÇÃO APLICADA AQUI
+      // ✅ ROTA PRINCIPAL: Agora aponta para a LISTA.
+      // Corresponde ao link do menu: /gabinete-virtual/gerar-laudo-thc
       {
-        path: 'gerencia/usuarios',
-        loadComponent: () => import('./pages/usuario-list/usuario-list.component').then(m => m.UsuarioListComponent),
-        canActivate: [superAdminGuard]
+        path: 'gerar-laudo-thc',
+        component: GerarLaudoThcListaComponent,
+        canActivate: [AuthGuard]
+      },
+
+      // ✅ NOVA ROTA: Rota específica para o FORMULÁRIO de criação.
+      {
+        path: 'gerar-laudo-thc/novo',
+        component: GerarLaudoThcComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'gerar-laudo-thc/editar/:id',
+        component: GerarLaudoThcComponent,
+        canActivate: [AuthGuard]
+      },
+
+      {
+        path: 'laudo/:id',
+        component: GerarLaudoThcDetalhesComponent,
+        canActivate: [AuthGuard]
       },
 
       // =====================================================================
@@ -86,6 +106,7 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/usuario-servicos/usuario-servicos.component').then(m => m.UsuarioServicosComponent),
         canActivate: [AuthGuard, superAdminGuard]
       },
+
 
       // =====================================================================
       // RELATÓRIOS GERENCIAIS (ADMIN & SUPERUSER)
@@ -323,3 +344,4 @@ export const routes: Routes = [
   // Rota "catch-all" para páginas não encontradas
   { path: '**', redirectTo: '/login' }
 ];
+

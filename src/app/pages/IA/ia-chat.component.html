@@ -1,101 +1,168 @@
 <div class="container mt-4">
   <div class="ia-chat-container">
     <div class="chat-header">
-      <h2>🤖 Inteligência Artificial - Perícia Criminal </h2>
+      <h2>🤖 Inteligência Artificial - Perícia Criminal</h2>
     </div>
 
-    <!-- SELEÇÃO DE TIPO DE LAUDO -->
-    <div class="chat-inicio" *ngIf="!chatIniciado">
-      <div class="card p-4">
-        <h3 class="text-center mb-4">Escolha o assunto do trabalho:</h3>
+    <!-- SELEÇÃO INICIAL: IA do Sistema OU Chatbase -->
+    @if (!modoSelecionado) {
+      <div class="chat-inicio">
+        <div class="card p-4">
+          <h3 class="text-center mb-4">Escolha o assistente de IA:</h3>
 
-        <select [(ngModel)]="tipoLaudo" class="form-control form-control-lg mb-3">
-          <option *ngFor="let tipo of tiposLaudo" [value]="tipo">
-            {{ tipo }}
-          </option>
-        </select>
-
-        <button
-          class="btn btn-primary btn-lg btn-block w-100"
-          (click)="iniciarChat()"
-          [disabled]="carregando">
-          <span *ngIf="!carregando">🚀 Iniciar Chat</span>
-          <span *ngIf="carregando">⏳ Carregando...</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- CHAT ATIVO -->
-    <div class="chat-ativo" *ngIf="chatIniciado">
-
-      <!-- MENSAGENS -->
-      <div class="chat-mensagens">
-        <div
-          *ngFor="let msg of mensagens"
-          [ngClass]="'mensagem mensagem-' + msg.tipo">
-
-          <div class="mensagem-avatar">
-            <span *ngIf="msg.tipo === 'ia'">🤖</span>
-            <span *ngIf="msg.tipo === 'user'">👤</span>
-          </div>
-
-          <div class="mensagem-conteudo">
-            <div class="mensagem-texto">{{ msg.conteudo }}</div>
-            <div class="mensagem-hora">
-              {{ msg.timestamp | date:'HH:mm' }}
+          <div class="row g-3">
+            <!-- Opção 1: IA do Sistema -->
+            <div class="col-md-6">
+              <div class="opcao-card" (click)="selecionarModo('sistema')">
+                <div class="opcao-icon">🔬</div>
+                <h4>IA do Sistema</h4>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div *ngIf="carregando" class="mensagem mensagem-ia">
-          <div class="mensagem-avatar">🤖</div>
-          <div class="mensagem-conteudo">
-            <div class="typing-indicator">
-              <span></span><span></span><span></span>
+            <!-- Opção 2: Chatbase -->
+            <div class="col-md-6">
+              <div class="opcao-card" (click)="selecionarModo('chatbase')">
+                <div class="opcao-icon">💬</div>
+                <h4>Assistente Virtual</h4>
+                <p>Tire dúvidas - Local de Crime e Cadeia de Custódia</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
+    }
 
-      <!-- INPUT E BOTÕES -->
-      <div class="chat-input">
-        <textarea
-          [(ngModel)]="mensagemAtual"
-          (keydown)="onEnter($event)"
-          placeholder="Digite sua mensagem..."
-          class="form-control mb-2"
-          rows="2"
-          [disabled]="carregando"></textarea>
-
-        <div class="chat-botoes">
-          <button
-            class="btn btn-success"
-            (click)="enviarMensagem()"
-            [disabled]="!mensagemAtual.trim() || carregando">
-            📤 Enviar
-          </button>
-
-          <button
-            class="btn btn-primary"
-            (click)="gerarLaudoFinal()"
-            [disabled]="carregando">
-            📄 Gerar Laudo
-          </button>
-
-          <button
-            class="btn btn-info"
-            (click)="baixarPdf()"
-            [disabled]="!laudoGerado || carregando">
-            📥 Baixar PDF
-          </button>
-
-          <button
-            class="btn btn-secondary"
-            (click)="reiniciarChat()">
-            🔄 Novo Chat
+    <!-- MODO CHATBASE -->
+    @if (modoSelecionado === 'chatbase') {
+      <div class="chat-ativo">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4>💬 Assistente Virtual</h4>
+          <button class="btn btn-secondary btn-sm" (click)="voltarInicio()">
+            ← Voltar
           </button>
         </div>
+
+        <div class="chatbase-wrapper">
+          <iframe
+            src="https://www.chatbase.co/chatbot-iframe/XF_Atli8k-WBr83z_7eEN"
+            class="chatbase-iframe"
+            frameborder="0"
+            title="Assistente IA"
+          ></iframe>
+        </div>
       </div>
-    </div>
+    }
+
+    <!-- MODO IA DO SISTEMA (seu chat original) -->
+    @if (modoSelecionado === 'sistema') {
+      <!-- SELEÇÃO DE TIPO DE LAUDO -->
+      @if (!chatIniciado) {
+        <div class="chat-inicio">
+          <div class="card p-4">
+            <button class="btn btn-secondary btn-sm mb-3" (click)="voltarInicio()">
+              ← Voltar
+            </button>
+
+            <h3 class="text-center mb-4">Escolha o assunto do trabalho:</h3>
+
+            <select [(ngModel)]="tipoLaudo" class="form-control form-control-lg mb-3">
+              @for (tipo of tiposLaudo; track tipo) {
+                <option [value]="tipo">{{ tipo }}</option>
+              }
+            </select>
+
+            <button
+              class="btn btn-primary btn-lg btn-block w-100"
+              (click)="iniciarChat()"
+              [disabled]="carregando">
+              @if (!carregando) {
+                <span>🚀 Iniciar Chat</span>
+              } @else {
+                <span>⏳ Carregando...</span>
+              }
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- CHAT ATIVO -->
+      @if (chatIniciado) {
+        <div class="chat-ativo">
+          <!-- MENSAGENS -->
+          <div class="chat-mensagens">
+            @for (msg of mensagens; track msg.timestamp) {
+              <div [ngClass]="'mensagem mensagem-' + msg.tipo">
+                <div class="mensagem-avatar">
+                  @if (msg.tipo === 'ia') {
+                    <span>🤖</span>
+                  }
+                  @if (msg.tipo === 'user') {
+                    <span>👤</span>
+                  }
+                </div>
+
+                <div class="mensagem-conteudo">
+                  <div class="mensagem-texto">{{ msg.conteudo }}</div>
+                  <div class="mensagem-hora">
+                    {{ msg.timestamp | date:'HH:mm' }}
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (carregando) {
+              <div class="mensagem mensagem-ia">
+                <div class="mensagem-avatar">🤖</div>
+                <div class="mensagem-conteudo">
+                  <div class="typing-indicator">
+                    <span></span><span></span><span></span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- INPUT E BOTÕES -->
+          <div class="chat-input">
+            <textarea
+              [(ngModel)]="mensagemAtual"
+              (keydown)="onEnter($event)"
+              placeholder="Digite sua mensagem..."
+              class="form-control mb-2"
+              rows="2"
+              [disabled]="carregando"></textarea>
+
+            <div class="chat-botoes">
+              <button
+                class="btn btn-success"
+                (click)="enviarMensagem()"
+                [disabled]="!mensagemAtual.trim() || carregando">
+                📤 Enviar
+              </button>
+
+              <button
+                class="btn btn-primary"
+                (click)="gerarLaudoFinal()"
+                [disabled]="carregando">
+                📄 Gerar Laudo
+              </button>
+
+              <button
+                class="btn btn-info"
+                (click)="baixarPdf()"
+                [disabled]="!laudoGerado || carregando">
+                📥 Baixar PDF
+              </button>
+
+              <button
+                class="btn btn-secondary"
+                (click)="reiniciarChat()">
+                🔄 Novo Chat
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    }
   </div>
 </div>

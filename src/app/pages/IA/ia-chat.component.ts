@@ -18,6 +18,9 @@ interface Mensagem {
   styleUrls: ['./ia-chat.component.scss']
 })
 export class IaChatComponent implements OnInit {
+  // ✅ NOVA VARIÁVEL
+  modoSelecionado: 'sistema' | 'chatbase' | null = null;
+
   mensagens: Mensagem[] = [];
   mensagemAtual: string = '';
   sessionKey: string | null = null;
@@ -31,6 +34,20 @@ export class IaChatComponent implements OnInit {
   constructor(private iaService: IaService) {}
 
   ngOnInit(): void {}
+
+  // ✅ NOVO MÉTODO
+  selecionarModo(modo: 'sistema' | 'chatbase'): void {
+    this.modoSelecionado = modo;
+  }
+
+  // ✅ NOVO MÉTODO
+  voltarInicio(): void {
+    this.modoSelecionado = null;
+    this.chatIniciado = false;
+    this.mensagens = [];
+    this.mensagemAtual = '';
+    this.laudoGerado = false;
+  }
 
   iniciarChat(): void {
     this.carregando = true;

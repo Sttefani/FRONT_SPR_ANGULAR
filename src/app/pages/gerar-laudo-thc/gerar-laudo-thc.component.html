@@ -1,0 +1,267 @@
+<div class="container-fluid p-4">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">
+        <i class="fas fa-flask"></i> {{ modoEdicao ? 'Editar Laudo Químico - THC' : 'Gerar Laudo Químico - THC' }}
+      </h2>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (carregando && !campos) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <p class="mt-3">{{ modoEdicao ? 'Carregando dados do laudo...' : 'Carregando campos do laudo...' }}</p>
+    </div>
+  }
+
+  <!-- Erro -->
+  @if (erro) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="fas fa-exclamation-triangle"></i> {{ erro }}
+      <button type="button" class="btn-close" (click)="erro = null"></button>
+    </div>
+  }
+
+  <!-- Formulário -->
+  @if (campos && !laudoGerado) {
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{{ modoEdicao ? 'Editar Laudo' : 'Dados do Laudo' }}</h5>
+
+            @if (!modoEdicao) {
+              <div>
+                <button class="btn btn-sm btn-outline-secondary me-2" (click)="preencherExemplo()" type="button">
+                  <i class="fas fa-magic"></i> Preencher Exemplo
+                </button>
+                <button class="btn btn-sm btn-outline-danger" (click)="limparFormulario()" type="button">
+                  <i class="fas fa-eraser"></i> Limpar
+                </button>
+              </div>
+            }
+          </div>
+
+          <div class="card-body">
+            <form [formGroup]="laudoForm" (ngSubmit)="gerarLaudo()">
+
+              <!-- Identificação -->
+              <div class="mb-4">
+                <h6 class="text-primary border-bottom pb-2">
+                  <i class="fas fa-id-card"></i> Identificação
+                </h6>
+                <div class="row">
+                  @for (campo of getCamposGrupo('identificacao'); track campo) {
+                    <div class="col-md-6 mb-3">
+                      <label [for]="campo" class="form-label">
+                        {{ getNomeCampo(campo) }} <span class="text-danger">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        [id]="campo"
+                        [formControlName]="campo"
+                        [placeholder]="getPlaceholder(campo)"
+                      />
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Requisição -->
+              <div class="mb-4">
+                <h6 class="text-primary border-bottom pb-2">
+                  <i class="fas fa-file-alt"></i> Requisição
+                </h6>
+                <div class="row">
+                  @for (campo of getCamposGrupo('requisicao'); track campo) {
+                    <div class="col-md-6 mb-3">
+                      <label [for]="campo" class="form-label">
+                        {{ getNomeCampo(campo) }} <span class="text-danger">*</span>
+                      </label>
+
+                      @if (getOpcoesValidacao(campo); as opcoes) {
+                        <!-- Select para campos com validação -->
+                        <select class="form-select" [id]="campo" [formControlName]="campo">
+                          <option value="">Selecione...</option>
+                          @for (opcao of opcoes; track opcao) {
+                            <option [value]="opcao">{{ opcao }}</option>
+                          }
+                        </select>
+                      } @else {
+                        <!-- Input normal -->
+                        <input
+                          type="text"
+                          class="form-control"
+                          [id]="campo"
+                          [formControlName]="campo"
+                          [placeholder]="getPlaceholder(campo)"
+                        />
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Material -->
+              <div class="mb-4">
+                <h6 class="text-primary border-bottom pb-2">
+                  <i class="fas fa-box"></i> Material
+                </h6>
+                <div class="row">
+                  @for (campo of getCamposGrupo('material'); track campo) {
+                    <div class="mb-3"
+                         [class.col-12]="campo === 'descricao_material'"
+                         [class.col-md-6]="campo !== 'descricao_material'">
+                      <label [for]="campo" class="form-label">
+                        {{ getNomeCampo(campo) }} <span class="text-danger">*</span>
+                      </label>
+
+                      @if (campo === 'descricao_material') {
+                        <!-- Textarea para descrição -->
+                        <textarea
+                          class="form-control"
+                          [id]="campo"
+                          [formControlName]="campo"
+                          rows="3"
+                          [placeholder]="getPlaceholder(campo)"
+                        ></textarea>
+                      } @else {
+                        <!-- Input normal -->
+                        <input
+                          type="text"
+                          class="form-control"
+                          [id]="campo"
+                          [formControlName]="campo"
+                          [placeholder]="getPlaceholder(campo)"
+                        />
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Resultado -->
+              <div class="mb-4">
+                <h6 class="text-primary border-bottom pb-2">
+                  <i class="fas fa-vial"></i> Resultado do Exame
+                </h6>
+                <div class="row">
+                  @for (campo of getCamposGrupo('resultado'); track campo) {
+                    <div class="col-md-6 mb-3">
+                      <label [for]="campo" class="form-label">
+                        {{ getNomeCampo(campo) }} <span class="text-danger">*</span>
+                      </label>
+
+                      @if (getOpcoesValidacao(campo); as opcoes) {
+                        <!-- Select para resultado -->
+                        <select class="form-select" [id]="campo" [formControlName]="campo">
+                          <option value="">Selecione...</option>
+                          @for (opcao of opcoes; track opcao) {
+                            <option [value]="opcao">{{ opcao }}</option>
+                          }
+                        </select>
+                      } @else {
+                        <!-- Input normal -->
+                        <input
+                          type="text"
+                          class="form-control"
+                          [id]="campo"
+                          [formControlName]="campo"
+                          [placeholder]="getPlaceholder(campo)"
+                        />
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Finalização -->
+              <div class="mb-4">
+                <h6 class="text-primary border-bottom pb-2">
+                  <i class="fas fa-signature"></i> Finalização
+                </h6>
+                <div class="row">
+                  @for (campo of getCamposGrupo('finalizacao'); track campo) {
+                    <div class="col-md-6 mb-3">
+                      <label [for]="campo" class="form-label">
+                        {{ getNomeCampo(campo) }} <span class="text-danger">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        [id]="campo"
+                        [formControlName]="campo"
+                        [placeholder]="getPlaceholder(campo)"
+                      />
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Botão Gerar/Atualizar -->
+              <div class="text-center">
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-lg"
+                  [disabled]="laudoForm.invalid || carregando"
+                >
+                  @if (!carregando) {
+                    <span>
+                      <i class="fas" [class.fa-file-medical]="!modoEdicao" [class.fa-save]="modoEdicao"></i>
+                      {{ modoEdicao ? 'Atualizar Laudo' : 'Gerar Laudo' }}
+                    </span>
+                  } @else {
+                    <span>
+                      <span class="spinner-border spinner-border-sm me-2"></span>
+                      {{ modoEdicao ? 'Atualizando...' : 'Gerando...' }}
+                    </span>
+                  }
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Laudo Gerado -->
+  @if (laudoGerado) {
+    <div id="laudo-resultado" class="row mt-4">
+      <div class="col-12">
+        <div class="card border-success">
+          <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <i class="fas fa-check-circle"></i> Laudo Gerado com Sucesso!
+            </h5>
+            <div>
+              <button class="btn btn-sm btn-light me-2" (click)="copiarLaudo()">
+                <i class="fas fa-copy"></i> Copiar
+              </button>
+              <button class="btn btn-sm btn-light me-2" (click)="baixarPDF()">
+                <i class="fas fa-file-pdf"></i> PDF
+              </button>
+              <button class="btn btn-sm btn-outline-light" (click)="laudoGerado = null">
+                <i class="fas fa-times"></i> Fechar
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <pre class="laudo-texto">{{ laudoGerado }}</pre>
+          </div>
+        </div>
+
+        <div class="text-center mt-3">
+          <button class="btn btn-primary" (click)="laudoGerado = null; limparFormulario()">
+            <i class="fas fa-plus"></i> Gerar Novo Laudo
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,484 @@
+@use 'sass:color';
+
+:host {
+  display: block;
+}
+
+// ===== VARIÁVEIS =====
+$primary: #DAA520;
+$primary-dark: #B8860B;
+$success: #28a745;
+$danger: #dc3545;
+$info: #17a2b8;
+$secondary: #6c757d;
+$dark: #000000;
+$white: #ffffff;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-600: #6c757d;
+$gray-800: #343a40;
+
+// ===== CONTAINER =====
+.container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// ===== HEADER =====
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.title-area {
+  flex: 1;
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $gray-800;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    color: $gray-600;
+    margin: 0;
+  }
+}
+
+.actions-area {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    width: 100%;
+
+    button {
+      flex: 1;
+    }
+  }
+}
+
+// ===== BOTÕES =====
+.btn-primary,
+.btn-secondary,
+.btn-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  i {
+    font-size: 1.1rem;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-primary {
+  background: $primary;
+  border-color: $primary-dark;
+  color: $dark;
+
+  &:hover {
+    background: $primary-dark;
+  }
+}
+
+.btn-secondary {
+  background: $white;
+  border-color: $gray-300;
+  color: $gray-800;
+
+  &:hover {
+    background: $gray-100;
+    border-color: $gray-600;
+  }
+}
+
+// ✅ BOTÃO FILTRO "MEUS LAUDOS"
+.btn-filter {
+  background: $white;
+  border-color: $gray-300;
+  color: $gray-800;
+
+  &:hover {
+    background: $gray-100;
+    border-color: $gray-600;
+  }
+
+  // Estado ativo (filtro ligado)
+  &.active {
+    background: $primary;
+    border-color: $primary-dark;
+    color: $dark;
+
+    i {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+// ===== ESTADOS =====
+.loading-state {
+  text-align: center;
+  padding: 4rem 2rem;
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 1rem;
+    border: 4px solid $gray-200;
+    border-top-color: $primary;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  p {
+    color: $gray-600;
+    font-size: 1.1rem;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.alert {
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+
+  i {
+    font-size: 1.3rem;
+  }
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid $danger;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: $gray-100;
+  border-radius: 12px;
+  border: 2px dashed $gray-300;
+
+  i {
+    font-size: 4rem;
+    color: $gray-300;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    color: $gray-800;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: $gray-600;
+    font-size: 1rem;
+  }
+}
+
+// ===== TABELA =====
+.table-wrapper {
+  background: $white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 2px solid $gray-200;
+}
+
+.laudo-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead {
+    background: $dark;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, $primary 0%, $primary-dark 100%);
+    }
+
+    th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: $primary;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      white-space: nowrap;
+
+      &.text-center {
+        text-align: center;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $gray-200;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: color.scale($primary, $lightness: 45%);
+        transform: translateX(4px);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      td {
+        padding: 1rem;
+        color: $gray-800;
+        font-size: 0.9rem;
+        vertical-align: middle;
+
+        &.id-cell {
+          font-weight: 700;
+          color: $primary-dark;
+        }
+      }
+    }
+  }
+}
+
+// ===== BADGES =====
+.badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.badge-success {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  &.badge-danger {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  &.badge-info {
+    background: #d1ecf1;
+    color: #0c5460;
+  }
+
+  &.badge-secondary {
+    background: #e2e3e5;
+    color: #383d41;
+  }
+}
+
+// ===== AÇÕES =====
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: $white;
+  border: 2px solid $gray-600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  i {
+    font-size: 1.1rem;
+    color: $gray-800;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &.btn-view:hover {
+    background: color.scale($info, $lightness: 40%);
+    border-color: $info;
+    i { color: color.scale($info, $lightness: -10%); }
+  }
+
+  &.btn-pdf:hover {
+    background: color.scale($danger, $lightness: 40%);
+    border-color: $danger;
+    i { color: color.scale($danger, $lightness: -10%); }
+  }
+
+  &.btn-edit:hover {
+    background: color.scale(#ffc107, $lightness: 40%);
+    border-color: #ffc107;
+    i { color: color.scale(#ffc107, $lightness: -10%); }
+  }
+}
+
+// ===== PAGINAÇÃO =====
+.pagination-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-top: 2px solid $gray-200;
+  background: $gray-100;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.pagination-info {
+  color: $gray-600;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  .page-indicator {
+    padding: 0 1rem;
+    font-weight: 600;
+    color: $gray-800;
+  }
+}
+
+.btn-pagination {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: $white;
+  border: 2px solid $gray-300;
+  border-radius: 6px;
+  color: $gray-800;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: $primary;
+    border-color: $primary-dark;
+    color: $dark;
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+// ===== RESPONSIVO =====
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .laudo-table {
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      display: block;
+      margin-bottom: 1rem;
+      border: 2px solid $gray-200;
+      border-radius: 8px;
+      transform: none !important;
+
+      &:hover {
+        transform: none !important;
+      }
+
+      td {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid $gray-200;
+
+        &:before {
+          content: attr(data-label);
+          font-weight: 700;
+          color: $gray-800;
+          text-transform: uppercase;
+          font-size: 0.75rem;
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &.actions-cell {
+          justify-content: center;
+        }
+      }
+    }
+  }
+}

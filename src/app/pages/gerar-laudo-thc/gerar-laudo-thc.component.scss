@@ -1,0 +1,82 @@
+/* ==========================================================================
+   Variáveis de Cor (Baseadas no seu padrão)
+   ========================================================================== */
+$color-primary-accent: #daa520;
+$color-bg-light-accent: #f8f9fa; // Cor do .info-card e .laudo-texto
+$color-text-dark: #333;
+$color-text-body: #495057;
+$color-border-light: #e0e0e0; // Borda mais suave do seu padrão
+$shadow-default: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+/* ==========================================================================
+   Estilos Refatorados
+   ========================================================================== */
+
+/**
+ * .laudo-texto refatorado para se assemelhar ao estilo do .info-card
+ * do seu padrão (com sombra, borda de destaque e padding unificado).
+ *
+ * Também inclui a barra de scroll customizada do seu .sidebar.
+ */
+.laudo-texto {
+  background-color: $color-bg-light-accent;
+  padding: 25px; // Unificado com .info-card
+  border-radius: 8px; // Unificado com .info-card
+  border-left: 4px solid $color-primary-accent; // Adicionado do .info-card
+  box-shadow: $shadow-default; // Adicionado do .info-card
+  color: $color-text-body; // Adicionado do padrão
+
+  font-family: "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  max-height: 600px;
+  overflow-y: auto;
+
+  /* Customização da barra de scroll (copiada do seu .sidebar) */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #e0e0e0; // Fundo mais claro para combinar com o card
+  }
+  &::-webkit-scrollbar-thumb {
+    background: $color-primary-accent;
+    border-radius: 3px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #b8860b; // Cor hover do seu padrão
+  }
+}
+
+/**
+ * .form-label unificado com a tipografia do seu padrão.
+ */
+.form-label {
+  font-weight: 500;
+  font-size: 14px; // Unificado com .nav-link
+  color: $color-text-dark; // Adicionado do padrão
+}
+
+/**
+ * .border-bottom refatorado para usar a cor de destaque principal
+ * do seu padrão, em vez do genérico #dee2e6.
+ */
+.border-bottom {
+  border-bottom: 2px solid $color-primary-accent !important;
+}
+
+/**
+ * h6 refatorado para atuar como um título de seção,
+ * seguindo o estilo do .nav-section-title do seu padrão.
+ */
+h6 {
+  color: $color-primary-accent;
+  font-size: 1rem; // 16px
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid $color-border-light; // Borda sutil do padrão
+  padding-bottom: 0.5rem;
+}

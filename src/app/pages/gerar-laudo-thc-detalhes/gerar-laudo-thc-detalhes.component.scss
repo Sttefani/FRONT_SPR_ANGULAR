@@ -1,0 +1,278 @@
+:host {
+  display: block;
+}
+
+// Variáveis
+$primary: #DAA520;
+$primary-dark: #B8860B;
+$success: #28a745;
+$danger: #dc3545;
+$white: #ffffff;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-600: #6c757d;
+$gray-800: #343a40;
+
+.container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+// Header
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.title-area {
+  flex: 1;
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $gray-800;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    color: $gray-600;
+    margin: 0;
+  }
+}
+
+.actions-area {
+  display: flex;
+  gap: 0.75rem;
+}
+
+// Botões
+.btn-primary,
+.btn-secondary,
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.btn-primary {
+  background: $primary;
+  border-color: $primary-dark;
+  color: #000;
+}
+
+.btn-secondary {
+  background: $white;
+  border-color: $gray-300;
+  color: $gray-800;
+}
+
+.btn-copy {
+  background: $gray-100;
+  border: 2px solid $gray-300;
+  color: $gray-800;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+// Loading
+.loading-state {
+  text-align: center;
+  padding: 4rem 2rem;
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 1rem;
+    border: 4px solid $gray-200;
+    border-top-color: $primary;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  p {
+    color: $gray-600;
+    font-size: 1.1rem;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Alerta
+.alert {
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid $danger;
+}
+
+// Cards
+.laudo-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.info-card,
+.laudo-card {
+  background: $white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 2px solid $gray-200;
+
+  h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: $gray-800;
+    margin: 0 0 1.5rem 0;
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.info-item {
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: $gray-600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+
+  span {
+    display: block;
+    font-size: 1rem;
+    color: $gray-800;
+  }
+}
+
+// Badge
+.badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  &.badge-success {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  &.badge-danger {
+    background: #f8d7da;
+    color: #721c24;
+  }
+}
+
+// Laudo Card
+.laudo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.laudo-texto {
+  background: $gray-100;
+  padding: 2rem;
+  border-radius: 8px;
+  border-left: 4px solid $primary;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: $gray-800;
+  max-height: 600px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $gray-200;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $primary;
+    border-radius: 3px;
+
+    &:hover {
+      background: $primary-dark;
+    }
+  }
+}
+
+// Responsivo
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .title-area h1 {
+    font-size: 1.5rem;
+  }
+
+  .actions-area {
+    width: 100%;
+
+    button {
+      flex: 1;
+    }
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}

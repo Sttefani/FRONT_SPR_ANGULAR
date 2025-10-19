@@ -1,0 +1,121 @@
+<div class="container">
+  <!-- Cabeçalho -->
+  <div class="header-section">
+    <div class="title-area">
+      <h1>Laudos THC Gerados</h1>
+      <p class="subtitle">Visualize e gerencie todos os laudos químicos de THC</p>
+    </div>
+    <div class="actions-area">
+      <button class="btn-primary" routerLink="/gabinete-virtual/gerar-laudo-thc/novo">
+        <i class="bi bi-plus-circle"></i>
+        <span>Novo Laudo</span>
+      </button>
+
+      <!-- ✅ BOTÃO MEUS LAUDOS -->
+      <button class="btn-filter"
+              [class.active]="filtrarMeusLaudos"
+              (click)="toggleMeusLaudos()">
+        <i class="bi bi-person-check"></i>
+        <span>Meus Laudos</span>
+      </button>
+
+      <button class="btn-secondary" (click)="carregarLaudos()">
+        <i class="bi bi-arrow-clockwise"></i>
+        <span>Atualizar</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="carregando" class="loading-state">
+    <div class="spinner"></div>
+    <p>Carregando laudos...</p>
+  </div>
+
+  <!-- Erro -->
+  <div *ngIf="erro" class="alert alert-error">
+    <i class="bi bi-exclamation-triangle"></i>
+    <span>{{ erro }}</span>
+  </div>
+
+  <!-- Lista Vazia -->
+  <div *ngIf="!carregando && !erro && laudosFiltrados.length === 0" class="empty-state">
+    <i class="bi bi-inbox"></i>
+    <h3>Nenhum laudo encontrado</h3>
+    <p>{{ filtrarMeusLaudos ? 'Você ainda não criou nenhum laudo' : 'Clique em "Novo Laudo" para começar' }}</p>
+  </div>
+
+  <!-- Tabela -->
+  <div *ngIf="!carregando && !erro && laudosFiltrados.length > 0" class="table-wrapper">
+    <table class="laudo-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tipo</th>
+          <th>Resultado</th>
+          <th>Gerado Por</th>
+          <th>Data</th>
+          <th class="text-center">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let laudo of laudosFiltrados">
+          <td class="id-cell">#{{ laudo.id }}</td>
+          <td>{{ laudo.template_nome }}</td>
+          <td>
+            <span class="badge"
+                  [class.badge-success]="laudo.resultado === 'POSITIVO'"
+                  [class.badge-danger]="laudo.resultado === 'NEGATIVO'"
+                  [class.badge-secondary]="!laudo.resultado">
+              {{ laudo.resultado || 'N/A' }}
+            </span>
+          </td>
+          <td>{{ laudo.gerado_por_nome || 'Sistema' }}</td>
+          <td>{{ laudo.gerado_em | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td class="actions-cell">
+            <button class="icon-btn btn-view"
+                    [routerLink]="['/gabinete-virtual/laudo', laudo.id]"
+                    title="Ver Detalhes">
+              <i class="bi bi-eye"></i>
+            </button>
+            <button class="icon-btn btn-edit"
+                    *ngIf="podeEditar(laudo)"
+                    [routerLink]="['/gabinete-virtual/gerar-laudo-thc/editar', laudo.id]"
+                    title="Editar">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="icon-btn btn-pdf"
+                    (click)="baixarPDF(laudo.id)"
+                    title="Baixar PDF">
+              <i class="bi bi-file-pdf"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Paginação -->
+    <div *ngIf="totalDeItens > 10" class="pagination-section">
+      <div class="pagination-info">
+        Mostrando {{ laudosFiltrados.length }} de {{ totalDeItens }} laudos
+      </div>
+      <div class="pagination-controls">
+        <button (click)="paginaAnterior()"
+                [disabled]="paginaAtual === 1"
+                class="btn-pagination">
+          <i class="bi bi-chevron-left"></i>
+          Anterior
+        </button>
+        <span class="page-indicator">
+          Página {{ paginaAtual }} de {{ totalDePaginas }}
+        </span>
+        <button (click)="proximaPagina()"
+                [disabled]="paginaAtual >= totalDePaginas"
+                class="btn-pagination">
+          Próxima
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

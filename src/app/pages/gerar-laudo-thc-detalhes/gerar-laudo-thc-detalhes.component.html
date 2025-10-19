@@ -1,0 +1,73 @@
+<div class="container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="title-area">
+      <h1>Detalhes do Laudo #{{ laudoId }}</h1>
+      <p class="subtitle">Visualização completa do laudo químico de THC</p>
+    </div>
+    <div class="actions-area">
+      <button class="btn-secondary" (click)="voltar()">
+        <i class="bi bi-arrow-left"></i>
+        <span>Voltar</span>
+      </button>
+      <button class="btn-primary" (click)="baixarPDF()" [disabled]="carregando">
+        <i class="bi bi-file-pdf"></i>
+        <span>Baixar PDF</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="carregando" class="loading-state">
+    <div class="spinner"></div>
+    <p>Carregando laudo...</p>
+  </div>
+
+  <!-- Erro -->
+  <div *ngIf="erro" class="alert alert-error">
+    <i class="bi bi-exclamation-triangle"></i>
+    <span>{{ erro }}</span>
+  </div>
+
+  <!-- Conteúdo do Laudo -->
+  <div *ngIf="!carregando && !erro && laudo" class="laudo-content">
+    <!-- Card de Informações -->
+    <div class="info-card">
+      <h3>Informações do Laudo</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Tipo:</label>
+          <span>{{ laudo.template_nome }}</span>
+        </div>
+        <div class="info-item">
+          <label>Resultado:</label>
+          <span class="badge"
+                [class.badge-success]="laudo.resultado === 'POSITIVO'"
+                [class.badge-danger]="laudo.resultado === 'NEGATIVO'">
+            {{ laudo.resultado }}
+          </span>
+        </div>
+        <div class="info-item">
+          <label>Gerado Por:</label>
+          <span>{{ laudo.gerado_por }}</span>
+        </div>
+        <div class="info-item">
+          <label>Data:</label>
+          <span>{{ laudo.gerado_em | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card do Laudo -->
+    <div class="laudo-card">
+      <div class="laudo-header">
+        <h3>Laudo Completo</h3>
+        <button class="btn-copy" (click)="copiarLaudo()">
+          <i class="bi bi-clipboard"></i>
+          Copiar
+        </button>
+      </div>
+      <pre class="laudo-texto">{{ laudo.laudo_texto }}</pre>
+    </div>
+  </div>
+</div>
