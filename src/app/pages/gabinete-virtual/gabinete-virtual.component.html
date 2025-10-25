@@ -15,43 +15,16 @@
             <li class="nav-item">
               <a routerLink="/gabinete-virtual" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
                 <span class="nav-icon">🏠</span>
-                <span class="nav-text">Dashboard</span>
+                <span class="nav-text">Gabinete Virtual</span>
               </a>
             </li>
           </ul>
         </div>
 
-        <!-- Gestão de Usuários (Só Super Admin) -->
-        @if (isSuperAdmin()) {
-          <div class="nav-section">
-            <h4 class="nav-section-title">Gestão de Usuários</h4>
-            <ul class="nav-list">
-              <li class="nav-item">
-                <a routerLink="/gabinete-virtual/gerencia/usuarios" routerLinkActive="active" class="nav-link">
-                  <span class="nav-icon">👥</span>
-                  <span class="nav-text">Usuários</span>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a routerLink="/gabinete-virtual/gerencia/aprovacao" routerLinkActive="active" class="nav-link">
-                  <span class="nav-icon">✅</span>
-                  <span class="nav-text">Aprovação de Usuários</span>
-                </a>
-              </li>
-              <li class="nav-item">
-                  <a routerLink="/gabinete-virtual/servicos-periciais" class="nav-link" routerLinkActive="active">
-                  <span class="nav-icon">🏢</span>
-                  <span class="nav-text">Serviços Periciais</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        }
-
-        <!-- Análise Gerencial (Só Admin e Super Admin) -->
+        <!-- Análise Gerencial (Admin e Super Admin) -->
         @if (isGerencial()) {
           <div class="nav-section">
-            <h4 class="nav-section-title">Análise Gerencial</h4>
+            <h4 class="nav-section-title">📊 Análise Gerencial</h4>
             <ul class="nav-list">
               <li class="nav-item">
                 <a routerLink="/gabinete-virtual/relatorios-gerenciais" routerLinkActive="active" class="nav-link">
@@ -69,14 +42,85 @@
           </div>
         }
 
-        <!-- Cadastros Administrativos -->
+        <!-- Gestão de Usuários (Só Super Admin) -->
+        @if (isSuperAdmin()) {
+          <div class="nav-section">
+            <h4 class="nav-section-title">👥 Gestão de Usuários</h4>
+            <ul class="nav-list">
+              <li class="nav-item">
+                <a routerLink="/gabinete-virtual/gerencia/usuarios" routerLinkActive="active" class="nav-link">
+                  <span class="nav-icon">👤</span>
+                  <span class="nav-text">Usuários</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a routerLink="/gabinete-virtual/gerencia/aprovacao" routerLinkActive="active" class="nav-link">
+                  <span class="nav-icon">✅</span>
+                  <span class="nav-text">Aprovação de Usuários</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a routerLink="/gabinete-virtual/servicos-periciais" class="nav-link" routerLinkActive="active">
+                  <span class="nav-icon">🏢</span>
+                  <span class="nav-text">Serviços Periciais</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        }
+
+        <!-- Área Operacional -->
         <div class="nav-section">
-          <h4 class="nav-section-title">Cadastros Administrativos</h4>
+          <h4 class="nav-section-title">🚨 Área Operacional</h4>
           <ul class="nav-list">
             <li class="nav-item">
-              <a routerLink="/gabinete-virtual/cadastros/cidades" routerLinkActive="active" class="nav-link">
-                <span class="nav-icon">🌍</span>
-                <span class="nav-text">Cidades</span>
+              <a routerLink="/gabinete-virtual/operacional/ocorrencias" routerLinkActive="active" class="nav-link">
+                <span class="nav-icon">🚨</span>
+                <span class="nav-text">Ocorrências</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a routerLink="/gabinete-virtual/operacional/ordens-servico" routerLinkActive="active" class="nav-link">
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">Ordens de Serviço</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a routerLink="/gabinete-virtual/gerar-laudo-thc" routerLinkActive="active" class="nav-link">
+                <span class="nav-icon">🧪</span>
+                <span class="nav-text">Laudos Químicos (THC)</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a routerLink="/gabinete-virtual/operacional/analise-criminal" routerLinkActive="active" class="nav-link">
+                <span class="nav-icon">🗺️</span>
+                <span class="nav-text">Análise Criminal</span>
+                <span class="badge-novo">Inteligência</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a routerLink="/gabinete-virtual/assistente-ia" routerLinkActive="active" class="nav-link">
+                <span class="nav-icon">🤖</span>
+                <span class="nav-text">Assistente IA</span>
+                <span class="badge-novo">Em Desenvolvimento</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Cadastros Administrativos -->
+        <div class="nav-section">
+          <h4 class="nav-section-title">📁 Cadastros Administrativos</h4>
+
+          <!-- Subcategoria: Jurídicos -->
+          <div class="nav-subsection">
+            <div class="subsection-header">📋 Jurídicos</div>
+          </div>
+          <ul class="nav-list subcategory">
+            <li class="nav-item">
+              <a routerLink="/gabinete-virtual/cadastros/autoridades" routerLinkActive="active" class="nav-link">
+                <span class="nav-icon">⚖️</span>
+                <span class="nav-text">Autoridades</span>
               </a>
             </li>
             <li class="nav-item">
@@ -86,15 +130,34 @@
               </a>
             </li>
             <li class="nav-item">
-              <a routerLink="/gabinete-virtual/cadastros/autoridades" routerLinkActive="active" class="nav-link">
-                <span class="nav-icon">⚖️</span>
-                <span class="nav-text">Autoridades</span>
+              <a routerLink="/gabinete-virtual/cadastros/unidades-demandantes" routerLinkActive="active" class="nav-link">
+                <span class="nav-icon">🏛️</span>
+                <span class="nav-text">Unidades Demandantes</span>
               </a>
             </li>
             <li class="nav-item">
-              <a routerLink="/gabinete-virtual/cadastros/unidades-demandantes" routerLinkActive="active" class="nav-link">
-                <span class="nav-icon">🏢</span>
-                <span class="nav-text">Unidades Demandantes</span>
+              <a routerLink="/gabinete-virtual/cadastros/tipos-documento" routerLinkActive="active" class="nav-link">
+                <span class="nav-icon">📄</span>
+                <span class="nav-text">Tipos de Documento</span>
+              </a>
+            </li>
+          </ul>
+
+          <!-- Subcategoria: Técnicos -->
+          <div class="nav-subsection">
+            <div class="subsection-header">🔬 Técnicos</div>
+          </div>
+          <ul class="nav-list subcategory">
+            <li class="nav-item">
+              <a routerLink="/gabinete-virtual/cadastros/classificacoes" routerLinkActive="active" class="nav-link">
+                <span class="nav-icon">📚</span>
+                <span class="nav-text">Classificações</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a routerLink="/gabinete-virtual/cadastros/exames" routerLinkActive="active" class="nav-link">
+                <span class="nav-icon">🔬</span>
+                <span class="nav-text">Exames</span>
               </a>
             </li>
             <li class="nav-item">
@@ -104,79 +167,22 @@
               </a>
             </li>
             <li class="nav-item">
-              <a routerLink="/gabinete-virtual/cadastros/exames"
-                routerLinkActive="active"
-                class="nav-link">
-                <span class="nav-icon">🔬</span>
-                <span class="nav-text">Exames</span>
-              </a>
-            </li>
-            <li class="nav-item">
               <a routerLink="/gabinete-virtual/cadastros/procedimentos-cadastrados" routerLinkActive="active" class="nav-link">
                 <span class="nav-icon">📁</span>
                 <span class="nav-text">Procedimentos Cadastrados</span>
               </a>
             </li>
-            <li class="nav-item">
-              <a routerLink="/gabinete-virtual/cadastros/classificacoes" routerLinkActive="active" class="nav-link">
-                <span class="nav-icon">📚</span>
-                <span class="nav-text">Classificações</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a routerLink="/gabinete-virtual/cadastros/tipos-documento"
-                routerLinkActive="active"
-                class="nav-link">
-                <span class="nav-icon">📄</span>
-                <span class="nav-text">Tipos de Documento</span>
-              </a>
-            </li>
           </ul>
-        </div>
 
-        <!-- Área Operacional -->
-        <div class="nav-section">
-          <h4 class="nav-section-title">Área Operacional</h4>
-          <ul class="nav-list">
+          <!-- Subcategoria: Gerais -->
+          <div class="nav-subsection">
+            <div class="subsection-header">🌍 Gerais</div>
+          </div>
+          <ul class="nav-list subcategory">
             <li class="nav-item">
-              <a routerLink="/gabinete-virtual/operacional/ocorrencias"
-                routerLinkActive="active"
-                class="nav-link">
-                <span class="nav-icon">🚨</span>
-                <span class="nav-text">Ocorrências</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a routerLink="/gabinete-virtual/operacional/analise-criminal"
-                routerLinkActive="active"
-                class="nav-link">
-                <span class="nav-icon">🗺️</span>
-                <span class="nav-text">Análise Criminal</span>
-                <span class="badge-novo">Inteligência</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a routerLink="/gabinete-virtual/assistente-ia"
-                routerLinkActive="active"
-                class="nav-link">
-                <span class="nav-icon">🤖</span>
-                <span class="nav-text">Assistente IA</span>
-                <span class="badge-novo">Em desenvolvimento</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a routerLink="/gabinete-virtual/operacional/ordens-servico"
-                routerLinkActive="active"
-                class="nav-link">
-                <span class="nav-icon">📋</span>
-                <span class="nav-text">Ordens de Serviço</span>
-              </a>
-            </li>
-            <!-- ✅ LINK CORRIGIDO E TEXTO ATUALIZADO -->
-            <li class="nav-item">
-              <a routerLink="/gabinete-virtual/gerar-laudo-thc" routerLinkActive="active" class="nav-link">
-                <span class="nav-icon">🧪</span>
-                <span class="nav-text">Laudos Químicos (THC)</span>
+              <a routerLink="/gabinete-virtual/cadastros/cidades" routerLinkActive="active" class="nav-link">
+                <span class="nav-icon">🌍</span>
+                <span class="nav-text">Cidades</span>
               </a>
             </li>
           </ul>
@@ -193,4 +199,3 @@
 </main>
 
 <app-footer></app-footer>
-

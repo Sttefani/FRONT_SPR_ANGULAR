@@ -20,21 +20,20 @@
 /* Sidebar TOTALMENTE colada */
 .sidebar {
   position: fixed;
-  top: 85px; /* Exatamente onde termina o header */
-  bottom: 55px; /* Exatamente onde começa o footer */
+  top: 85px;
+  bottom: 55px;
   left: 0;
   width: 280px;
   background: #000000;
   color: #ffffff;
-  border: none; /* Remove qualquer borda */
+  border: none;
   margin: 0;
   padding: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  z-index: 50; /* Menor que header/footer mas maior que conteúdo */
+  z-index: 50;
 }
 
-/* Remove qualquer gap da sidebar */
 .sidebar * {
   box-sizing: border-box;
 }
@@ -45,7 +44,7 @@
 }
 
 .sidebar::-webkit-scrollbar-track {
-  background: #333;
+  background: #1a1a1a;
 }
 
 .sidebar::-webkit-scrollbar-thumb {
@@ -59,7 +58,7 @@
 
 .sidebar-header {
   padding: 20px;
-  border-bottom: 1px solid #333;
+  border-bottom: 2px solid #DAA520;
   position: sticky;
   top: 0;
   background: #000000;
@@ -73,7 +72,7 @@
   font-size: 18px;
   font-weight: bold;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
 }
 
 .sidebar-nav {
@@ -83,7 +82,7 @@
 
 /* Seções do Menu */
 .nav-section {
-  margin-bottom: 25px;
+  margin-bottom: 30px;
 }
 
 .nav-section-title {
@@ -91,14 +90,68 @@
   font-size: 13px;
   font-weight: bold;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 0 0 10px 20px;
-  opacity: 0.9;
-  border-bottom: 1px solid #333;
-  padding-bottom: 5px;
+  letter-spacing: 1.2px;
+  margin: 0 0 12px 20px;
+  padding-bottom: 8px;
   margin-right: 20px;
+  border-bottom: 2px solid rgba(218, 165, 32, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
+/* ========== SUBCATEGORIAS (NOVO) ========== */
+.nav-subsection {
+  margin: 15px 15px 8px 15px;
+  padding: 0;
+}
+
+.subsection-header {
+  color: #B8860B;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 15px;
+  background: rgba(218, 165, 32, 0.08);
+  border-left: 3px solid #DAA520;
+  border-radius: 4px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.subsection-header:hover {
+  background: rgba(218, 165, 32, 0.15);
+  border-left-color: #B8860B;
+}
+
+/* Lista dentro de subcategoria */
+.nav-list.subcategory {
+  margin-bottom: 10px;
+}
+
+.nav-list.subcategory .nav-link {
+  padding-left: 35px;
+  font-size: 13px;
+  position: relative;
+}
+
+.nav-list.subcategory .nav-link::before {
+  content: '└';
+  position: absolute;
+  left: 20px;
+  color: #444;
+  font-size: 12px;
+}
+
+.nav-list.subcategory .nav-link:hover::before {
+  color: #DAA520;
+}
+
+/* ========== LISTA E ITENS ========== */
 .nav-list {
   list-style: none;
   margin: 0;
@@ -112,23 +165,24 @@
 .nav-link {
   display: flex;
   align-items: center;
-  padding: 10px 20px;
+  padding: 11px 20px;
   color: #ffffff;
   text-decoration: none;
   transition: all 0.3s ease;
   border-left: 3px solid transparent;
   font-size: 14px;
   margin: 0;
+  position: relative;
 }
 
 .nav-link:hover {
-  background: rgba(218, 165, 32, 0.1);
+  background: rgba(218, 165, 32, 0.12);
   border-left-color: #DAA520;
   color: #DAA520;
 }
 
 .nav-link.active {
-  background: rgba(218, 165, 32, 0.2);
+  background: rgba(218, 165, 32, 0.25);
   border-left-color: #DAA520;
   color: #DAA520;
   font-weight: bold;
@@ -139,22 +193,50 @@
   font-size: 16px;
   width: 20px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .nav-text {
   font-size: 13px;
   font-weight: 500;
+  flex: 1;
 }
 
-/* Área de Conteúdo Principal */
+/* Badge "Novo" */
+.badge-novo {
+  background: linear-gradient(135deg, #DAA520, #B8860B);
+  color: #000;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 700;
+  margin-left: auto;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: pulse-badge 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+}
+
+/* ========== ÁREA DE CONTEÚDO PRINCIPAL ========== */
 .main-content-area {
   margin-left: 280px;
   width: calc(100% - 280px);
   height: 100%;
   padding: 30px;
   background: #ffffff;
-  overflow-y: auto;  // ← MUDOU (era hidden)
-  overflow-x: hidden; // ← ADICIONE
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -262,19 +344,8 @@ html, body {
   margin: 0 !important;
   padding: 0 !important;
 }
-.badge-novo {
-  background: linear-gradient(135deg, #DAA520, #B8860B);
-  color: #000;
-  padding: 0.15rem 0.5rem;
-  border-radius: 10px;
-  font-size: 9px;
-  font-weight: 700;
-  margin-left: auto;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  animation: pulse-badge 2s ease-in-out infinite;
-}
-/* Responsividade */
+
+/* ========== RESPONSIVIDADE ========== */
 @media (max-width: 1024px) {
   .sidebar {
     width: 260px;
@@ -298,7 +369,8 @@ html, body {
     bottom: auto;
     left: auto;
     width: 100%;
-    height: 200px;
+    height: auto;
+    max-height: 400px;
     order: 2;
   }
 
@@ -319,12 +391,31 @@ html, body {
   }
 
   .nav-section {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+  }
+
+  .nav-section-title {
+    font-size: 12px;
+    margin-left: 15px;
+    margin-right: 15px;
+  }
+
+  .nav-subsection {
+    margin: 10px 10px 5px 10px;
+  }
+
+  .subsection-header {
+    font-size: 10px;
+    padding: 6px 12px;
   }
 
   .nav-link {
-    padding: 8px 10px;
+    padding: 8px 15px;
     font-size: 13px;
+  }
+
+  .nav-list.subcategory .nav-link {
+    padding-left: 25px;
   }
 
   .welcome-section h1 {
@@ -333,5 +424,22 @@ html, body {
 
   .info-card {
     padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-icon {
+    font-size: 14px;
+    width: 18px;
+    margin-right: 10px;
+  }
+
+  .nav-text {
+    font-size: 12px;
+  }
+
+  .badge-novo {
+    font-size: 8px;
+    padding: 0.15rem 0.4rem;
   }
 }
