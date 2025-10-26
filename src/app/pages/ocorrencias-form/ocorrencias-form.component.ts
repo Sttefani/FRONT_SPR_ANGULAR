@@ -754,30 +754,54 @@ export class OcorrenciasFormComponent implements OnInit {
 
     request.subscribe({
       next: (ocorrencia: any) => {
-        this.salvarEndereco(ocorrencia.id).subscribe({
-          next: () => {
-            const action = this.isEditMode ? 'atualizada' : 'cadastrada';
-            Swal.fire({
-              title: 'Sucesso!',
-              text: `Ocorrência ${action} com sucesso! Número: ${ocorrencia.numero_ocorrencia}`,
-              icon: 'success',
-              confirmButtonText: 'Ok'
-            }).then(() => {
-              this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
-            });
-          },
-          error: (enderecoErr: any) => {
-            console.error('Erro ao salvar endereço:', enderecoErr);
-            Swal.fire({
-              title: 'Aviso',
-              text: 'Ocorrência salva, mas houve erro ao salvar o endereço.',
-              icon: 'warning',
-              confirmButtonText: 'Ok'
-            }).then(() => {
-              this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
-            });
-          }
-        });
+        // ============================================================
+        // ✅ CORREÇÃO DO PROBLEMA: "salvou com erro no endereço"
+        // ============================================================
+        // Só tenta salvar endereço se:
+        // 1. For ocorrência EXTERNA (tem endereço), OU
+        // 2. Já existia um endereço antes (precisa atualizar/deletar)
+        // ============================================================
+
+        if (this.form.endereco.tipo === 'EXTERNA' || this.existingEnderecoId) {
+          this.salvarEndereco(ocorrencia.id).subscribe({
+            next: () => {
+              const action = this.isEditMode ? 'atualizada' : 'cadastrada';
+              Swal.fire({
+                title: 'Sucesso!',
+                text: `Ocorrência ${action} com sucesso! Número: ${ocorrencia.numero_ocorrencia}`,
+                icon: 'success',
+                confirmButtonText: 'Ok'
+              }).then(() => {
+                this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+              });
+            },
+            error: (enderecoErr: any) => {
+              console.error('Erro ao salvar endereço:', enderecoErr);
+              Swal.fire({
+                title: 'Aviso',
+                text: 'Ocorrência salva, mas houve erro ao salvar o endereço.',
+                icon: 'warning',
+                confirmButtonText: 'Ok'
+              }).then(() => {
+                this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+              });
+            }
+          });
+        } else {
+          // ============================================================
+          // ✅ NOVO: Ocorrência INTERNA sem endereço anterior
+          // Não precisa salvar endereço, apenas redireciona
+          // ============================================================
+          const action = this.isEditMode ? 'atualizada' : 'cadastrada';
+          Swal.fire({
+            title: 'Sucesso!',
+            text: `Ocorrência ${action} com sucesso! Número: ${ocorrencia.numero_ocorrencia}`,
+            icon: 'success',
+            confirmButtonText: 'Ok'
+          }).then(() => {
+            this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+          });
+        }
       },
       error: (err: any) => {
         console.error('ERRO DETALHADO DO BACKEND:', err);
