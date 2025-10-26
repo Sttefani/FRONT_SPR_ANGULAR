@@ -33,8 +33,19 @@
     </div>
   }
 
-  <!-- Layout: Cards + Gráfico PERITO -->
+  <!-- ========================================== -->
+  <!-- SEÇÃO PERITO -->
+  <!-- ========================================== -->
   @if (!isLoading && isPerito() && estatisticas) {
+
+    <!-- SEPARADOR: OCORRÊNCIAS -->
+    <div class="section-divider ocorrencias">
+      <div class="divider-icon">🔍</div>
+      <h2>OCORRÊNCIAS PERICIAIS</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    <!-- OCORRÊNCIAS -->
     <div class="dashboard-layout">
       <!-- Coluna Esquerda: Cards -->
       <div class="stats-grid">
@@ -42,7 +53,7 @@
         <div class="stat-card primary">
           <div class="stat-icon">📋</div>
           <div class="stat-content">
-            <h3>Minhas Ocorrências</h3>
+            <h3>Total</h3>
             <p class="stat-number">{{ estatisticas.minhas_ocorrencias.total }}</p>
           </div>
         </div>
@@ -96,14 +107,91 @@
         </div>
       </div>
 
-      <!-- Coluna Direita: Gráfico -->
+      <!-- Coluna Direita: Gráfico de Ocorrências -->
       <div class="grafico-section">
         <div class="grafico-card">
           <h3>📊 Distribuição de Ocorrências</h3>
-          <canvas id="chartPerito"></canvas>
+          <canvas id="chartOcorrenciasPerito"></canvas>
         </div>
       </div>
     </div>
+
+    <!-- SEPARADOR: ORDENS DE SERVIÇO -->
+    @if (estatisticasOS && estatisticasOS.minhas_os) {
+      <div class="section-divider ordens-servico">
+        <div class="divider-icon">⚖️</div>
+        <h2>ORDENS DE SERVIÇO</h2>
+        <div class="divider-line"></div>
+      </div>
+
+      <!-- ORDENS DE SERVIÇO -->
+      <div class="dashboard-layout">
+        <!-- Cards de OS -->
+        <div class="stats-grid">
+          <!-- Total OS -->
+          <div class="stat-card primary">
+            <div class="stat-icon">🛠️</div>
+            <div class="stat-content">
+              <h3>Total</h3>
+              <p class="stat-number">{{ estatisticasOS.minhas_os.total }}</p>
+            </div>
+          </div>
+
+          <!-- Aguardando Ciência -->
+          <div class="stat-card secondary">
+            <div class="stat-icon">👁️</div>
+            <div class="stat-content">
+              <h3>Aguardando Ciência</h3>
+              <p class="stat-number">{{ estatisticasOS.minhas_os.aguardando_ciencia }}</p>
+            </div>
+          </div>
+
+          <!-- Abertas -->
+          <div class="stat-card info">
+            <div class="stat-icon">📂</div>
+            <div class="stat-content">
+              <h3>Abertas</h3>
+              <p class="stat-number">{{ estatisticasOS.minhas_os.abertas }}</p>
+            </div>
+          </div>
+
+          <!-- Em Andamento -->
+          <div class="stat-card warning">
+            <div class="stat-icon">⚙️</div>
+            <div class="stat-content">
+              <h3>Em Andamento</h3>
+              <p class="stat-number">{{ estatisticasOS.minhas_os.em_andamento }}</p>
+            </div>
+          </div>
+
+          <!-- Concluídas -->
+          <div class="stat-card success">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+              <h3>Concluídas</h3>
+              <p class="stat-number">{{ estatisticasOS.minhas_os.concluidas }}</p>
+            </div>
+          </div>
+
+          <!-- Vencidas -->
+          <div class="stat-card danger">
+            <div class="stat-icon">⏰</div>
+            <div class="stat-content">
+              <h3>Vencidas</h3>
+              <p class="stat-number">{{ estatisticasOS.minhas_os.vencidas }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna Direita: Gráfico de OS -->
+        <div class="grafico-section">
+          <div class="grafico-card">
+            <h3>📊 Distribuição de Ordens de Serviço</h3>
+            <canvas id="chartOSPerito"></canvas>
+          </div>
+        </div>
+      </div>
+    }
 
     <!-- Últimas Ocorrências -->
     @if (estatisticas.ultimas_ocorrencias && estatisticas.ultimas_ocorrencias.length > 0) {
@@ -124,8 +212,19 @@
     }
   }
 
-  <!-- Layout: Cards + Gráfico ADMIN/OPERACIONAL -->
+  <!-- ========================================== -->
+  <!-- SEÇÃO ADMIN/OPERACIONAL -->
+  <!-- ========================================== -->
   @if (!isLoading && isAdminOrOperacional() && estatisticas) {
+
+    <!-- SEPARADOR: OCORRÊNCIAS -->
+    <div class="section-divider ocorrencias">
+      <div class="divider-icon">🔍</div>
+      <h2>OCORRÊNCIAS PERICIAIS - VISÃO GERAL</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    <!-- OCORRÊNCIAS -->
     <div class="dashboard-layout">
       <!-- Coluna Esquerda: Cards -->
       <div class="stats-grid">
@@ -133,7 +232,7 @@
         <div class="stat-card primary">
           <div class="stat-icon">📋</div>
           <div class="stat-content">
-            <h3>Total de Ocorrências</h3>
+            <h3>Total</h3>
             <p class="stat-number">{{ estatisticas.geral.total }}</p>
           </div>
         </div>
@@ -204,14 +303,91 @@
         </div>
       </div>
 
-      <!-- Coluna Direita: Gráfico -->
+      <!-- Coluna Direita: Gráfico de Ocorrências -->
       <div class="grafico-section">
         <div class="grafico-card">
           <h3>📊 Distribuição de Ocorrências</h3>
-          <canvas id="chartAdmin"></canvas>
+          <canvas id="chartOcorrenciasAdmin"></canvas>
         </div>
       </div>
     </div>
+
+    <!-- SEPARADOR: ORDENS DE SERVIÇO -->
+    @if (estatisticasOS && estatisticasOS.geral_os) {
+      <div class="section-divider ordens-servico">
+        <div class="divider-icon">⚖️</div>
+        <h2>ORDENS DE SERVIÇO - VISÃO GERAL</h2>
+        <div class="divider-line"></div>
+      </div>
+
+      <!-- ORDENS DE SERVIÇO -->
+      <div class="dashboard-layout">
+        <!-- Cards de OS -->
+        <div class="stats-grid">
+          <!-- Total OS -->
+          <div class="stat-card primary">
+            <div class="stat-icon">🛠️</div>
+            <div class="stat-content">
+              <h3>Total</h3>
+              <p class="stat-number">{{ estatisticasOS.geral_os.total }}</p>
+            </div>
+          </div>
+
+          <!-- Aguardando Ciência -->
+          <div class="stat-card secondary">
+            <div class="stat-icon">👁️</div>
+            <div class="stat-content">
+              <h3>Aguardando Ciência</h3>
+              <p class="stat-number">{{ estatisticasOS.geral_os.aguardando_ciencia }}</p>
+            </div>
+          </div>
+
+          <!-- Abertas -->
+          <div class="stat-card info">
+            <div class="stat-icon">📂</div>
+            <div class="stat-content">
+              <h3>Abertas</h3>
+              <p class="stat-number">{{ estatisticasOS.geral_os.abertas }}</p>
+            </div>
+          </div>
+
+          <!-- Em Andamento -->
+          <div class="stat-card warning">
+            <div class="stat-icon">⚙️</div>
+            <div class="stat-content">
+              <h3>Em Andamento</h3>
+              <p class="stat-number">{{ estatisticasOS.geral_os.em_andamento }}</p>
+            </div>
+          </div>
+
+          <!-- Concluídas -->
+          <div class="stat-card success">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+              <h3>Concluídas</h3>
+              <p class="stat-number">{{ estatisticasOS.geral_os.concluidas }}</p>
+            </div>
+          </div>
+
+          <!-- Vencidas -->
+          <div class="stat-card danger">
+            <div class="stat-icon">⏰</div>
+            <div class="stat-content">
+              <h3>Vencidas</h3>
+              <p class="stat-number">{{ estatisticasOS.geral_os.vencidas }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna Direita: Gráfico de OS -->
+        <div class="grafico-section">
+          <div class="grafico-card">
+            <h3>📊 Distribuição de Ordens de Serviço</h3>
+            <canvas id="chartOSAdmin"></canvas>
+          </div>
+        </div>
+      </div>
+    }
 
     <!-- Por Serviço -->
     @if (estatisticas.por_servico && estatisticas.por_servico.length > 0) {

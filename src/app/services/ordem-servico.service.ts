@@ -391,4 +391,17 @@ imprimirRelatoriosOS(filtros?: any): Observable<Blob> {
     responseType: 'blob'
   });
 }
+/**
+ * Busca estatísticas agregadas de Ordens de Serviço para o dashboard
+ * Aceita filtro opcional por servico_id
+ */
+getEstatisticas(params?: { servico_id?: number }): Observable<any> {
+    let httpParams = new HttpParams();
+
+    if (params?.servico_id) {
+      httpParams = httpParams.set('servico_id', params.servico_id.toString());
+    }
+
+    return this.http.get<any>(`${this.baseUrl}/ordens-servico/estatisticas/`, { params: httpParams });
+  }
 }
