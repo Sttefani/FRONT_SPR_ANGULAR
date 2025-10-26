@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
 import 'leaflet.heat';
+import 'leaflet.markercluster'; // Importa o MarkerCluster
 import { forkJoin } from 'rxjs';
 
 import { AnaliseCriminalService, EstatisticaCriminal, OcorrenciaGeo } from '../../services/analise-criminal.service';
@@ -20,13 +21,15 @@ interface DropdownItem {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './analise-criminal.component.html',
-  styleUrls: ['./analise-criminal.component.scss']
+  styleUrls: ['./analise-criminal.component.scss'] // Verifique se os @import do markercluster estão aqui ou em styles.scss
 })
 export class AnaliseCriminalComponent implements OnInit {
   // Mapa
   private map: L.Map | null = null;
   private heatLayer: L.Layer | null = null;
-  private markersLayer: L.LayerGroup = L.layerGroup();
+
+  // Usa o MarkerClusterGroup
+  private markersLayer: L.MarkerClusterGroup = L.markerClusterGroup();
 
   // Dados
   ocorrenciasGeo: OcorrenciaGeo[] = [];
@@ -46,7 +49,7 @@ export class AnaliseCriminalComponent implements OnInit {
   isLoading = false;
   visualizacao: 'heatmap' | 'markers' = 'heatmap';
   loadingStep = 0;
-  semResultados = false; // ✅ 1. ADICIONADO: A variável que faltava.
+  semResultados = false;
 
   constructor(
     private analiseService: AnaliseCriminalService,
@@ -73,7 +76,7 @@ export class AnaliseCriminalComponent implements OnInit {
 
   loadDados(): void {
     this.isLoading = true;
-    this.semResultados = false; // Garante que a mensagem suma ao recarregar
+    this.semResultados = false;
     this.loadingStep = 1;
     if (this.map) {
       this.map.remove();
@@ -86,12 +89,21 @@ export class AnaliseCriminalComponent implements OnInit {
     this.loadingStep = 2;
     forkJoin([estatisticas$, ocorrenciasGeo$]).subscribe({
       next: ([estatisticasData, ocorrenciasData]) => {
+
+        // =================================================================
+        // TESTE 1: DADOS DA API
+        // =================================================================
+        console.log("--- TESTE 1: DADOS DA API ---");
+        console.log(`Total de ocorrências GEO recebidas: ${ocorrenciasData.length}`);
+        console.log("Dados brutos recebidos (Clique para expandir e ver o 'endereco'):", ocorrenciasData);
+        console.log("-------------------------------");
+        // =================================================================
+
         this.estatisticas = estatisticasData;
         this.ocorrenciasGeo = ocorrenciasData;
         this.loadingStep = 3;
         this.isLoading = false;
 
-        // ✅ 2. ADICIONADO: Define se a mensagem deve aparecer.
         if (ocorrenciasData.length === 0) {
           this.semResultados = true;
         }
@@ -128,34 +140,121 @@ export class AnaliseCriminalComponent implements OnInit {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors', maxZoom: 18,
     }).addTo(this.map);
-    this.markersLayer.addTo(this.map);
+
+    // Inicializa o cluster group mas NÃO adiciona ao mapa ainda
+    this.markersLayer = L.markerClusterGroup({
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      chunkedLoading: true
+    });
+    // Não adiciona ao mapa aqui
   }
 
   atualizarMapa(): void {
-    if (!this.map) return;
-    this.markersLayer.clearLayers();
-    if (this.heatLayer) {
-      this.map.removeLayer(this.heatLayer);
-      this.heatLayer = null;
+    if (!this.map) {
+        console.error("Mapa não inicializado!");
+        return;
     }
-    const points = this.ocorrenciasGeo
-      .filter(o => o.endereco?.latitude && o.endereco?.longitude)
-      .map(o => [Number(o.endereco!.latitude), Number(o.endereco!.longitude), 1]);
-    if (points.length === 0) {
+
+    // ✅✅✅ LÓGICA DE LIMPEZA REFINADA ✅✅✅
+    // 1. Remove layers DO MAPA
+    if (this.heatLayer && this.map.hasLayer(this.heatLayer)) {
+        console.log("Removendo heatLayer do mapa.");
+        this.map.removeLayer(this.heatLayer);
+    }
+    if (this.map.hasLayer(this.markersLayer)) {
+        console.log("Removendo markersLayer do mapa.");
+        this.map.removeLayer(this.markersLayer);
+    }
+    // 2. Limpa os DADOS dos layers
+    this.markersLayer.clearLayers(); // Limpa dados do cluster
+    this.heatLayer = null; // Destroi a referência do heatmap
+
+
+    // =================================================================
+    // TESTE 2: DENTRO DO ATUALIZAR MAPA
+    // =================================================================
+    console.log(`--- TESTE 2: DENTRO DO atualizarMapa ---`);
+    console.log(`this.ocorrenciasGeo (ANTES do filtro): ${this.ocorrenciasGeo.length} itens`);
+    // =================================================================
+
+    // Filtra os pontos que têm coordenadas válidas
+    const ocorrenciasFiltradas = this.ocorrenciasGeo
+      .filter(o => o.endereco?.latitude && o.endereco?.longitude);
+
+    // =================================================================
+    // TESTE 3: O PONTO CRÍTICO
+    // =================================================================
+    console.log(`--- TESTE 3: O PONTO CRÍTICO ---`);
+    console.log(`Ocorrências (DEPOIS do filtro de lat/lng): ${ocorrenciasFiltradas.length} itens`);
+    console.log("-------------------------------");
+    // =================================================================
+
+    if (ocorrenciasFiltradas.length === 0) {
+      console.log("RESULTADO: Nenhuma ocorrência com coordenadas válidas. Mapa ficará em branco.");
       this.map.setView([2.8235, -60.6758], 13);
       return;
     }
+
+    // Arredonda os pontos (necessário para ambos os modos)
+    const points = ocorrenciasFiltradas.map(o => {
+        const lat = Number(Number(o.endereco!.latitude).toFixed(4));
+        const lng = Number(Number(o.endereco!.longitude).toFixed(4));
+        return [lat, lng, 1]; // Intensidade 1 para heatmap
+      });
+
+    // Agora, decide qual layer mostrar e ADICIONA AO MAPA
     if (this.visualizacao === 'heatmap') {
-      this.heatLayer = (L as any).heatLayer(points, {
-        radius: 25, blur: 15, maxZoom: 17, gradient: { 0.0: 'blue', 0.5: 'lime', 1.0: 'red' }
-      }).addTo(this.map);
-    } else {
-      this.ocorrenciasGeo
-        .filter(o => o.endereco?.latitude && o.endereco?.longitude)
-        .forEach(o => this.createMarker(o));
+      console.log("Modo Heatmap: Criando e adicionando heatLayer AO MAPA.");
+      this.heatLayer = L.heatLayer(points as L.HeatLatLngTuple[], {
+        radius: 35,
+        blur: 30,
+        gradient: { 0.0: 'blue', 0.5: 'lime', 1.0: 'red' }
+      }).addTo(this.map); // Adiciona diretamente ao mapa
+
+    } else { // visualizacao === 'markers'
+      console.log("Modo Markers: Criando marcadores...");
+      // Cria marcadores em lote
+      const markersToAdd: L.Marker[] = [];
+      const icon = this.createLeafletIcon();
+
+      ocorrenciasFiltradas.forEach(o => {
+          const lat = Number(Number(o.endereco!.latitude).toFixed(4));
+          const lng = Number(Number(o.endereco!.longitude).toFixed(4));
+          const popupContent = this.createPopupContent(o);
+          const marker = L.marker([lat, lng], { icon: icon } )
+                         .bindPopup(popupContent);
+          markersToAdd.push(marker);
+        });
+
+      console.log(`Modo Markers: Adicionando ${markersToAdd.length} marcadores ao cluster.`);
+      this.markersLayer.addLayers(markersToAdd); // Adiciona DADOS ao cluster
+
+      console.log("Modo Markers: Adicionando cluster layer AO MAPA.");
+      this.map.addLayer(this.markersLayer); // Adiciona o cluster (com os dados) AO MAPA
     }
-    const bounds = L.latLngBounds(points.map(p => [p[0], p[1]]));
-    this.map.fitBounds(bounds, { padding: [50, 50] });
+
+    // Lógica do fitBounds (zoom automático)
+    const isFiltered = this.filtros.cidade_id != null ||
+                       this.filtros.classificacao_id != null ||
+                       (this.filtros.data_inicio && this.filtros.data_inicio !== '') ||
+                       (this.filtros.data_fim && this.filtros.data_fim !== '') ||
+                       (this.filtros.bairro && this.filtros.bairro.trim() !== '');
+
+    // Aplica o fitBounds ou centraliza
+    if (isFiltered) {
+        console.log("Filtro aplicado, aplicando fitBounds.");
+        // Usa os 'points' arredondados para calcular os limites
+        const bounds = L.latLngBounds(points.map(p => [p[0], p[1]]));
+        // Adiciona um pequeno buffer para garantir que todos os pontos sejam visíveis
+        const bufferedBounds = bounds.pad(0.1); // 10% de buffer
+        this.map.fitBounds(bufferedBounds, { padding: [50, 50] });
+    } else {
+        // Se não estiver filtrado, garante que o mapa esteja na visão inicial
+        console.log("Nenhum filtro aplicado, centralizando na visão inicial.");
+        this.map.setView([2.8235, -60.6758], 13);
+    }
   }
 
   private createLeafletIcon(): L.Icon {
@@ -168,30 +267,24 @@ export class AnaliseCriminalComponent implements OnInit {
     });
   }
 
-  createMarker(ocorrencia: OcorrenciaGeo): void {
-  const modoEntrada = ocorrencia.endereco?.modo_entrada === 'COORDENADAS_DIRETAS'
-    ? '📍 GPS'
-    : '🏠 Endereço';
+  private createPopupContent(ocorrencia: OcorrenciaGeo): string {
+    const modoEntrada = ocorrencia.endereco?.modo_entrada === 'COORDENADAS_DIRETAS'
+      ? '📍 GPS'
+      : '🏠 Endereço';
 
-  const coordsManuais = ocorrencia.endereco?.coordenadas_manuais
-    ? '(Manual)'
-    : '(Auto)';
+    const coordsManuais = ocorrencia.endereco?.coordenadas_manuais
+      ? '(Manual)'
+      : '(Auto)';
 
-  const popupContent = `
-    <div style="font-size: 12px;">
-      <strong>${ocorrencia.numero_ocorrencia}</strong><br>
-      <span style="color: #dc3545;">${ocorrencia.classificacao?.nome || 'N/A'}</span><br>
-      ${ocorrencia.endereco?.logradouro || ''}, ${ocorrencia.endereco?.bairro || ''}<br>
-      ${ocorrencia.data_fato || ''}<br>
-      <small style="color: #6c757d;">${modoEntrada} ${coordsManuais}</small>
-    </div>`;
-
-  L.marker([Number(ocorrencia.endereco!.latitude), Number(ocorrencia.endereco!.longitude)], {
-    icon: this.createLeafletIcon()
-  })
-  .bindPopup(popupContent)
-  .addTo(this.markersLayer);
-}
+    return `
+      <div style="font-size: 12px;">
+        <strong>${ocorrencia.numero_ocorrencia}</strong><br>
+        <span style="color: #dc3545;">${ocorrencia.classificacao?.nome || 'N/A'}</span><br>
+        ${ocorrencia.endereco?.logradouro || ''}, ${ocorrencia.endereco?.bairro || ''}<br>
+        ${ocorrencia.data_fato || ''}<br>
+        <small style="color: #6c757d;">${modoEntrada} ${coordsManuais}</small>
+      </div>`;
+  }
 
   aplicarFiltros(): void {
     this.loadDados();
@@ -207,6 +300,8 @@ export class AnaliseCriminalComponent implements OnInit {
 
   alternarVisualizacao(): void {
     this.visualizacao = this.visualizacao === 'heatmap' ? 'markers' : 'heatmap';
+    console.log(`Alternando visualização para: ${this.visualizacao}`); // Log extra
     this.atualizarMapa();
   }
 }
+
