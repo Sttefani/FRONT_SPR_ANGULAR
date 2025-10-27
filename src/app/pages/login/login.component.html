@@ -5,77 +5,101 @@
     <div class="login-card">
 
       <div class="login-header">
-        <!-- Container para o logo e título -->
-        <div class="login-title-container">
+        <div class="logo-wrapper">
           <img src="/PCRR_PNG-1.png" alt="Logo PCRR" class="login-logo">
-          <h2>SPR-Criminalística</h2>
         </div>
-        <p>Acesso ao Sistema</p>
+        <h2 class="system-title">SPR-Criminalística</h2>
+        <p class="subtitle">Sistema de Perícias e Requisições</p>
       </div>
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+
         <div class="form-group">
-          <label for="email">E-mail:</label>
-          <input
-            type="email"
-            id="email"
-            formControlName="email"
-            class="form-control"
-            [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
-            placeholder="Digite seu e-mail">
+          <label for="email">
+            <span class="label-icon">📧</span>
+            E-mail
+          </label>
+          <div class="input-wrapper">
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              class="form-control"
+              [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+              placeholder="seu.email@exemplo.com">
+          </div>
           @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
             <div class="error-message">
               @if (loginForm.get('email')?.errors?.['required']) {
-                <small>E-mail é obrigatório</small>
+                <small>⚠️ E-mail é obrigatório</small>
               }
               @if (loginForm.get('email')?.errors?.['email']) {
-                <small>E-mail inválido</small>
+                <small>⚠️ E-mail inválido</small>
               }
             </div>
           }
         </div>
 
         <div class="form-group">
-          <label for="password">Senha:</label>
-          <input
-            type="password"
-            id="password"
-            formControlName="password"
-            class="form-control"
-            [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
-            placeholder="Digite sua senha">
+          <label for="password">
+            <span class="label-icon">🔒</span>
+            Senha
+          </label>
+          <div class="input-wrapper">
+            <input
+              type="password"
+              id="password"
+              formControlName="password"
+              class="form-control"
+              [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+              placeholder="Digite sua senha">
+          </div>
           @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
             <div class="error-message">
               @if (loginForm.get('password')?.errors?.['required']) {
-                <small>Senha é obrigatória</small>
+                <small>⚠️ Senha é obrigatória</small>
               }
             </div>
           }
         </div>
+
+        @if (errorMessage) {
+          <div class="alert-error">
+            <span class="alert-icon">⚠️</span>
+            {{ errorMessage }}
+          </div>
+        }
 
         <div class="form-actions">
           <button
             type="submit"
             class="btn-login"
             [disabled]="loginForm.invalid || loading">
-            {{ loading ? 'Entrando...' : 'ENTRAR' }}
+            @if (loading) {
+              <span class="spinner"></span>
+              Entrando...
+            } @else {
+              <span class="btn-icon">🔓</span>
+              ENTRAR NO SISTEMA
+            }
           </button>
         </div>
 
-        @if (errorMessage) {
-          <div class="error-message">
-            <small>{{ errorMessage }}</small>
-          </div>
-        }
       </form>
 
       <div class="login-footer">
-        <p>Não possui cadastro?</p>
-        <a routerLink="/cadastro" class="cadastro-link">Cadastre-se aqui</a>
+        <div class="divider">
+          <span>OU</span>
+        </div>
+        <p class="footer-text">Não possui cadastro?</p>
+        <a routerLink="/cadastro" class="cadastro-link">
+          <span class="link-icon">✨</span>
+          Cadastre-se aqui!
+        </a>
       </div>
 
-    </div> <!-- Fim de .login-card -->
-  </div> <!-- Fim de .login-container -->
-</main> <!-- Fim de .login-main -->
+    </div>
+  </div>
+</main>
 
 <app-footer></app-footer>

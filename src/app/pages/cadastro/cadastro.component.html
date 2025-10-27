@@ -3,15 +3,23 @@
 <main class="cadastro-main">
   <div class="cadastro-container">
     <div class="cadastro-card">
+
       <div class="cadastro-header">
-        <h2>SPR-Criminalística</h2>
-        <p>Cadastro de Usuário</p>
+        <div class="logo-wrapper">
+          <img src="/PCRR_PNG-1.png" alt="Logo PCRR" class="cadastro-logo">
+        </div>
+        <h2 class="system-title">SPR-Criminalística</h2>
+        <p class="subtitle">Cadastro de Novo Usuário</p>
       </div>
 
       <form [formGroup]="cadastroForm" (ngSubmit)="onSubmit()" class="cadastro-form">
+
         <div class="form-row">
           <div class="form-group">
-            <label for="nome_completo">Nome Completo: *</label>
+            <label for="nome_completo">
+              <span class="label-icon">👤</span>
+              Nome Completo *
+            </label>
             <input
               type="text"
               id="nome_completo"
@@ -22,7 +30,7 @@
             @if (cadastroForm.get('nome_completo')?.invalid && cadastroForm.get('nome_completo')?.touched) {
               <div class="error-message">
                 @if (cadastroForm.get('nome_completo')?.errors?.['required']) {
-                  <small>Nome completo é obrigatório</small>
+                  <small>⚠️ Nome completo é obrigatório</small>
                 }
               </div>
             }
@@ -31,21 +39,24 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="email">E-mail: *</label>
+            <label for="email">
+              <span class="label-icon">📧</span>
+              E-mail *
+            </label>
             <input
               type="email"
               id="email"
               formControlName="email"
               class="form-control"
               [class.error]="cadastroForm.get('email')?.invalid && cadastroForm.get('email')?.touched"
-              placeholder="Digite seu e-mail">
+              placeholder="seu.email@exemplo.com">
             @if (cadastroForm.get('email')?.invalid && cadastroForm.get('email')?.touched) {
               <div class="error-message">
                 @if (cadastroForm.get('email')?.errors?.['required']) {
-                  <small>E-mail é obrigatório</small>
+                  <small>⚠️ E-mail é obrigatório</small>
                 }
                 @if (cadastroForm.get('email')?.errors?.['email']) {
-                  <small>E-mail inválido</small>
+                  <small>⚠️ E-mail inválido</small>
                 }
               </div>
             }
@@ -54,7 +65,10 @@
 
         <div class="form-row">
           <div class="form-group half">
-            <label for="cpf">CPF: *</label>
+            <label for="cpf">
+              <span class="label-icon">🆔</span>
+              CPF *
+            </label>
             <input
               type="text"
               id="cpf"
@@ -67,20 +81,23 @@
             @if (cadastroForm.get('cpf')?.invalid && cadastroForm.get('cpf')?.touched) {
               <div class="error-message">
                 @if (cadastroForm.get('cpf')?.errors?.['required']) {
-                  <small>CPF é obrigatório</small>
+                  <small>⚠️ CPF é obrigatório</small>
                 }
                 @if (cadastroForm.get('cpf')?.errors?.['pattern']) {
-                  <small>CPF deve conter apenas números</small>
+                  <small>⚠️ CPF deve conter apenas números</small>
                 }
                 @if (cadastroForm.get('cpf')?.errors?.['minlength']) {
-                  <small>CPF deve ter 11 dígitos</small>
+                  <small>⚠️ CPF deve ter 11 dígitos</small>
                 }
               </div>
             }
           </div>
 
           <div class="form-group half">
-            <label for="data_nascimento">Data de Nascimento:</label>
+            <label for="data_nascimento">
+              <span class="label-icon">📅</span>
+              Data de Nascimento
+            </label>
             <input
               type="date"
               id="data_nascimento"
@@ -91,7 +108,10 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="telefone_celular">Telefone Celular:</label>
+            <label for="telefone_celular">
+              <span class="label-icon">📱</span>
+              Telefone Celular
+            </label>
             <input
               type="tel"
               id="telefone_celular"
@@ -104,7 +124,7 @@
             @if (cadastroForm.get('telefone_celular')?.invalid && cadastroForm.get('telefone_celular')?.touched) {
               <div class="error-message">
                 @if (cadastroForm.get('telefone_celular')?.errors?.['pattern']) {
-                  <small>Telefone deve conter apenas números</small>
+                  <small>⚠️ Telefone deve conter apenas números</small>
                 }
               </div>
             }
@@ -113,7 +133,10 @@
 
         <div class="form-row">
           <div class="form-group half">
-            <label for="password">Senha: *</label>
+            <label for="password">
+              <span class="label-icon">🔒</span>
+              Senha *
+            </label>
             <input
               type="password"
               id="password"
@@ -124,17 +147,20 @@
             @if (cadastroForm.get('password')?.invalid && cadastroForm.get('password')?.touched) {
               <div class="error-message">
                 @if (cadastroForm.get('password')?.errors?.['required']) {
-                  <small>Senha é obrigatória</small>
+                  <small>⚠️ Senha é obrigatória</small>
                 }
                 @if (cadastroForm.get('password')?.errors?.['minlength']) {
-                  <small>Senha deve ter no mínimo 6 caracteres</small>
+                  <small>⚠️ Senha deve ter no mínimo 6 caracteres</small>
                 }
               </div>
             }
           </div>
 
           <div class="form-group half">
-            <label for="confirmPassword">Confirmar Senha: *</label>
+            <label for="confirmPassword">
+              <span class="label-icon">🔐</span>
+              Confirmar Senha *
+            </label>
             <input
               type="password"
               id="confirmPassword"
@@ -145,21 +171,36 @@
             @if (cadastroForm.get('confirmPassword')?.invalid && cadastroForm.get('confirmPassword')?.touched) {
               <div class="error-message">
                 @if (cadastroForm.get('confirmPassword')?.errors?.['required']) {
-                  <small>Confirmação é obrigatória</small>
+                  <small>⚠️ Confirmação é obrigatória</small>
                 }
                 @if (cadastroForm.get('confirmPassword')?.errors?.['mismatch']) {
-                  <small>Senhas não conferem</small>
+                  <small>⚠️ Senhas não conferem</small>
                 }
               </div>
             }
           </div>
         </div>
 
+        @if (successMessage) {
+          <div class="success-alert">
+            <span class="alert-icon">✅</span>
+            {{ successMessage }}
+          </div>
+        }
+
+        @if (errorMessage) {
+          <div class="error-alert">
+            <span class="alert-icon">⚠️</span>
+            {{ errorMessage }}
+          </div>
+        }
+
         <div class="form-actions">
           <button
             type="button"
             class="btn-secondary"
             routerLink="/login">
+            <span class="btn-icon">←</span>
             VOLTAR
           </button>
 
@@ -167,21 +208,16 @@
             type="submit"
             class="btn-primary"
             [disabled]="cadastroForm.invalid || loading">
-            {{ loading ? 'Cadastrando...' : 'CADASTRAR' }}
+            @if (loading) {
+              <span class="spinner"></span>
+              Cadastrando...
+            } @else {
+              <span class="btn-icon">✓</span>
+              CADASTRAR
+            }
           </button>
         </div>
 
-        @if (successMessage) {
-          <div class="success-message">
-            <small>{{ successMessage }}</small>
-          </div>
-        }
-
-        @if (errorMessage) {
-          <div class="error-message">
-            <small>{{ errorMessage }}</small>
-          </div>
-        }
       </form>
     </div>
   </div>
