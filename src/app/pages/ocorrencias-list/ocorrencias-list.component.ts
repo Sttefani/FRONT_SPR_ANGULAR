@@ -59,7 +59,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private usuarioService: UsuarioService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.setupUserPermissions();
@@ -108,7 +108,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ FUNÇÃO CENTRALIZADA PARA BUSCAR DADOS
+  // ✅ FUNÇÃO CENTRALIZADA PARA BUSCAR DADOS - CORRIGIDA
   buscarOcorrencias(resetPage: boolean = true): void {
     if (this.viewMode === 'lixeira') {
       this.loadLixeira();
@@ -134,8 +134,24 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     if (this.searchTerm.trim()) params.search = this.searchTerm.trim();
     if (this.statusFiltro) params.status = this.statusFiltro;
     if (this.servicoPericialFiltro) params.servico_pericial = this.servicoPericialFiltro;
-    if (this.dataInicio) params.data_fato_de = this.dataInicio;
-    if (this.dataFim) params.data_fato_ate = this.dataFim;
+
+    // ✅ FILTRO DE DATAS CORRIGIDO
+    // Se ambas preenchidas, usa intervalo normal
+    if (this.dataInicio && this.dataFim) {
+      params.data_fato_de = this.dataInicio;
+      params.data_fato_ate = this.dataFim;
+    }
+    // Se apenas data início, usa ela como início E fim (data exata)
+    else if (this.dataInicio && !this.dataFim) {
+      params.data_fato_de = this.dataInicio;
+      params.data_fato_ate = this.dataInicio;
+    }
+    // Se apenas data fim, usa ela como início E fim (data exata)
+    else if (!this.dataInicio && this.dataFim) {
+      params.data_fato_de = this.dataFim;
+      params.data_fato_ate = this.dataFim;
+    }
+
     if (this.peritoFiltro) params.perito_atribuido = this.peritoFiltro;
 
     this.ocorrenciaService.getAll(params).subscribe({
@@ -173,14 +189,14 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
   switchView(newView: 'todas' | 'pendentes' | 'finalizadas' | 'lixeira'): void {
     if (this.viewMode === newView) return;
     this.viewMode = newView;
-    this.limparFiltros(); // Limpa os filtros e já recarrega a view correta
+    this.limparFiltros();
   }
 
   loadLixeira(): void {
     this.isLoadingLixeira = true;
     this.ocorrenciaService.getLixeira().subscribe({
       next: (data) => { this.ocorrenciasLixeira = data; this.isLoadingLixeira = false; },
-      error: (err: any) => { this.isLoadingLixeira = false; /* Tratar erro */ }
+      error: (err: any) => { this.isLoadingLixeira = false; }
     });
   }
 
@@ -188,7 +204,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
   irParaPagina(pagina: number): void {
     if (pagina >= 1 && pagina <= this.totalPages) {
       this.currentPage = pagina;
-      this.buscarOcorrencias(false); // Busca sem resetar a página
+      this.buscarOcorrencias(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
@@ -212,7 +228,6 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     }
     return paginas;
   }
-
   // (As funções antigas `goToNextPage` e `goToPreviousPage` são removidas pois o HTML agora chama `irParaPagina` diretamente)
 
   onCreate(): void { this.router.navigate(['/gabinete-virtual/operacional/ocorrencias/novo']); }
@@ -242,40 +257,40 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
 
   onDelete(ocorrencia: Ocorrencia): void {
     Swal.fire({ title: 'Confirmar exclusão', text: `Tem certeza que deseja mover a ocorrência "${ocorrencia.numero_ocorrencia}" para a lixeira?`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Sim, deletar', cancelButtonText: 'Cancelar' })
-    .then((result) => {
-      if (result.isConfirmed) {
-        this.ocorrenciaService.delete(ocorrencia.id).subscribe({
-          next: () => {
-            this.message = `Ocorrência "${ocorrencia.numero_ocorrencia}" movida para a lixeira.`;
-            this.messageType = 'success';
-            this.buscarOcorrencias(false);
-          },
-          error: (err: any) => {
-            this.message = 'Erro ao mover para a lixeira.';
-            this.messageType = 'error';
-          }
-        });
-      }
-    });
+      .then((result) => {
+        if (result.isConfirmed) {
+          this.ocorrenciaService.delete(ocorrencia.id).subscribe({
+            next: () => {
+              this.message = `Ocorrência "${ocorrencia.numero_ocorrencia}" movida para a lixeira.`;
+              this.messageType = 'success';
+              this.buscarOcorrencias(false);
+            },
+            error: (err: any) => {
+              this.message = 'Erro ao mover para a lixeira.';
+              this.messageType = 'error';
+            }
+          });
+        }
+      });
   }
 
   onRestore(ocorrencia: Ocorrencia): void {
     Swal.fire({ title: 'Restaurar ocorrência', text: `Restaurar "${ocorrencia.numero_ocorrencia}"?`, icon: 'question', showCancelButton: true, confirmButtonText: 'Sim, restaurar', cancelButtonText: 'Cancelar' })
-    .then((result) => {
-      if (result.isConfirmed) {
-        this.ocorrenciaService.restaurar(ocorrencia.id).subscribe({
-          next: () => {
-            this.message = `Ocorrência "${ocorrencia.numero_ocorrencia}" restaurada com sucesso.`;
-            this.messageType = 'success';
-            this.loadLixeira();
-          },
-          error: (err: any) => {
-            this.message = 'Erro ao restaurar a ocorrência.';
-            this.messageType = 'error';
-          }
-        });
-      }
-    });
+      .then((result) => {
+        if (result.isConfirmed) {
+          this.ocorrenciaService.restaurar(ocorrencia.id).subscribe({
+            next: () => {
+              this.message = `Ocorrência "${ocorrencia.numero_ocorrencia}" restaurada com sucesso.`;
+              this.messageType = 'success';
+              this.loadLixeira();
+            },
+            error: (err: any) => {
+              this.message = 'Erro ao restaurar a ocorrência.';
+              this.messageType = 'error';
+            }
+          });
+        }
+      });
   }
 
   getStatusLabel(status: string | undefined): string {

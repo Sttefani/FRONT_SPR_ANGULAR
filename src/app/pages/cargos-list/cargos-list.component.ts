@@ -37,7 +37,7 @@ export class CargosListComponent implements OnInit {
     private cargoService: CargoService,
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.isSuperAdmin = this.authService.isSuperAdmin();

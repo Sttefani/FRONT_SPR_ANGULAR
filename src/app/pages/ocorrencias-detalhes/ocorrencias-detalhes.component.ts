@@ -44,7 +44,7 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     private router: Router,
     private procedimentoService: ProcedimentoService,
     private procedimentoCadastradoService: ProcedimentoCadastradoService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
@@ -90,10 +90,10 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   }
 
   abrirModalVincularProcedimento(): void {
-  Swal.fire({
-    title: 'Vincular Procedimento',
-    width: '600px',
-    html: `
+    Swal.fire({
+      title: 'Vincular Procedimento',
+      width: '600px',
+      html: `
       <div style="text-align: left; padding: 10px;">
         <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333; font-size: 14px;">
           Tipo de Procedimento *
@@ -115,10 +115,10 @@ export class OcorrenciasDetalhesComponent implements OnInit {
         ">
           <option value="" style="color: #999; background: #fff;">Selecione</option>
           ${this.tiposProcedimento.map(t =>
-            `<option value="${t.id}" style="color: #333; background: #fff; padding: 8px;">
+        `<option value="${t.id}" style="color: #333; background: #fff; padding: 8px;">
               ${t.sigla} - ${t.nome}
             </option>`
-          ).join('')}
+      ).join('')}
         </select>
 
         <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333; font-size: 14px;">
@@ -157,27 +157,27 @@ export class OcorrenciasDetalhesComponent implements OnInit {
           ">
       </div>
     `,
-    showCancelButton: true,
-    confirmButtonText: 'Buscar',
-    cancelButtonText: 'Cancelar',
-    preConfirm: () => {
-      const tipo = (document.getElementById('swal-tipo') as HTMLSelectElement).value;
-      const numero = (document.getElementById('swal-numero') as HTMLInputElement).value;
-      const ano = (document.getElementById('swal-ano') as HTMLInputElement).value;
+      showCancelButton: true,
+      confirmButtonText: 'Buscar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const tipo = (document.getElementById('swal-tipo') as HTMLSelectElement).value;
+        const numero = (document.getElementById('swal-numero') as HTMLInputElement).value;
+        const ano = (document.getElementById('swal-ano') as HTMLInputElement).value;
 
-      if (!tipo || !numero || !ano) {
-        Swal.showValidationMessage('Preencha todos os campos');
-        return false;
+        if (!tipo || !numero || !ano) {
+          Swal.showValidationMessage('Preencha todos os campos');
+          return false;
+        }
+
+        return { tipo: Number(tipo), numero, ano: Number(ano) };
       }
-
-      return { tipo: Number(tipo), numero, ano: Number(ano) };
-    }
-  }).then((result) => {
-    if (result.isConfirmed) {
-      this.buscarEVincularProcedimento(result.value);
-    }
-  });
-}
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.buscarEVincularProcedimento(result.value);
+      }
+    });
+  }
   buscarEVincularProcedimento(dados: any): void {
     this.procedimentoCadastradoService.verificarExistente(dados.tipo, dados.numero, dados.ano).subscribe({
       next: (response: any) => {
@@ -216,27 +216,27 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     });
   }
 
- vincularProcedimento(procedimentoId: number): void {
-  if (!this.ocorrenciaId) {
-    console.error("ID da ocorrência não encontrado. Ação cancelada.");
-    return;
-  }
-
-  this.ocorrenciaService.vincularProcedimento(this.ocorrenciaId, procedimentoId).subscribe({
-    next: (response) => {
-      const successMsg = response?.message || 'Procedimento vinculado com sucesso.';
-      Swal.fire('Sucesso!', successMsg, 'success');
-      this.loadOcorrencia(this.ocorrenciaId!);
-    },
-    error: (err) => {
-      let errorMsg = 'Erro ao vincular o procedimento.';
-      if (err.error && typeof err.error === 'object') {
-        errorMsg = err.error.error || err.error.detail || errorMsg;
-      }
-      Swal.fire('Ação Não Permitida', errorMsg, 'error');
+  vincularProcedimento(procedimentoId: number): void {
+    if (!this.ocorrenciaId) {
+      console.error("ID da ocorrência não encontrado. Ação cancelada.");
+      return;
     }
-  });
-}
+
+    this.ocorrenciaService.vincularProcedimento(this.ocorrenciaId, procedimentoId).subscribe({
+      next: (response) => {
+        const successMsg = response?.message || 'Procedimento vinculado com sucesso.';
+        Swal.fire('Sucesso!', successMsg, 'success');
+        this.loadOcorrencia(this.ocorrenciaId!);
+      },
+      error: (err) => {
+        let errorMsg = 'Erro ao vincular o procedimento.';
+        if (err.error && typeof err.error === 'object') {
+          errorMsg = err.error.error || err.error.detail || errorMsg;
+        }
+        Swal.fire('Ação Não Permitida', errorMsg, 'error');
+      }
+    });
+  }
   // No seu arquivo .ts do componente
 
   /**
@@ -245,57 +245,57 @@ export class OcorrenciasDetalhesComponent implements OnInit {
  * para executar a lógica de desvinculação no backend com as mesmas
  * regras de segurança e auditoria.
  */
-desvincularProcedimento(): void {
-  // Guarda de segurança para garantir que o ID da ocorrência existe
-  if (!this.ocorrenciaId) {
-    console.error("ID da ocorrência não encontrado. Ação cancelada.");
-    return;
-  }
-
-  // Exibe um modal de confirmação para o usuário
-  Swal.fire({
-    title: 'Confirmar Desvinculação',
-    text: 'Tem certeza que deseja desvincular este procedimento?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Sim, desvincular',
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#d33',
-    reverseButtons: true
-  }).then((result) => {
-    // Procede apenas se o usuário clicar em "Sim, desvincular"
-    if (result.isConfirmed) {
-      // Chama o endpoint, passando 'null' para indicar desvinculação
-      this.ocorrenciaService.vincularProcedimento(this.ocorrenciaId!, null).subscribe({
-        // Bloco executado em caso de SUCESSO na chamada da API
-        next: (response) => {
-          // Usa a mensagem de sucesso do backend ou uma padrão
-          const successMsg = response?.message || 'O procedimento foi removido com sucesso.';
-          Swal.fire('Desvinculado!', successMsg, 'success');
-
-          // Recarrega os dados da ocorrência para atualizar a tela
-          this.loadOcorrencia(this.ocorrenciaId!);
-        },
-        // Bloco executado em caso de ERRO na chamada da API
-        error: (err) => {
-          // Define uma mensagem padrão como último recurso
-          let errorMsg = 'Erro ao desvincular o procedimento.';
-
-          // Verifica se o corpo do erro (err.error) existe e é um objeto
-          if (err.error && typeof err.error === 'object') {
-            // Procura pela nossa chave customizada 'error',
-            // se não achar, procura pela chave padrão do Django 'detail'.
-            // Se não achar nenhuma das duas, mantém a mensagem padrão.
-            errorMsg = err.error.error || err.error.detail || errorMsg;
-          }
-
-          // Exibe o SweetAlert com a mensagem de erro correta
-          Swal.fire('Ação Não Permitida', errorMsg, 'error');
-        }
-      });
+  desvincularProcedimento(): void {
+    // Guarda de segurança para garantir que o ID da ocorrência existe
+    if (!this.ocorrenciaId) {
+      console.error("ID da ocorrência não encontrado. Ação cancelada.");
+      return;
     }
-  });
-}
+
+    // Exibe um modal de confirmação para o usuário
+    Swal.fire({
+      title: 'Confirmar Desvinculação',
+      text: 'Tem certeza que deseja desvincular este procedimento?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, desvincular',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33',
+      reverseButtons: true
+    }).then((result) => {
+      // Procede apenas se o usuário clicar em "Sim, desvincular"
+      if (result.isConfirmed) {
+        // Chama o endpoint, passando 'null' para indicar desvinculação
+        this.ocorrenciaService.vincularProcedimento(this.ocorrenciaId!, null).subscribe({
+          // Bloco executado em caso de SUCESSO na chamada da API
+          next: (response) => {
+            // Usa a mensagem de sucesso do backend ou uma padrão
+            const successMsg = response?.message || 'O procedimento foi removido com sucesso.';
+            Swal.fire('Desvinculado!', successMsg, 'success');
+
+            // Recarrega os dados da ocorrência para atualizar a tela
+            this.loadOcorrencia(this.ocorrenciaId!);
+          },
+          // Bloco executado em caso de ERRO na chamada da API
+          error: (err) => {
+            // Define uma mensagem padrão como último recurso
+            let errorMsg = 'Erro ao desvincular o procedimento.';
+
+            // Verifica se o corpo do erro (err.error) existe e é um objeto
+            if (err.error && typeof err.error === 'object') {
+              // Procura pela nossa chave customizada 'error',
+              // se não achar, procura pela chave padrão do Django 'detail'.
+              // Se não achar nenhuma das duas, mantém a mensagem padrão.
+              errorMsg = err.error.error || err.error.detail || errorMsg;
+            }
+
+            // Exibe o SweetAlert com a mensagem de erro correta
+            Swal.fire('Ação Não Permitida', errorMsg, 'error');
+          }
+        });
+      }
+    });
+  }
 
   onEditar(): void {
     if (!this.ocorrencia || !this.ocorrenciaId) return;
@@ -306,8 +306,8 @@ desvincularProcedimento(): void {
     }
 
     const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
-                         !!this.ocorrencia.finalizada_por ||
-                         !!this.ocorrencia.data_finalizacao;
+      !!this.ocorrencia.finalizada_por ||
+      !!this.ocorrencia.data_finalizacao;
 
     if (jaFinalizada) {
       Swal.fire({
@@ -361,8 +361,8 @@ desvincularProcedimento(): void {
     if (!this.ocorrencia) return;
 
     const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
-                         !!this.ocorrencia.finalizada_por ||
-                         !!this.ocorrencia.data_finalizacao;
+      !!this.ocorrencia.finalizada_por ||
+      !!this.ocorrencia.data_finalizacao;
 
     if (jaFinalizada) {
       console.log('⚠️ OCORRÊNCIA JÁ FINALIZADA - mostrando aviso SEM pedir senha');
@@ -433,8 +433,8 @@ desvincularProcedimento(): void {
     }
 
     const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
-                         !!this.ocorrencia.finalizada_por ||
-                         !!this.ocorrencia.data_finalizacao;
+      !!this.ocorrencia.finalizada_por ||
+      !!this.ocorrencia.data_finalizacao;
 
     if (!jaFinalizada) {
       Swal.fire({
@@ -484,65 +484,160 @@ desvincularProcedimento(): void {
     });
   }
 
+  // ====================================================================
+  // ✅ FUNÇÃO MELHORADA: Impressão de PDF com validações
+  // ====================================================================
   onImprimirPDF(): void {
     if (!this.ocorrencia) return;
 
-    this.ocorrenciaService.imprimirPDF(this.ocorrencia.id).subscribe({
+    // ✅ Coleta avisos de campos incompletos (sem bloquear)
+    const avisos: string[] = [];
+
+    if (!this.ocorrencia.perito_atribuido) {
+      avisos.push('Sem perito atribuído');
+    }
+
+    if (!this.ocorrencia.procedimento_cadastrado) {
+      avisos.push('Sem procedimento vinculado');
+    }
+
+    if (!this.ocorrencia.historico || this.ocorrencia.historico.trim().length < 10) {
+      avisos.push('Histórico vazio ou incompleto');
+    }
+
+    // ✅ Se tem avisos, pergunta se quer continuar
+    if (avisos.length > 0) {
+      Swal.fire({
+        title: 'Atenção',
+        html: `
+          <p style="margin-bottom: 15px;">A ocorrência possui campos incompletos:</p>
+          <ul style="text-align: left; color: #856404; background: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0;">
+            ${avisos.map(a => `<li style="margin: 5px 0;">${a}</li>`).join('')}
+          </ul>
+          <p style="margin-top: 15px;"><strong>Deseja gerar o PDF mesmo assim?</strong></p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, gerar PDF',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#DAA520',
+        cancelButtonColor: '#6c757d'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.executarGeracaoPDF();
+        }
+      });
+      return;
+    }
+
+    // ✅ Se não tem avisos, gera direto
+    this.executarGeracaoPDF();
+  }
+
+  // ====================================================================
+  // ✅ NOVA FUNÇÃO PRIVADA: Executa a geração do PDF
+  // ====================================================================
+  private executarGeracaoPDF(): void {
+    // ✅ Mostra loading durante a geração
+    Swal.fire({
+      title: 'Gerando PDF...',
+      html: '<p>Aguarde enquanto o documento é gerado.</p>',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    this.ocorrenciaService.imprimirPDF(this.ocorrencia!.id).subscribe({
       next: (blob) => {
+        Swal.close();
+
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `Ocorrencia_${this.ocorrencia!.numero_ocorrencia}.pdf`;
+
+        // ✅ Nome de arquivo melhorado e seguro
+        const numeroLimpo = this.ocorrencia!.numero_ocorrencia.replace(/\//g, '-');
+        const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        link.download = `Ocorrencia_${numeroLimpo}_${timestamp}.pdf`;
+
         link.click();
         window.URL.revokeObjectURL(url);
+
+        // ✅ Feedback de sucesso
+        Swal.fire({
+          title: 'Sucesso!',
+          text: 'PDF gerado e baixado com sucesso.',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
       },
       error: (err: any) => {
+        Swal.close();
         console.error('Erro ao gerar PDF:', err);
-        Swal.fire('Erro', 'Erro ao gerar PDF da ocorrência.', 'error');
+
+        // ✅ Mensagem de erro mais específica
+        let errorMsg = 'Não foi possível gerar o PDF. Tente novamente.';
+        if (err.error?.detail) {
+          errorMsg = err.error.detail;
+        } else if (err.status === 404) {
+          errorMsg = 'Ocorrência não encontrada.';
+        } else if (err.status === 500) {
+          errorMsg = 'Erro no servidor ao gerar PDF. Contate o suporte.';
+        }
+
+        Swal.fire({
+          title: 'Erro',
+          text: errorMsg,
+          icon: 'error',
+          confirmButtonText: 'Entendi'
+        });
       }
     });
   }
 
   podeEditar(): boolean {
-  if (!this.ocorrencia) return false;
+    if (!this.ocorrencia) return false;
 
-  // SE FOI REABERTA, pode editar
-  if (this.ocorrencia.reaberta_por) {
-    if (this.isSuperAdmin) return true;
+    // SE FOI REABERTA, pode editar
+    if (this.ocorrencia.reaberta_por) {
+      if (this.isSuperAdmin) return true;
 
+      if (this.ocorrencia.perito_atribuido) {
+        const user = this.authService.getCurrentUser();
+        const resultado = Number(user?.id) === Number(this.ocorrencia.perito_atribuido.id);
+        return resultado;
+      }
+
+      return this.isPerito || this.isOperacional;
+    }
+
+    // SE NÃO FOI REABERTA, verifica se está finalizada
+    const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
+      !!this.ocorrencia.finalizada_por ||
+      !!this.ocorrencia.data_finalizacao;
+
+    if (jaFinalizada) {
+      return false;
+    }
+
+    if (this.isSuperAdmin) {
+      return true;
+    }
+
+    // Verifica se tem perito atribuído
     if (this.ocorrencia.perito_atribuido) {
       const user = this.authService.getCurrentUser();
       const resultado = Number(user?.id) === Number(this.ocorrencia.perito_atribuido.id);
       return resultado;
     }
 
-    return this.isPerito || this.isOperacional;
+    // Sem perito atribuído
+    const resultadoFinal = this.isPerito || this.isOperacional;
+    return resultadoFinal;
   }
-
-  // SE NÃO FOI REABERTA, verifica se está finalizada
-  const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
-                       !!this.ocorrencia.finalizada_por ||
-                       !!this.ocorrencia.data_finalizacao;
-
-  if (jaFinalizada) {
-    return false;
-  }
-
-  if (this.isSuperAdmin) {
-    return true;
-  }
-
-  // Verifica se tem perito atribuído
-  if (this.ocorrencia.perito_atribuido) {
-    const user = this.authService.getCurrentUser();
-    const resultado = Number(user?.id) === Number(this.ocorrencia.perito_atribuido.id);
-    return resultado;
-  }
-
-  // Sem perito atribuído
-  const resultadoFinal = this.isPerito || this.isOperacional;
-  return resultadoFinal;
-}
 
   podeFinalizar(): boolean {
     if (!this.ocorrencia) return false;
@@ -552,8 +647,8 @@ desvincularProcedimento(): void {
     }
 
     const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
-                         !!this.ocorrencia.finalizada_por ||
-                         !!this.ocorrencia.data_finalizacao;
+      !!this.ocorrencia.finalizada_por ||
+      !!this.ocorrencia.data_finalizacao;
 
     return !jaFinalizada && (this.isAdministrativo || this.isSuperAdmin);
   }
@@ -566,8 +661,8 @@ desvincularProcedimento(): void {
     }
 
     const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
-                         !!this.ocorrencia.finalizada_por ||
-                         !!this.ocorrencia.data_finalizacao;
+      !!this.ocorrencia.finalizada_por ||
+      !!this.ocorrencia.data_finalizacao;
 
     return jaFinalizada && this.isSuperAdmin;
   }
@@ -590,32 +685,27 @@ desvincularProcedimento(): void {
     return classes[status] || '';
   }
 
- podeGerenciarProcedimento(): boolean {
-  if (!this.ocorrencia) return false;
+  podeGerenciarProcedimento(): boolean {
+    if (!this.ocorrencia) return false;
 
-  // Se finalizada, ninguém pode
-  if (this.ocorrencia.esta_finalizada) return false;
+    // Se finalizada, ninguém pode
+    if (this.ocorrencia.esta_finalizada) return false;
 
-  // Super admin sempre pode
-  if (this.isSuperAdmin) return true;
+    // Super admin sempre pode
+    if (this.isSuperAdmin) return true;
 
-  // Se tem perito, só o perito pode
-  if (this.ocorrencia.perito_atribuido) {
-    const user = this.authService.getCurrentUser();
+    // Se tem perito, só o perito pode
+    if (this.ocorrencia.perito_atribuido) {
+      const user = this.authService.getCurrentUser();
 
-    // ✅ CORREÇÃO: Converte AMBOS para Number antes de comparar
-    const meuId = Number(user?.id);
-    const peritoId = Number(this.ocorrencia.perito_atribuido.id);
+      // ✅ CORREÇÃO: Converte AMBOS para Number antes de comparar
+      const meuId = Number(user?.id);
+      const peritoId = Number(this.ocorrencia.perito_atribuido.id);
 
-    console.log('🔍 Comparação corrigida:');
-    console.log('  - Meu ID (convertido):', meuId);
-    console.log('  - ID do perito (convertido):', peritoId);
-    console.log('  - Match?', meuId === peritoId ? '✅ SIM' : '❌ NÃO');
+      return meuId === peritoId;
+    }
 
-    return meuId === peritoId;
+    // Se não tem perito, qualquer um pode
+    return true;
   }
-
-  // Se não tem perito, qualquer um pode
-  return true;
-}
 }

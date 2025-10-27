@@ -10,8 +10,8 @@
   --danger-color: #dc3545;
   --warning-color: #ff9800;
   --info-color: #3182ce;
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .container {
@@ -90,8 +90,10 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 0.6rem;
 
-  > *:nth-child(7),
-  > *:nth-child(8) {
+  // ✅ AJUSTE: Faz o select de ordenação ocupar uma coluna
+  >*:nth-child(7),
+  >*:nth-child(8),
+  >*:nth-child(9) {
     grid-column: span 1;
   }
 }
@@ -124,6 +126,18 @@
 
   option {
     font-weight: 500;
+  }
+}
+
+// ✅ NOVO: Estilo especial para o select de ordenação
+.select-ordem {
+  background: linear-gradient(135deg, rgba(218, 165, 32, 0.1), rgba(184, 134, 11, 0.1));
+  border-color: var(--primary-color);
+  font-weight: 700;
+
+  &:focus {
+    border-color: var(--primary-color-dark);
+    box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.25);
   }
 }
 
@@ -200,7 +214,9 @@
     white-space: nowrap;
     text-transform: uppercase;
 
-    i { font-size: 1rem; }
+    i {
+      font-size: 1rem;
+    }
 
     &:hover {
       color: var(--text-color-dark);
@@ -239,8 +255,15 @@
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 // ========== ESTADOS ==========
@@ -268,8 +291,15 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 0.3; }
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
 }
 
 // ========== TABELA ==========
@@ -466,37 +496,42 @@
   &.view:hover {
     border-color: var(--info-color);
     background-color: rgba(49, 130, 206, 0.1);
-    i { color: var(--info-color); }
+
+    i {
+      color: var(--info-color);
+    }
   }
 
   &.edit:hover {
     border-color: var(--primary-color);
     background-color: rgba(218, 165, 32, 0.1);
-    i { color: var(--primary-color); }
+
+    i {
+      color: var(--primary-color);
+    }
   }
 
   &.danger:hover {
     border-color: var(--danger-color);
     background-color: rgba(220, 53, 69, 0.1);
-    i { color: var(--danger-color); }
+
+    i {
+      color: var(--danger-color);
+    }
   }
 
   &.restore:hover {
     border-color: var(--success-color);
     background-color: rgba(40, 167, 69, 0.1);
-    i { color: var(--success-color); }
+
+    i {
+      color: var(--success-color);
+    }
   }
 }
 
-// ========== PAGINAÇÃO ANTIGA REMOVIDA ==========
-/*
-.pagination {
-  ... seu código antigo de paginação foi removido מכאן ...
-}
-*/
-
 // ============================================================================
-// ✅ PAGINAÇÃO INLINE E DISCRETA (SEÇÃO MODIFICADA)
+// PAGINAÇÃO INLINE E DISCRETA
 // ============================================================================
 .paginacao-container {
   display: flex;
@@ -511,7 +546,6 @@
 
   .pagination {
     margin-bottom: 0;
-    // Adicionado para não crescer e empurrar o "ir para"
     flex-shrink: 0;
 
     .page-item {
@@ -559,6 +593,7 @@
     @media (min-width: 768px) {
       margin-left: auto;
     }
+
     font-size: 0.85rem;
 
     .form-control-sm {
@@ -597,11 +632,12 @@
     }
 
     .d-flex {
-        gap: 0.5rem !important;
+      gap: 0.5rem !important;
     }
+
     .small.text-muted {
-        font-style: normal;
-        font-weight: 600;
+      font-style: normal;
+      font-weight: 600;
     }
   }
 }
@@ -618,18 +654,25 @@
 }
 
 @media (max-width: 768px) {
-  .container { padding: 1rem; }
+  .container {
+    padding: 1rem;
+  }
 
   .title-section {
     min-width: auto;
-    h1 { font-size: 1.4rem; }
+
+    h1 {
+      font-size: 1.4rem;
+    }
   }
 
   .filters-grid {
     grid-template-columns: 1fr;
   }
 
-  .data-table thead { display: none; }
+  .data-table thead {
+    display: none;
+  }
 
   .data-table tbody tr {
     display: block;
@@ -655,10 +698,13 @@
         text-transform: uppercase;
       }
 
-      &:last-child { border-bottom: none; }
+      &:last-child {
+        border-bottom: none;
+      }
 
       &.actions-cell {
         justify-content: center;
+
         &:before {
           width: 100%;
           text-align: center;
@@ -668,7 +714,6 @@
     }
   }
 
-  // Paginação responsiva
   .paginacao-container {
     flex-direction: column;
     gap: 1rem;
