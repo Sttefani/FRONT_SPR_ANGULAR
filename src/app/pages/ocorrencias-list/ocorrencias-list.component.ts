@@ -336,4 +336,10 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     }
     return this.isPerito || this.isOperacional;
   }
+  getTooltipContent(ocorrencia: Ocorrencia): string {
+    const perito = ocorrencia.perito_atribuido?.nome_completo || 'Não atribuído';
+    const classificacao = ocorrencia.classificacao?.nome || 'N/D';
+
+    return `Perito: ${perito}\nClassificação: ${classificacao}`;
+  }
 }

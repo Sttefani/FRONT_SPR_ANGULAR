@@ -101,8 +101,12 @@
             @for (ocorrencia of ocorrencias; track ocorrencia.id) {
               <tr>
                 <td data-label="Número" class="numero-cell">
-                  <strong>{{ ocorrencia.numero_ocorrencia }}</strong>
-                </td>
+                <strong
+                  class="numero-ocorrencia-tooltip"
+                  [attr.data-tooltip]="getTooltipContent(ocorrencia)">
+                  {{ ocorrencia.numero_ocorrencia }}
+                </strong>
+              </td>
                 <td data-label="Status">
                   <span class="badge-status" [ngClass]="getStatusClass(ocorrencia.status)">
                     {{ getStatusLabel(ocorrencia.status) }}

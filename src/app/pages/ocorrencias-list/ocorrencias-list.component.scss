@@ -592,9 +592,10 @@
   .ir-para-pagina {
     @media (min-width: 768px) {
       margin-left: auto;
+      font-size: 0.85rem;
+
     }
 
-    font-size: 0.85rem;
 
     .form-control-sm {
       border: 2px solid var(--border-color);
@@ -639,6 +640,57 @@
       font-style: normal;
       font-weight: 600;
     }
+  }
+}
+
+.numero-ocorrencia-tooltip {
+  cursor: help;
+  color: var(--primary-color); // ✅ Mudou de #0066cc para dourado
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  position: relative;
+
+  &::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 100%; // ✅ Mudou: agora aparece à direita
+    top: 0; // ✅ Mudou: alinha no topo
+    margin-left: 12px; // ✅ Espaçamento à direita
+    padding: 12px;
+    background: #333;
+    color: #fff;
+    font-size: 12px;
+    white-space: pre-line;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 1000;
+    min-width: 250px;
+    text-align: left;
+  }
+
+  &:hover::after {
+    opacity: 1;
+  }
+
+  // Setinha apontando para a esquerda
+  &::before {
+    content: '';
+    position: absolute;
+    left: 100%; // ✅ Mudou
+    top: 12px; // ✅ Mudou
+    margin-left: 6px;
+    border: 6px solid transparent;
+    border-right-color: #333; // ✅ Mudou: setinha para esquerda
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 1001;
+  }
+
+  &:hover::before {
+    opacity: 1;
   }
 }
 
@@ -713,6 +765,7 @@
       }
     }
   }
+
 
   .paginacao-container {
     flex-direction: column;
