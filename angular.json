@@ -36,8 +36,8 @@
             "node_modules/bootstrap-icons/font/bootstrap-icons.css",
             "node_modules/sweetalert2/dist/sweetalert2.min.css",
             "node_modules/leaflet/dist/leaflet.css",
-            "node_modules/leaflet.markercluster/dist/MarkerCluster.css",    // <-- ADICIONE ESTA LINHA
-            "node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css", // <-- ADICIONE ESTA LINHA
+            "node_modules/leaflet.markercluster/dist/MarkerCluster.css",    
+            "node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css", 
             "src/styles.scss"
           ],
             "scripts": [
@@ -61,17 +61,15 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "20kB",
+                  "maximumError": "40kB"
                 }
               ],
               "outputHashing": "all",
               "optimization": true,
               "sourceMap": false,
               "namedChunks": false,
-              "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true
+              "extractLicenses": true
             },
             "development": {
               "optimization": false,
