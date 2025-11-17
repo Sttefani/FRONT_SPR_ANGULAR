@@ -1,9 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import * as L from 'leaflet';
-import 'leaflet.heat';
-import 'leaflet.markercluster'; // Importa o MarkerCluster
 import { forkJoin } from 'rxjs';
 
 import { AnaliseCriminalService, EstatisticaCriminal, OcorrenciaGeo } from '../../services/analise-criminal.service';
@@ -21,35 +18,31 @@ interface DropdownItem {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './analise-criminal.component.html',
-  styleUrls: ['./analise-criminal.component.scss'] // Verifique se os @import do markercluster estão aqui ou em styles.scss
+  styleUrls: ['./analise-criminal.component.scss']
 })
 export class AnaliseCriminalComponent implements OnInit {
-  // Mapa
-  private map: L.Map | null = null;
-  private heatLayer: L.Layer | null = null;
+  private map: any = null;
+  private heatLayer: any = null;
+  private markersLayer: any = null;
 
-  // Usa o MarkerClusterGroup
-  private markersLayer: L.MarkerClusterGroup = L.markerClusterGroup();
-
-  // Dados
   ocorrenciasGeo: OcorrenciaGeo[] = [];
   estatisticas: EstatisticaCriminal | null = null;
 
-  // Filtros
   filtros = {
     data_inicio: '', data_fim: '', classificacao_id: null as number | null,
     cidade_id: null as number | null, bairro: ''
   };
 
-  // Dropdowns
   classificacoes: DropdownItem[] = [];
   cidades: DropdownItem[] = [];
 
-  // Estados
   isLoading = false;
   visualizacao: 'heatmap' | 'markers' = 'heatmap';
   loadingStep = 0;
   semResultados = false;
+
+  private leafletPluginsLoaded = false;
+  private leafletLoaded = false;
 
   constructor(
     private analiseService: AnaliseCriminalService,
@@ -78,8 +71,9 @@ export class AnaliseCriminalComponent implements OnInit {
     this.isLoading = true;
     this.semResultados = false;
     this.loadingStep = 1;
+
     if (this.map) {
-      this.map.remove();
+      try { this.map.remove(); } catch (e) { /* ignore */ }
       this.map = null;
     }
 
@@ -89,24 +83,17 @@ export class AnaliseCriminalComponent implements OnInit {
     this.loadingStep = 2;
     forkJoin([estatisticas$, ocorrenciasGeo$]).subscribe({
       next: ([estatisticasData, ocorrenciasData]) => {
-
-        // =================================================================
-        // TESTE 1: DADOS DA API
-        // =================================================================
         console.log("--- TESTE 1: DADOS DA API ---");
         console.log(`Total de ocorrências GEO recebidas: ${ocorrenciasData.length}`);
-        console.log("Dados brutos recebidos (Clique para expandir e ver o 'endereco'):", ocorrenciasData);
+        console.log("Dados brutos recebidos:", ocorrenciasData);
         console.log("-------------------------------");
-        // =================================================================
 
         this.estatisticas = estatisticasData;
         this.ocorrenciasGeo = ocorrenciasData;
         this.loadingStep = 3;
         this.isLoading = false;
 
-        if (ocorrenciasData.length === 0) {
-          this.semResultados = true;
-        }
+        if (ocorrenciasData.length === 0) this.semResultados = true;
 
         this.waitForMapContainerAndInit();
       },
@@ -121,9 +108,10 @@ export class AnaliseCriminalComponent implements OnInit {
   private waitForMapContainerAndInit(tries = 0): void {
     const mapContainer = document.getElementById('map');
     if (mapContainer) {
-      this.initMap();
-      this.atualizarMapa();
-      this.loadingStep = 0;
+      this.initMap()
+        .then(()=> this.atualizarMapa())
+        .catch(err => console.error('Erro initMap/atualizarMapa:', err))
+        .finally(()=> this.loadingStep = 0);
       return;
     }
     if (tries > 50) {
@@ -134,130 +122,171 @@ export class AnaliseCriminalComponent implements OnInit {
     requestAnimationFrame(() => this.waitForMapContainerAndInit(tries + 1));
   }
 
-  initMap(): void {
+  // Carrega leaflet e plugins dinamicamente em runtime (sem `import * as L`)
+  private async ensureLeafletAndPlugins(): Promise<void> {
+    if (!this.leafletLoaded) {
+      try {
+        // Import Leaflet dinamicamente
+        const leafletModule = await import('leaflet');
+        // alguns bundlers expõem no default, outros não -> normaliza
+        const L = (leafletModule && (leafletModule.default ?? leafletModule)) as any;
+        // garante que window.L exista (plugins esperam global L)
+        (window as any).L = L;
+        this.leafletLoaded = true;
+      } catch (err) {
+        console.error('Falha ao carregar leaflet dinamicamente:', err);
+        throw err;
+      }
+    }
+
+    if (!this.leafletPluginsLoaded) {
+      try {
+        // Imports dos plugins — eles executam side-effects e adicionam ao L
+        await Promise.all([
+          import('leaflet.markercluster'),
+          import('leaflet.heat')
+        ]);
+        this.leafletPluginsLoaded = true;
+      } catch (err) {
+        console.error('Falha ao carregar plugins leaflet.markercluster/leaflet.heat:', err);
+        // não throw para permitir fallback controlado; mas loga
+        throw err;
+      }
+    }
+  }
+
+  // Inicializa o mapa após garantir L + plugins
+  private async initMap(): Promise<void> {
     if (this.map) return;
+    await this.ensureLeafletAndPlugins();
+
+    const L = (window as any).L;
+    if (!L) {
+      throw new Error('Leaflet (L) não está disponível após import dinâmico.');
+    }
+
+    // Cria mapa
     this.map = L.map('map', { center: [2.8235, -60.6758], zoom: 13 });
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors', maxZoom: 18,
     }).addTo(this.map);
 
-    // Inicializa o cluster group mas NÃO adiciona ao mapa ainda
-    this.markersLayer = L.markerClusterGroup({
-      spiderfyOnMaxZoom: true,
-      showCoverageOnHover: false,
-      zoomToBoundsOnClick: true,
-      chunkedLoading: true
-    });
-    // Não adiciona ao mapa aqui
+    // Cria marker cluster (ou LayerGroup como fallback)
+    if (typeof L.markerClusterGroup === 'function') {
+      this.markersLayer = L.markerClusterGroup({
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        chunkedLoading: true
+      });
+    } else {
+      console.warn('markerClusterGroup não disponível; usando LayerGroup como fallback.');
+      this.markersLayer = L.layerGroup();
+    }
   }
 
-  atualizarMapa(): void {
-    if (!this.map) {
-        console.error("Mapa não inicializado!");
-        return;
+  async atualizarMapa(): Promise<void> {
+    const L = (window as any).L;
+    if (!this.map || !L) {
+      console.error("Mapa ou Leaflet não inicializado!");
+      return;
     }
 
-    // ✅✅✅ LÓGICA DE LIMPEZA REFINADA ✅✅✅
-    // 1. Remove layers DO MAPA
-    if (this.heatLayer && this.map.hasLayer(this.heatLayer)) {
-        console.log("Removendo heatLayer do mapa.");
-        this.map.removeLayer(this.heatLayer);
-    }
-    if (this.map.hasLayer(this.markersLayer)) {
-        console.log("Removendo markersLayer do mapa.");
-        this.map.removeLayer(this.markersLayer);
-    }
-    // 2. Limpa os DADOS dos layers
-    this.markersLayer.clearLayers(); // Limpa dados do cluster
-    this.heatLayer = null; // Destroi a referência do heatmap
+    if (this.heatLayer && this.map.hasLayer(this.heatLayer)) this.map.removeLayer(this.heatLayer);
+    if (this.markersLayer && this.map.hasLayer(this.markersLayer)) this.map.removeLayer(this.markersLayer);
 
+    if (this.markersLayer && typeof this.markersLayer.clearLayers === 'function') {
+      this.markersLayer.clearLayers();
+    }
+    this.heatLayer = null;
 
-    // =================================================================
-    // TESTE 2: DENTRO DO ATUALIZAR MAPA
-    // =================================================================
     console.log(`--- TESTE 2: DENTRO DO atualizarMapa ---`);
     console.log(`this.ocorrenciasGeo (ANTES do filtro): ${this.ocorrenciasGeo.length} itens`);
-    // =================================================================
 
-    // Filtra os pontos que têm coordenadas válidas
-    const ocorrenciasFiltradas = this.ocorrenciasGeo
-      .filter(o => o.endereco?.latitude && o.endereco?.longitude);
+    const ocorrenciasFiltradas = this.ocorrenciasGeo.filter(o => o.endereco?.latitude && o.endereco?.longitude);
 
-    // =================================================================
-    // TESTE 3: O PONTO CRÍTICO
-    // =================================================================
     console.log(`--- TESTE 3: O PONTO CRÍTICO ---`);
     console.log(`Ocorrências (DEPOIS do filtro de lat/lng): ${ocorrenciasFiltradas.length} itens`);
-    console.log("-------------------------------");
-    // =================================================================
 
     if (ocorrenciasFiltradas.length === 0) {
-      console.log("RESULTADO: Nenhuma ocorrência com coordenadas válidas. Mapa ficará em branco.");
       this.map.setView([2.8235, -60.6758], 13);
       return;
     }
 
-    // Arredonda os pontos (necessário para ambos os modos)
     const points = ocorrenciasFiltradas.map(o => {
-        const lat = Number(Number(o.endereco!.latitude).toFixed(4));
-        const lng = Number(Number(o.endereco!.longitude).toFixed(4));
-        return [lat, lng, 1]; // Intensidade 1 para heatmap
-      });
+      const lat = Number(Number(o.endereco!.latitude).toFixed(4));
+      const lng = Number(Number(o.endereco!.longitude).toFixed(4));
+      return [lat, lng, 1];
+    });
 
-    // Agora, decide qual layer mostrar e ADICIONA AO MAPA
     if (this.visualizacao === 'heatmap') {
-      console.log("Modo Heatmap: Criando e adicionando heatLayer AO MAPA.");
-      this.heatLayer = L.heatLayer(points as L.HeatLatLngTuple[], {
-        radius: 35,
-        blur: 30,
-        gradient: { 0.0: 'blue', 0.5: 'lime', 1.0: 'red' }
-      }).addTo(this.map); // Adiciona diretamente ao mapa
+      if (typeof L.heatLayer === 'function') {
+        this.heatLayer = L.heatLayer(points as any, { radius: 35, blur: 30, gradient: { 0.0: 'blue', 0.5: 'lime', 1.0: 'red' } })
+                      .addTo(this.map);
+      } else {
+        console.warn('heatLayer não disponível; pulando heatmap.');
+      }
+    } else {
+      // Garante markerCluster (re-tenta carregar se necessário)
+      if (typeof L.markerClusterGroup !== 'function' && !this.leafletPluginsLoaded) {
+        try {
+          await import('leaflet.markercluster');
+          this.leafletPluginsLoaded = true;
+        } catch (err) {
+          console.error('Falha ao (re)carregar leaflet.markercluster:', err);
+        }
+      }
 
-    } else { // visualizacao === 'markers'
-      console.log("Modo Markers: Criando marcadores...");
-      // Cria marcadores em lote
-      const markersToAdd: L.Marker[] = [];
+      if (typeof L.markerClusterGroup === 'function') {
+        this.markersLayer = L.markerClusterGroup({
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: false,
+          zoomToBoundsOnClick: true,
+          chunkedLoading: true
+        });
+      } else {
+        this.markersLayer = L.layerGroup();
+      }
+
+      const markersToAdd: any[] = [];
       const icon = this.createLeafletIcon();
 
       ocorrenciasFiltradas.forEach(o => {
-          const lat = Number(Number(o.endereco!.latitude).toFixed(4));
-          const lng = Number(Number(o.endereco!.longitude).toFixed(4));
-          const popupContent = this.createPopupContent(o);
-          const marker = L.marker([lat, lng], { icon: icon } )
-                         .bindPopup(popupContent);
-          markersToAdd.push(marker);
-        });
+        const lat = Number(Number(o.endereco!.latitude).toFixed(4));
+        const lng = Number(Number(o.endereco!.longitude).toFixed(4));
+        const popupContent = this.createPopupContent(o);
+        const marker = L.marker([lat, lng], { icon }).bindPopup(popupContent);
+        markersToAdd.push(marker);
+      });
 
-      console.log(`Modo Markers: Adicionando ${markersToAdd.length} marcadores ao cluster.`);
-      this.markersLayer.addLayers(markersToAdd); // Adiciona DADOS ao cluster
+      if (typeof this.markersLayer.addLayers === 'function') {
+        this.markersLayer.addLayers(markersToAdd);
+      } else {
+        // fallback: addLayer individual
+        markersToAdd.forEach(m => this.markersLayer.addLayer ? this.markersLayer.addLayer(m) : null);
+      }
 
-      console.log("Modo Markers: Adicionando cluster layer AO MAPA.");
-      this.map.addLayer(this.markersLayer); // Adiciona o cluster (com os dados) AO MAPA
+      this.map.addLayer(this.markersLayer);
     }
 
-    // Lógica do fitBounds (zoom automático)
     const isFiltered = this.filtros.cidade_id != null ||
                        this.filtros.classificacao_id != null ||
                        (this.filtros.data_inicio && this.filtros.data_inicio !== '') ||
                        (this.filtros.data_fim && this.filtros.data_fim !== '') ||
                        (this.filtros.bairro && this.filtros.bairro.trim() !== '');
 
-    // Aplica o fitBounds ou centraliza
     if (isFiltered) {
-        console.log("Filtro aplicado, aplicando fitBounds.");
-        // Usa os 'points' arredondados para calcular os limites
-        const bounds = L.latLngBounds(points.map(p => [p[0], p[1]]));
-        // Adiciona um pequeno buffer para garantir que todos os pontos sejam visíveis
-        const bufferedBounds = bounds.pad(0.1); // 10% de buffer
-        this.map.fitBounds(bufferedBounds, { padding: [50, 50] });
+      const bounds = L.latLngBounds(points.map((p: any) => [p[0], p[1]]));
+      this.map.fitBounds(bounds.pad(0.1), { padding: [50, 50] });
     } else {
-        // Se não estiver filtrado, garante que o mapa esteja na visão inicial
-        console.log("Nenhum filtro aplicado, centralizando na visão inicial.");
-        this.map.setView([2.8235, -60.6758], 13);
+      this.map.setView([2.8235, -60.6758], 13);
     }
   }
 
-  private createLeafletIcon(): L.Icon {
+  private createLeafletIcon(): any {
+    const L = (window as any).L;
+    // Usa ícones padrão do Leaflet via URL (CDN)
     return L.icon({
       iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
       iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -268,13 +297,8 @@ export class AnaliseCriminalComponent implements OnInit {
   }
 
   private createPopupContent(ocorrencia: OcorrenciaGeo): string {
-    const modoEntrada = ocorrencia.endereco?.modo_entrada === 'COORDENADAS_DIRETAS'
-      ? '📍 GPS'
-      : '🏠 Endereço';
-
-    const coordsManuais = ocorrencia.endereco?.coordenadas_manuais
-      ? '(Manual)'
-      : '(Auto)';
+    const modoEntrada = ocorrencia.endereco?.modo_entrada === 'COORDENADAS_DIRETAS' ? '📍 GPS' : '🏠 Endereço';
+    const coordsManuais = ocorrencia.endereco?.coordenadas_manuais ? '(Manual)' : '(Auto)';
 
     return `
       <div style="font-size: 12px;">
@@ -286,22 +310,15 @@ export class AnaliseCriminalComponent implements OnInit {
       </div>`;
   }
 
-  aplicarFiltros(): void {
-    this.loadDados();
-  }
+  aplicarFiltros(): void { this.loadDados(); }
 
   limparFiltros(): void {
-    this.filtros = {
-      data_inicio: '', data_fim: '', classificacao_id: null,
-      cidade_id: null, bairro: ''
-    };
+    this.filtros = { data_inicio: '', data_fim: '', classificacao_id: null, cidade_id: null, bairro: '' };
     this.loadDados();
   }
 
-  alternarVisualizacao(): void {
+  async alternarVisualizacao(): Promise<void> {
     this.visualizacao = this.visualizacao === 'heatmap' ? 'markers' : 'heatmap';
-    console.log(`Alternando visualização para: ${this.visualizacao}`); // Log extra
-    this.atualizarMapa();
+    await this.atualizarMapa();
   }
 }
-
