@@ -4,11 +4,19 @@
       <h1>Gerenciamento de Ocorrências</h1>
       <p class="subtitle">Registre e acompanhe todas as ocorrências periciais.</p>
 
-      @if (isPerito || isOperacional) {
-        <button class="btn-primary" (click)="onCreate()">
-          <i class="bi bi-plus-circle"></i> Nova Ocorrência
+      <div class="d-flex gap-2 mt-3">
+        @if (isPerito || isOperacional) {
+          <button class="btn-primary" (click)="onCreate()">
+            <i class="bi bi-plus-circle"></i> Nova Ocorrência
+          </button>
+        }
+
+        <button type="button" class="btn-primary"
+                routerLink="/gabinete-virtual/operacional/ocorrencias/calendario"
+                style="background: #fff; color: var(--primary-color-dark); border: 3px solid var(--primary-color-dark);">
+          <i class="bi bi-calendar3"></i> Ver Calendário
         </button>
-      }
+      </div>
     </div>
 
     @if (viewMode !== 'lixeira') {
@@ -101,12 +109,11 @@
             @for (ocorrencia of ocorrencias; track ocorrencia.id) {
               <tr>
                 <td data-label="Número" class="numero-cell">
-                <strong
-                  class="numero-ocorrencia-tooltip"
-                  [attr.data-tooltip]="getTooltipContent(ocorrencia)">
-                  {{ ocorrencia.numero_ocorrencia }}
-                </strong>
-              </td>
+                  <strong class="numero-ocorrencia-tooltip"
+                          [attr.data-tooltip]="getTooltipContent(ocorrencia)">
+                    {{ ocorrencia.numero_ocorrencia }}
+                  </strong>
+                </td>
                 <td data-label="Status">
                   <span class="badge-status" [ngClass]="getStatusClass(ocorrencia.status)">
                     {{ getStatusLabel(ocorrencia.status) }}
@@ -180,16 +187,13 @@
         <div class="ir-para-pagina">
           <div class="d-flex justify-content-center align-items-center gap-2">
             <label class="mb-0 small text-muted">Ir para página:</label>
-            <input
-              type="number"
-              class="form-control form-control-sm"
-              [(ngModel)]="paginaInput"
-              [min]="1"
-              [max]="totalPages"
-              (keyup.enter)="irParaPaginaDigitada()">
-            <button
-              class="btn btn-sm btn-outline-primary"
-              (click)="irParaPaginaDigitada()">
+            <input type="number"
+                   class="form-control form-control-sm"
+                   [(ngModel)]="paginaInput"
+                   [min]="1"
+                   [max]="totalPages"
+                   (keyup.enter)="irParaPaginaDigitada()">
+            <button class="btn btn-sm btn-outline-primary" (click)="irParaPaginaDigitada()">
               <i class="bi bi-arrow-right"></i>
             </button>
           </div>

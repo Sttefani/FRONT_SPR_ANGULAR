@@ -1,0 +1,465 @@
+:host {
+  --primary-color: #DAA520;
+  --primary-color-dark: #B8860B;
+  --text-color-dark: #1a202c;
+  --text-color-light: #4a5568;
+  --background-color: #f7fafc;
+  --card-background-color: #ffffff;
+  --border-color: #cbd5e0;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ff9800;
+  --info-color: #3182ce;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.container {
+  padding: 1.5rem;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+// ========================================
+// HEADER COM FILTROS E SELETOR
+// ========================================
+.header-with-filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end; // Alinha pela base para ficar bonito com o input
+  margin-bottom: 1.5rem;
+  background: var(--card-background-color);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 3px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  flex-wrap: wrap;
+  gap: 1.5rem;
+
+  .title-section {
+    flex: 1;
+    min-width: 280px;
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-color-dark);
+      margin: 0 0 0.3rem 0;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      color: var(--text-color-light);
+      font-size: 0.85rem;
+      margin: 0;
+      font-weight: 500;
+
+      strong {
+        color: var(--primary-color-dark); // Contraste melhor
+      }
+    }
+  }
+
+  // ✅ NOVO: Estilo do Seletor de Data Rápido
+  .seletor-rapido {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-color-light);
+    }
+
+    input[type="month"] {
+      padding: 0.5rem 1rem;
+      border: 3px solid var(--primary-color); // Borda Dourada Forte
+      border-radius: 8px;
+      background: #fff;
+      font-weight: 700;
+      color: var(--text-color-dark);
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      height: 42px; // Mesma altura visual do botão
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary-color-dark);
+        box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.25);
+      }
+
+      &:hover {
+        background-color: rgba(218, 165, 32, 0.05);
+      }
+    }
+  }
+
+  .btn-voltar {
+    background: #6c757d; // Cinza para diferenciar de ação primária
+    color: #fff;
+    border: 3px solid #545b62;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    text-decoration: none;
+    height: 42px; // Alinhamento perfeito
+
+    i {
+      font-size: 1.1rem;
+    }
+
+    &:hover {
+      background: #5a6268;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+// ========================================
+// WRAPPER DO CALENDÁRIO
+// ========================================
+.calendar-wrapper {
+  background: var(--card-background-color);
+  border-radius: 12px;
+  border: 3px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.calendar-body {
+  padding: 1.5rem;
+  flex: 1; // Ocupa o espaço disponível
+}
+
+// ========================================
+// LEGENDA DE STATUS
+// ========================================
+.calendar-legend {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #fafafa; // Fundo leve para separar visualmente
+  border-top: 3px solid var(--border-color);
+  flex-wrap: wrap;
+
+  .legend-label {
+    font-weight: 800;
+    color: var(--text-color-dark);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 0.5rem;
+  }
+
+  .badge-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    border: 2px solid;
+
+    // Pequeno círculo colorido antes do texto (ajuda visual)
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      background-color: currentColor;
+    }
+
+    &.status-aguardando {
+      background: #fff3e0;
+      color: #e65100;
+      border-color: #ff9800;
+    }
+
+    &.status-analise {
+      background: #e3f2fd;
+      color: #1565c0;
+      border-color: #3182ce;
+    }
+
+    &.status-finalizada {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-color: #28a745;
+    }
+  }
+}
+
+// ========================================
+// CUSTOMIZAÇÃO DO FULLCALENDAR (::ng-deep)
+// ========================================
+:host ::ng-deep {
+  .fc {
+    font-family: inherit;
+  }
+
+  // ✅ BARRA DE ROLAGEM LARGA (ACESSIBILIDADE)
+  // Garante que o scroll lateral seja fácil de clicar
+  .fc-scroller {
+    &::-webkit-scrollbar {
+      width: 14px; // Mais largo para facilitar o clique
+      height: 14px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 0;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: #c1c1c1;
+      border-radius: 8px;
+      border: 3px solid #f1f1f1; // Cria um respiro visual
+
+      &:hover {
+        background-color: var(--primary-color); // Fica dourado ao passar o mouse
+      }
+    }
+  }
+
+  // Cabeçalho
+  .fc-toolbar {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 3px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .fc-toolbar-title {
+    font-size: 1.6rem !important;
+    font-weight: 800;
+    color: var(--text-color-dark);
+    text-transform: capitalize;
+  }
+
+  // Botões (Hoje, Setas, Mês/Semana)
+  .fc-button {
+    background: #fff !important; // Fundo branco
+    border: 2px solid var(--border-color) !important;
+    color: var(--text-color-dark) !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease !important;
+
+    &:hover {
+      background: rgba(218, 165, 32, 0.1) !important;
+      border-color: var(--primary-color) !important;
+      color: var(--primary-color-dark) !important;
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.25) !important;
+    }
+
+    // Botão Ativo (Ex: View Mês selecionada)
+    &.fc-button-active {
+      background: var(--primary-color) !important;
+      border-color: var(--primary-color-dark) !important;
+      color: #000 !important;
+    }
+  }
+
+  // Cabeçalho dos Dias (SEG, TER...)
+  .fc-col-header-cell {
+    background-color: #000;
+    padding: 0.8rem;
+    border-bottom: 4px solid var(--primary-color) !important;
+
+    // Link dentro do cabeçalho
+    a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  }
+
+  // Células dos dias
+  .fc-daygrid-day {
+    transition: background-color 0.2s;
+    border: 1px solid var(--border-color) !important; // Bordas claras
+
+    &:hover {
+      background-color: #fffdf5; // Amarelo muito suave
+    }
+  }
+
+  // Número do dia
+  .fc-daygrid-day-number {
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.5rem 0.8rem;
+    color: var(--text-color-dark);
+    text-decoration: none;
+    opacity: 0.8;
+
+    &:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+  }
+
+  // Dia Atual (Highlight)
+  .fc-day-today {
+    background-color: rgba(218, 165, 32, 0.08) !important;
+
+    .fc-daygrid-day-number {
+      background: var(--primary-color);
+      color: #000;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 4px;
+    }
+  }
+
+  // EVENTOS (Barrinhas)
+  .fc-event {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 3px 6px;
+    margin: 2px 1px;
+    font-size: 0.85rem; // Fonte legível
+    font-weight: 600;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.1s ease;
+
+    &:hover {
+      transform: scale(1.02);
+      filter: brightness(0.9);
+      z-index: 10;
+    }
+  }
+
+  // Visualização em Lista (Se usar)
+  .fc-list-event {
+    cursor: pointer;
+
+    &:hover td {
+      background-color: rgba(218, 165, 32, 0.1);
+    }
+  }
+
+  .fc-list-day-cushion {
+    background-color: #f1f1f1;
+    font-weight: 800;
+  }
+}
+
+// ========================================
+// RESPONSIVO
+// ========================================
+@media (max-width: 1024px) {
+  .header-with-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+
+    .d-flex {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .seletor-rapido {
+      width: 100%;
+
+      input[type="month"] {
+        width: 100%;
+        max-width: none;
+      }
+    }
+
+    .btn-voltar {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .title-section h1 {
+    font-size: 1.4rem;
+  }
+
+  .calendar-body {
+    padding: 0.5rem;
+  }
+
+  // Ajustes finos no calendário mobile
+  :host ::ng-deep {
+    .fc-header-toolbar {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .fc-toolbar-title {
+      font-size: 1.2rem !important;
+    }
+
+    .fc-button {
+      padding: 0.4rem 0.8rem !important;
+      font-size: 0.75rem !important;
+    }
+  }
+}
+
+// ========================================
+// ANIMAÇÕES
+// ========================================
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.calendar-wrapper {
+  animation: slideIn 0.4s ease-out;
+}

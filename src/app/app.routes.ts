@@ -152,6 +152,12 @@ export const routes: Routes = [
         canActivate: [AuthGuard]
       },
       {
+        path: 'operacional/ocorrencias/calendario',
+        loadComponent: () => import('./pages/ocorrencias-calendario/ocorrencias-calendario.component').then(m => m.OcorrenciasCalendarioComponent),
+        canActivate: [AuthGuard]
+      },
+
+      {
         path: 'operacional/ocorrencias/novo',
         loadComponent: () => import('./pages/ocorrencias-form/ocorrencias-form.component').then(m => m.OcorrenciasFormComponent),
         canActivate: [perfilGuard],
@@ -167,7 +173,7 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/ocorrencias-form/ocorrencias-form.component').then(m => m.OcorrenciasFormComponent),
         canActivate: [AuthGuard]
       },
-        // ✅ ANÁLISE CRIMINAL
+      // ✅ ANÁLISE CRIMINAL
       {
         path: 'operacional/analise-criminal',
         loadComponent: () => import('./pages/analise-criminal/analise-criminal.component').then(m => m.AnaliseCriminalComponent),

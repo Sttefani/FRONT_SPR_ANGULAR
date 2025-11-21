@@ -89,7 +89,17 @@ export interface PaginatedResponse {
   previous: string | null;
   results: Ocorrencia[];
 }
-
+// Interface específica para o FullCalendar (ADD-ON)
+export interface EventoCalendario {
+  id: number;
+  title: string;
+  start: string;
+  color: string;
+  allDay?: boolean;
+  extendedProps: {
+    status: string;
+  };
+}
 // ===================================================================
 //  FIM DAS INTERFACES
 // ===================================================================
@@ -101,7 +111,7 @@ export interface PaginatedResponse {
 export class OcorrenciaService {
   private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(params?: any): Observable<PaginatedResponse> {
     let httpParams = new HttpParams();
@@ -211,10 +221,10 @@ export class OcorrenciaService {
   }
 
   vincularProcedimento(ocorrenciaId: number, procedimentoId: number | null): Observable<any> {
-  return this.http.post(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/vincular_procedimento/`, {
-    procedimento_cadastrado_id: procedimentoId
-  });
-}
+    return this.http.post(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/vincular_procedimento/`, {
+      procedimento_cadastrado_id: procedimentoId
+    });
+  }
 
   imprimirPDF(id: number): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/ocorrencias/${id}/imprimir/`, {
@@ -248,5 +258,13 @@ export class OcorrenciaService {
       params: params,
       responseType: 'blob'
     });
+  }
+  getOcorrenciasCalendario(start: string, end: string): Observable<EventoCalendario[]> {
+    const params = new HttpParams()
+      .set('start', start)
+      .set('end', end);
+
+    // Certifique-se que a URL está batendo com a do seu Backend Django
+    return this.http.get<EventoCalendario[]>(`${this.baseUrl}/ocorrencias/dados-calendario/`, { params });
   }
 }

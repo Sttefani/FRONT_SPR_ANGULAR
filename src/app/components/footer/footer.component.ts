@@ -7,13 +7,10 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./footer.component.scss']
 })
 export class FooterComponent implements OnInit {
-  currentYear: number;
-  systemVersion: string = '1.0.1';
+  systemVersion: string = '2.0';
   developer: string = 'Perito Criminal Sttefani Ribeiro';
 
-  constructor() {
-    this.currentYear = new Date().getFullYear();
-  }
+
 
   ngOnInit(): void {
   }
