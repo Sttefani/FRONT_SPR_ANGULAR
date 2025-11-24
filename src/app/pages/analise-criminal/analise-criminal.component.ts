@@ -48,7 +48,7 @@ export class AnaliseCriminalComponent implements OnInit {
     private analiseService: AnaliseCriminalService,
     private classificacaoService: ClassificacaoOcorrenciaService,
     private cidadeService: CidadeService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadDropdowns();
@@ -186,6 +186,7 @@ export class AnaliseCriminalComponent implements OnInit {
     }
   }
 
+<<<<<<< HEAD
   async atualizarMapa(): Promise<void> {
     const L = (window as any).L;
     if (!this.map || !L) {
@@ -195,6 +196,27 @@ export class AnaliseCriminalComponent implements OnInit {
 
     if (this.heatLayer && this.map.hasLayer(this.heatLayer)) this.map.removeLayer(this.heatLayer);
     if (this.markersLayer && this.map.hasLayer(this.markersLayer)) this.map.removeLayer(this.markersLayer);
+=======
+  atualizarMapa(): void {
+    if (!this.map) {
+      console.error("Mapa não inicializado!");
+      return;
+    }
+
+    // ✅✅✅ LÓGICA DE LIMPEZA REFINADA ✅✅✅
+    // 1. Remove layers DO MAPA
+    if (this.heatLayer && this.map.hasLayer(this.heatLayer)) {
+      console.log("Removendo heatLayer do mapa.");
+      this.map.removeLayer(this.heatLayer);
+    }
+    if (this.map.hasLayer(this.markersLayer)) {
+      console.log("Removendo markersLayer do mapa.");
+      this.map.removeLayer(this.markersLayer);
+    }
+    // 2. Limpa os DADOS dos layers
+    this.markersLayer.clearLayers(); // Limpa dados do cluster
+    this.heatLayer = null; // Destroi a referência do heatmap
+>>>>>>> 987ff3f534363c5d6c29d36e0aa815eab7b0b2fe
 
     if (this.markersLayer && typeof this.markersLayer.clearLayers === 'function') {
       this.markersLayer.clearLayers();
@@ -217,7 +239,11 @@ export class AnaliseCriminalComponent implements OnInit {
     const points = ocorrenciasFiltradas.map(o => {
       const lat = Number(Number(o.endereco!.latitude).toFixed(4));
       const lng = Number(Number(o.endereco!.longitude).toFixed(4));
+<<<<<<< HEAD
       return [lat, lng, 1];
+=======
+      return [lat, lng, 1]; // Intensidade 1 para heatmap
+>>>>>>> 987ff3f534363c5d6c29d36e0aa815eab7b0b2fe
     });
 
     if (this.visualizacao === 'heatmap') {
@@ -256,7 +282,12 @@ export class AnaliseCriminalComponent implements OnInit {
         const lat = Number(Number(o.endereco!.latitude).toFixed(4));
         const lng = Number(Number(o.endereco!.longitude).toFixed(4));
         const popupContent = this.createPopupContent(o);
+<<<<<<< HEAD
         const marker = L.marker([lat, lng], { icon }).bindPopup(popupContent);
+=======
+        const marker = L.marker([lat, lng], { icon: icon })
+          .bindPopup(popupContent);
+>>>>>>> 987ff3f534363c5d6c29d36e0aa815eab7b0b2fe
         markersToAdd.push(marker);
       });
 
@@ -271,15 +302,27 @@ export class AnaliseCriminalComponent implements OnInit {
     }
 
     const isFiltered = this.filtros.cidade_id != null ||
-                       this.filtros.classificacao_id != null ||
-                       (this.filtros.data_inicio && this.filtros.data_inicio !== '') ||
-                       (this.filtros.data_fim && this.filtros.data_fim !== '') ||
-                       (this.filtros.bairro && this.filtros.bairro.trim() !== '');
+      this.filtros.classificacao_id != null ||
+      (this.filtros.data_inicio && this.filtros.data_inicio !== '') ||
+      (this.filtros.data_fim && this.filtros.data_fim !== '') ||
+      (this.filtros.bairro && this.filtros.bairro.trim() !== '');
 
     if (isFiltered) {
+<<<<<<< HEAD
       const bounds = L.latLngBounds(points.map((p: any) => [p[0], p[1]]));
       this.map.fitBounds(bounds.pad(0.1), { padding: [50, 50] });
     } else {
+=======
+      console.log("Filtro aplicado, aplicando fitBounds.");
+      // Usa os 'points' arredondados para calcular os limites
+      const bounds = L.latLngBounds(points.map(p => [p[0], p[1]]));
+      // Adiciona um pequeno buffer para garantir que todos os pontos sejam visíveis
+      const bufferedBounds = bounds.pad(0.1); // 10% de buffer
+      this.map.fitBounds(bufferedBounds, { padding: [50, 50] });
+    } else {
+      // Se não estiver filtrado, garante que o mapa esteja na visão inicial
+      console.log("Nenhum filtro aplicado, centralizando na visão inicial.");
+>>>>>>> 987ff3f534363c5d6c29d36e0aa815eab7b0b2fe
       this.map.setView([2.8235, -60.6758], 13);
     }
   }

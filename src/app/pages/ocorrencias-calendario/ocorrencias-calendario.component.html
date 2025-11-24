@@ -1,0 +1,44 @@
+<div class="container">
+
+  <div class="header-with-filters">
+    <div class="title-section">
+      <h1>Calendário de Ocorrências</h1>
+      <p class="subtitle">Visualização temporal por <strong>Data de Registro</strong>.</p>
+    </div>
+
+    <div class="d-flex gap-3 align-items-end flex-wrap">
+
+      <div class="seletor-rapido">
+        <label for="mesAno" class="form-label fw-bold mb-1" style="color: var(--primary-color-dark); font-size: 0.85rem;">Ir para:</label>
+        <div class="input-group">
+          <input type="month"
+                 id="mesAno"
+                 class="form-control fw-bold"
+                 [(ngModel)]="dataSelecionada"
+                 (change)="irParaDataEscolhida()"
+                 style="border: 2px solid var(--primary-color); max-width: 220px; cursor: pointer;">
+        </div>
+      </div>
+
+      <button type="button"
+              class="btn-primary btn-voltar"
+              routerLink="/gabinete-virtual/operacional/ocorrencias">
+        <i class="bi bi-arrow-left-circle"></i> Voltar para Lista
+      </button>
+    </div>
+  </div>
+
+  <div class="calendar-wrapper">
+    <div class="calendar-body">
+      <full-calendar #calendar [options]="calendarOptions"></full-calendar>
+    </div>
+
+    <div class="calendar-legend">
+      <span class="legend-label">Legenda:</span>
+      <div class="legend-item"><span class="badge-status status-aguardando">Aguardando Perito</span></div>
+      <div class="legend-item"><span class="badge-status status-analise">Em Análise</span></div>
+      <div class="legend-item"><span class="badge-status status-finalizada">Finalizada</span></div>
+    </div>
+  </div>
+
+</div>
