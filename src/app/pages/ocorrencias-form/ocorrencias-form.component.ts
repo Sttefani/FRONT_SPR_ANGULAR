@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';  // ← LINHA ADICIONADA
+import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
 import Swal from 'sweetalert2';
 
@@ -52,6 +52,9 @@ export class OcorrenciasFormComponent implements OnInit {
   temProcedimento = false;
   procedimentoEncontrado = false;
   procedimentoVinculado: any = null;
+
+  // Propriedade para armazenar o serviço original da ocorrência (para edição)
+  servicoOriginal: any = null;
 
   secoesAbertas = {
     identificacao: true,
@@ -183,7 +186,7 @@ export class OcorrenciasFormComponent implements OnInit {
 
   onCoordenadasManuaisChange(): void {
     if (this.form.endereco.modo_entrada === 'ENDERECO_CONVENCIONAL' &&
-        (this.form.endereco.latitude || this.form.endereco.longitude)) {
+      (this.form.endereco.latitude || this.form.endereco.longitude)) {
       this.form.endereco.coordenadas_manuais = true;
     }
   }
@@ -216,12 +219,12 @@ export class OcorrenciasFormComponent implements OnInit {
 
   get camposEnderecoObrigatorios(): boolean {
     return this.form.endereco.tipo === 'EXTERNA' &&
-           this.form.endereco.modo_entrada === 'ENDERECO_CONVENCIONAL';
+      this.form.endereco.modo_entrada === 'ENDERECO_CONVENCIONAL';
   }
 
   get camposCoordenadasObrigatorios(): boolean {
     return this.form.endereco.tipo === 'EXTERNA' &&
-           this.form.endereco.modo_entrada === 'COORDENADAS_DIRETAS';
+      this.form.endereco.modo_entrada === 'COORDENADAS_DIRETAS';
   }
 
   onServicoPericialChange(servicoId: number | null): void {
@@ -257,9 +260,62 @@ export class OcorrenciasFormComponent implements OnInit {
 
   loadServicos(): void {
     this.servicoPericialService.getAllForDropdown().subscribe({
-      next: (data: ServicoPericial[]) => { this.servicosPericiais = data; },
+      next: (data: ServicoPericial[]) => {
+        const user = this.authService.getCurrentUser();
+        const isSuperAdmin = this.authService.isSuperAdmin();
+        const isAdmin = user?.perfil === 'ADMINISTRATIVO';
+
+        if (isSuperAdmin || isAdmin) {
+          // Admin vê tudo
+          this.servicosPericiais = data;
+        } else if (user) {
+          // ==============================================================================
+          // 🎯 CORREÇÃO BASEADA NO SEU ARQUIVO DE REFERÊNCIA (UsuarioServicosComponent)
+          // ==============================================================================
+
+          let idsPermitidos: number[] = [];
+
+          // Verifica se a propriedade existe e é um array (conforme seu código de exemplo)
+          if (user.servicos_periciais && Array.isArray(user.servicos_periciais)) {
+            idsPermitidos = user.servicos_periciais.map((s: any) => Number(s.id));
+          }
+          // Fallback: Tenta 'servicos' caso o AuthUser tenha nome diferente do User do banco
+          else if (user.servicos && Array.isArray(user.servicos)) {
+            idsPermitidos = user.servicos.map((s: any) => Number(s.id || s));
+          }
+
+          if (idsPermitidos.length > 0) {
+            // Filtra a lista principal comparando os IDs
+            this.servicosPericiais = data.filter(s => idsPermitidos.includes(Number(s.id)));
+          } else {
+            // Se o usuário não tem serviços vinculados, a lista deve ficar vazia
+            console.warn('⚠️ Usuário não possui serviços vinculados (servicos_periciais vazio).');
+            this.servicosPericiais = [];
+          }
+        } else {
+          this.servicosPericiais = [];
+        }
+
+        // Garante que na edição o serviço antigo apareça, mesmo que ele tenha perdido o vínculo
+        this.atualizarListaServicos();
+      },
       error: (err: any) => console.error('Erro ao carregar serviços:', err)
     });
+  }
+
+  // Garante que o serviço da ocorrência esteja na lista do dropdown (para edição)
+  atualizarListaServicos(): void {
+    if (this.servicoOriginal && this.servicosPericiais) {
+      const exists = this.servicosPericiais.find(s => String(s.id) === String(this.servicoOriginal.id));
+
+      if (!exists) {
+        const servicoLegado = {
+          ...this.servicoOriginal,
+          nome: this.servicoOriginal.nome + ' (Vínculo Anterior)'
+        };
+        this.servicosPericiais = [...this.servicosPericiais, servicoLegado];
+      }
+    }
   }
 
   loadUnidades(): void {
@@ -555,8 +611,8 @@ export class OcorrenciasFormComponent implements OnInit {
 
   private estaFinalizada(ocorrencia: any): boolean {
     return ocorrencia.esta_finalizada === true ||
-           !!ocorrencia.finalizada_por ||
-           !!ocorrencia.data_finalizacao;
+      !!ocorrencia.finalizada_por ||
+      !!ocorrencia.data_finalizacao;
   }
 
   private carregarDadosComplementares(ocorrencia: any): void {
@@ -588,6 +644,10 @@ export class OcorrenciasFormComponent implements OnInit {
   }
 
   private preencherFormulario(ocorrencia: any): void {
+    // CORREÇÃO: Salva o serviço original e tenta atualizar a lista (caso a lista tenha carregado antes)
+    this.servicoOriginal = ocorrencia.servico_pericial;
+    this.atualizarListaServicos();
+
     this.ocorrenciaForm.patchValue({
       servico_pericial_id: ocorrencia.servico_pericial?.id || null,
       unidade_demandante_id: ocorrencia.unidade_demandante?.id || null,
@@ -667,7 +727,7 @@ export class OcorrenciasFormComponent implements OnInit {
       coordenadas_manuais: this.form.endereco.coordenadas_manuais
     };
 
-    const baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
+    const baseUrl = environment.apiUrl;
 
     if (this.isEditMode && this.existingEnderecoId) {
       const url = `${baseUrl}/enderecos-ocorrencia/${this.existingEnderecoId}/`;
@@ -754,14 +814,6 @@ export class OcorrenciasFormComponent implements OnInit {
 
     request.subscribe({
       next: (ocorrencia: any) => {
-        // ============================================================
-        // ✅ CORREÇÃO DO PROBLEMA: "salvou com erro no endereço"
-        // ============================================================
-        // Só tenta salvar endereço se:
-        // 1. For ocorrência EXTERNA (tem endereço), OU
-        // 2. Já existia um endereço antes (precisa atualizar/deletar)
-        // ============================================================
-
         if (this.form.endereco.tipo === 'EXTERNA' || this.existingEnderecoId) {
           this.salvarEndereco(ocorrencia.id).subscribe({
             next: () => {
@@ -788,10 +840,6 @@ export class OcorrenciasFormComponent implements OnInit {
             }
           });
         } else {
-          // ============================================================
-          // ✅ NOVO: Ocorrência INTERNA sem endereço anterior
-          // Não precisa salvar endereço, apenas redireciona
-          // ============================================================
           const action = this.isEditMode ? 'atualizada' : 'cadastrada';
           Swal.fire({
             title: 'Sucesso!',

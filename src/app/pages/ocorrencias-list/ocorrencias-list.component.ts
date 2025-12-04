@@ -41,9 +41,8 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
   currentPage = 1;
   pageSize = 10;
   totalPages = 0;
-  paginaInput = 1; // ✅ ADICIONADO para o campo "Ir para página"
+  paginaInput = 1;
 
-  // (nextUrl e previousUrl mantidos para referência interna, mas não mais controlam a UI diretamente)
   nextUrl: string | null = null;
   previousUrl: string | null = null;
 
@@ -65,7 +64,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     this.setupUserPermissions();
     this.loadServicos();
     this.loadPeritos();
-    this.buscarOcorrencias(false); // Carga inicial sem resetar a página
+    this.buscarOcorrencias(false);
   }
 
   ngOnDestroy(): void {
@@ -108,7 +107,27 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ FUNÇÃO CENTRALIZADA PARA BUSCAR DADOS - CORRIGIDA
+  private formatDataISO(data: string): string {
+    if (!data) return '';
+    if (data.match(/^\d{4}-\d{2}-\d{2}$/)) return data;
+    if (data.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+      const [dia, mes, ano] = data.split('/');
+      return `${ano}-${mes}-${dia}`;
+    }
+    return data;
+  }
+
+  private addOneDay(dateStr: string): string {
+    const parts = dateStr.split('-');
+    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    date.setDate(date.getDate() + 1);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   buscarOcorrencias(resetPage: boolean = true): void {
     if (this.viewMode === 'lixeira') {
       this.loadLixeira();
@@ -125,34 +144,41 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
       page_size: this.pageSize
     };
 
-    // Adiciona filtros das abas
-    if (this.viewMode === 'pendentes') params.status__in = 'AGUARDANDO_PERITO,EM_ANALISE';
+    // Filtros de Abas
+    if (this.viewMode === 'pendentes') {
+      params.status__in = 'AGUARDANDO_PERITO,EM_ANALISE';
+      params.esta_finalizada = 'false';
+    }
     if (this.viewMode === 'finalizadas') params.status = 'FINALIZADA';
 
-    // Adiciona filtros do formulário
+    // === CORREÇÃO DOS FILTROS ===
+
     if (this.numeroOcorrenciaBusca.trim()) params.numero_ocorrencia = this.numeroOcorrenciaBusca.trim();
-    if (this.searchTerm.trim()) params.search = this.searchTerm.trim();
+
+    // CORREÇÃO CRÍTICA: O backend espera 'busca_geral', não 'search'
+    if (this.searchTerm.trim()) params.busca_geral = this.searchTerm.trim();
+
     if (this.statusFiltro) params.status = this.statusFiltro;
     if (this.servicoPericialFiltro) params.servico_pericial = this.servicoPericialFiltro;
 
-    // ✅ FILTRO DE DATAS CORRIGIDO
-    // Se ambas preenchidas, usa intervalo normal
-    if (this.dataInicio && this.dataFim) {
-      params.data_fato_de = this.dataInicio;
-      params.data_fato_ate = this.dataFim;
+    const inicioISO = this.formatDataISO(this.dataInicio);
+    const fimISO = this.formatDataISO(this.dataFim);
+
+    if (inicioISO) {
+      params.created_at_de = inicioISO;
     }
-    // Se apenas data início, usa ela como início E fim (data exata)
-    else if (this.dataInicio && !this.dataFim) {
-      params.data_fato_de = this.dataInicio;
-      params.data_fato_ate = this.dataInicio;
+
+    if (fimISO) {
+      params.created_at_ate = fimISO;
     }
-    // Se apenas data fim, usa ela como início E fim (data exata)
-    else if (!this.dataInicio && this.dataFim) {
-      params.data_fato_de = this.dataFim;
-      params.data_fato_ate = this.dataFim;
+
+    if (inicioISO && !fimISO) {
+      params.created_at_ate = this.addOneDay(inicioISO);
     }
 
     if (this.peritoFiltro) params.perito_atribuido = this.peritoFiltro;
+
+    console.log('🔍 Buscando com params:', params);
 
     this.ocorrenciaService.getAll(params).subscribe({
       next: (data) => {
@@ -185,7 +211,6 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     this.buscarOcorrencias(true);
   }
 
-  // ✅ FUNÇÕES DE MUDANÇA DE ABA SIMPLIFICADAS
   switchView(newView: 'todas' | 'pendentes' | 'finalizadas' | 'lixeira'): void {
     if (this.viewMode === newView) return;
     this.viewMode = newView;
@@ -200,7 +225,6 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ LÓGICA DE PAGINAÇÃO ATUALIZADA
   irParaPagina(pagina: number): void {
     if (pagina >= 1 && pagina <= this.totalPages) {
       this.currentPage = pagina;
@@ -228,7 +252,6 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     }
     return paginas;
   }
-  // (As funções antigas `goToNextPage` e `goToPreviousPage` são removidas pois o HTML agora chama `irParaPagina` diretamente)
 
   onCreate(): void { this.router.navigate(['/gabinete-virtual/operacional/ocorrencias/novo']); }
   onView(id: number): void { this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', id]); }
