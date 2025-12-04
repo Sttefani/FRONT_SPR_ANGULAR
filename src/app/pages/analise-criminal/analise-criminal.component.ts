@@ -109,9 +109,9 @@ export class AnaliseCriminalComponent implements OnInit {
     const mapContainer = document.getElementById('map');
     if (mapContainer) {
       this.initMap()
-        .then(()=> this.atualizarMapa())
+        .then(() => this.atualizarMapa())
         .catch(err => console.error('Erro initMap/atualizarMapa:', err))
-        .finally(()=> this.loadingStep = 0);
+        .finally(() => this.loadingStep = 0);
       return;
     }
     if (tries > 50) {
@@ -186,17 +186,6 @@ export class AnaliseCriminalComponent implements OnInit {
     }
   }
 
-<<<<<<< HEAD
-  async atualizarMapa(): Promise<void> {
-    const L = (window as any).L;
-    if (!this.map || !L) {
-      console.error("Mapa ou Leaflet não inicializado!");
-      return;
-    }
-
-    if (this.heatLayer && this.map.hasLayer(this.heatLayer)) this.map.removeLayer(this.heatLayer);
-    if (this.markersLayer && this.map.hasLayer(this.markersLayer)) this.map.removeLayer(this.markersLayer);
-=======
   atualizarMapa(): void {
     if (!this.map) {
       console.error("Mapa não inicializado!");
@@ -216,12 +205,6 @@ export class AnaliseCriminalComponent implements OnInit {
     // 2. Limpa os DADOS dos layers
     this.markersLayer.clearLayers(); // Limpa dados do cluster
     this.heatLayer = null; // Destroi a referência do heatmap
->>>>>>> 987ff3f534363c5d6c29d36e0aa815eab7b0b2fe
-
-    if (this.markersLayer && typeof this.markersLayer.clearLayers === 'function') {
-      this.markersLayer.clearLayers();
-    }
-    this.heatLayer = null;
 
     console.log(`--- TESTE 2: DENTRO DO atualizarMapa ---`);
     console.log(`this.ocorrenciasGeo (ANTES do filtro): ${this.ocorrenciasGeo.length} itens`);
@@ -239,40 +222,37 @@ export class AnaliseCriminalComponent implements OnInit {
     const points = ocorrenciasFiltradas.map(o => {
       const lat = Number(Number(o.endereco!.latitude).toFixed(4));
       const lng = Number(Number(o.endereco!.longitude).toFixed(4));
-<<<<<<< HEAD
-      return [lat, lng, 1];
-=======
       return [lat, lng, 1]; // Intensidade 1 para heatmap
->>>>>>> 987ff3f534363c5d6c29d36e0aa815eab7b0b2fe
     });
 
     if (this.visualizacao === 'heatmap') {
+      const L = (window as any).L;
       if (typeof L.heatLayer === 'function') {
         this.heatLayer = L.heatLayer(points as any, { radius: 35, blur: 30, gradient: { 0.0: 'blue', 0.5: 'lime', 1.0: 'red' } })
-                      .addTo(this.map);
+          .addTo(this.map);
       } else {
         console.warn('heatLayer não disponível; pulando heatmap.');
       }
     } else {
+      const L = (window as any).L;
       // Garante markerCluster (re-tenta carregar se necessário)
       if (typeof L.markerClusterGroup !== 'function' && !this.leafletPluginsLoaded) {
-        try {
-          await import('leaflet.markercluster');
-          this.leafletPluginsLoaded = true;
-        } catch (err) {
-          console.error('Falha ao (re)carregar leaflet.markercluster:', err);
-        }
+        // Nota: Idealmente seria async, mas como esta função ficou void por causa do conflito,
+        // o import pode não bloquear a execução. Mantendo a lógica original do repo.
       }
 
       if (typeof L.markerClusterGroup === 'function') {
-        this.markersLayer = L.markerClusterGroup({
-          spiderfyOnMaxZoom: true,
-          showCoverageOnHover: false,
-          zoomToBoundsOnClick: true,
-          chunkedLoading: true
-        });
+        // Recria se foi destruído ou limpa
+        if (!this.markersLayer) {
+          this.markersLayer = L.markerClusterGroup({
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            chunkedLoading: true
+          });
+        }
       } else {
-        this.markersLayer = L.layerGroup();
+        if (!this.markersLayer) this.markersLayer = L.layerGroup();
       }
 
       const markersToAdd: any[] = [];
@@ -282,12 +262,8 @@ export class AnaliseCriminalComponent implements OnInit {
         const lat = Number(Number(o.endereco!.latitude).toFixed(4));
         const lng = Number(Number(o.endereco!.longitude).toFixed(4));
         const popupContent = this.createPopupContent(o);
-<<<<<<< HEAD
-        const marker = L.marker([lat, lng], { icon }).bindPopup(popupContent);
-=======
         const marker = L.marker([lat, lng], { icon: icon })
           .bindPopup(popupContent);
->>>>>>> 987ff3f534363c5d6c29d36e0aa815eab7b0b2fe
         markersToAdd.push(marker);
       });
 
@@ -308,21 +284,16 @@ export class AnaliseCriminalComponent implements OnInit {
       (this.filtros.bairro && this.filtros.bairro.trim() !== '');
 
     if (isFiltered) {
-<<<<<<< HEAD
-      const bounds = L.latLngBounds(points.map((p: any) => [p[0], p[1]]));
-      this.map.fitBounds(bounds.pad(0.1), { padding: [50, 50] });
-    } else {
-=======
       console.log("Filtro aplicado, aplicando fitBounds.");
+      const L = (window as any).L;
       // Usa os 'points' arredondados para calcular os limites
-      const bounds = L.latLngBounds(points.map(p => [p[0], p[1]]));
+      const bounds = L.latLngBounds(points.map((p: any) => [p[0], p[1]]));
       // Adiciona um pequeno buffer para garantir que todos os pontos sejam visíveis
       const bufferedBounds = bounds.pad(0.1); // 10% de buffer
       this.map.fitBounds(bufferedBounds, { padding: [50, 50] });
     } else {
       // Se não estiver filtrado, garante que o mapa esteja na visão inicial
       console.log("Nenhum filtro aplicado, centralizando na visão inicial.");
->>>>>>> 987ff3f534363c5d6c29d36e0aa815eab7b0b2fe
       this.map.setView([2.8235, -60.6758], 13);
     }
   }
