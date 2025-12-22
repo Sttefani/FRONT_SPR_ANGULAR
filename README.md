@@ -1,59 +1,35 @@
-# FrontDjango
+# SPR-CRIMINALÍSTICA
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.17.
+Sistema de organização e gestão destinado a unidades de criminalística e perícia oficial.
 
-## Development server
+## ⚖️ Propriedade Intelectual e Autoria
+**Autor:** Perito Criminal Sttefani Ribeiro
+**Ano de Criação:** 2025
+**Status:** Software doado para uso em produção sob encargo.
+**Condições de Uso:** É obrigatória a manutenção do nome original do sistema e a preservação dos créditos de autoria em todas as interfaces e no código-fonte.
 
-To start a local development server, run:
+## 🛠️ Tecnologias Utilizadas
+- **Backend:** Python / Django Framework (API REST)
+- **Frontend:** Angular (Standalone Components)
+- **Banco de Dados:** PostgreSQL
 
-```bash
-ng serve
-```
+## 📂 Estrutura do Projeto
+- `/backend`: API Django contendo a lógica de negócio e modelos de dados.
+- `/frontend`: Interface Angular para interação do usuário.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## 🚀 Como Executar o Sistema
+Para rodar o sistema, é necessário reconstruir as dependências que foram removidas deste pacote de código-fonte:
 
-## Code scaffolding
+### Backend (Django)
+1. Criar ambiente virtual: `python -m venv venv`
+2. Ativar ambiente: `venv\Scripts\activate` (Windows)
+3. Instalar dependências: `pip install -r backend/requirements.txt`
+4. Rodar Migrações: `python manage.py migrate`
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### Frontend (Angular)
+1. Entrar na pasta: `cd frontend`
+2. Instalar dependências: `npm install`
+3. Iniciar servidor: `ng serve`
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+---
+© 2025 SPR-CRIMINALÍSTICA - Desenvolvido por: Perito Criminal Sttefani Ribeiro
