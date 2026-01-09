@@ -12,6 +12,7 @@ import { ServicoPericialService, ServicoPericial } from '../../services/servico-
 import { UnidadeDemandanteService } from '../../services/unidade-demandante.service';
 import { AutoridadeService } from '../../services/autoridade.service';
 import { CidadeService } from '../../services/cidade.service';
+import { BairroService, Bairro } from '../../services/bairro.service'; // ← NOVO
 import { ClassificacaoOcorrenciaService } from '../../services/classificacao-ocorrencia.service';
 import { ProcedimentoCadastradoService } from '../../services/procedimento-cadastrado.service';
 import { TipoDocumentoService } from '../../services/tipo-documento.service';
@@ -90,6 +91,14 @@ export class OcorrenciasFormComponent implements OnInit {
   modalExamesAberto = false;
   mostrarEnderecoOpcional = false;
 
+  // =========================================================================
+  // NOVO: Propriedades para Bairros
+  // =========================================================================
+  bairrosDisponiveis: Bairro[] = [];
+  loadingBairros = false;
+  cidadeSelecionadaId: number | null = null;
+  // =========================================================================
+
   form = {
     endereco: {
       tipo: 'EXTERNA' as 'INTERNA' | 'EXTERNA',
@@ -97,7 +106,7 @@ export class OcorrenciasFormComponent implements OnInit {
       logradouro: '',
       numero: '',
       complemento: '',
-      bairro: '',
+      bairro_id: null as number | null,  // ← ALTERADO: agora é ID
       cep: '',
       latitude: '',
       longitude: '',
@@ -113,6 +122,7 @@ export class OcorrenciasFormComponent implements OnInit {
     private unidadeDemandanteService: UnidadeDemandanteService,
     private autoridadeService: AutoridadeService,
     private cidadeService: CidadeService,
+    private bairroService: BairroService, // ← NOVO
     private classificacaoOcorrenciaService: ClassificacaoOcorrenciaService,
     private procedimentoCadastradoService: ProcedimentoCadastradoService,
     private tipoDocumentoService: TipoDocumentoService,
@@ -144,6 +154,13 @@ export class OcorrenciasFormComponent implements OnInit {
     this.ocorrenciaForm.get('servico_pericial_id')?.valueChanges.subscribe(servicoId => {
       this.onServicoPericialChange(servicoId);
     });
+
+    // =========================================================================
+    // NOVO: Observa mudanças na cidade para carregar bairros
+    // =========================================================================
+    this.ocorrenciaForm.get('cidade_id')?.valueChanges.subscribe(cidadeId => {
+      this.onCidadeChange(cidadeId);
+    });
   }
 
   initForms(): void {
@@ -171,12 +188,108 @@ export class OcorrenciasFormComponent implements OnInit {
     });
   }
 
+  // =========================================================================
+  // NOVO: Método chamado quando a cidade muda
+  // =========================================================================
+  onCidadeChange(cidadeId?: number | null): void {
+    // Se não passou cidadeId, pega do formulário
+    if (cidadeId === undefined) {
+      cidadeId = this.ocorrenciaForm.get('cidade_id')?.value;
+    }
+
+    this.cidadeSelecionadaId = cidadeId ? Number(cidadeId) : null;
+    this.bairrosDisponiveis = [];
+    this.form.endereco.bairro_id = null;
+
+    if (this.cidadeSelecionadaId) {
+      this.loadBairros(this.cidadeSelecionadaId);
+    }
+  }
+
+  // =========================================================================
+  // NOVO: Carrega bairros da cidade selecionada
+  // =========================================================================
+  loadBairros(cidadeId: number): void {
+    this.loadingBairros = true;
+    this.bairroService.getDropdownByCidade(cidadeId).subscribe({
+      next: (bairros: Bairro[]) => {
+        this.bairrosDisponiveis = bairros;
+        this.loadingBairros = false;
+      },
+      error: (err: any) => {
+        console.error('Erro ao carregar bairros:', err);
+        this.loadingBairros = false;
+      }
+    });
+  }
+
+  // =========================================================================
+  // NOVO: Abre modal para cadastrar novo bairro
+  // =========================================================================
+  abrirModalNovoBairro(): void {
+    if (!this.cidadeSelecionadaId) {
+      Swal.fire('Atenção', 'Selecione uma cidade primeiro.', 'warning');
+      return;
+    }
+
+    const cidadeNome = this.cidades.find(c => c.id === this.cidadeSelecionadaId)?.nome || '';
+
+    Swal.fire({
+      title: 'Cadastrar Novo Bairro',
+      html: `
+        <p style="margin-bottom: 15px;">Cidade: <strong>${cidadeNome}</strong></p>
+        <input id="swal-bairro-nome" class="swal2-input" placeholder="Nome do bairro" style="text-transform: uppercase;">
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Cadastrar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const nome = (document.getElementById('swal-bairro-nome') as HTMLInputElement).value;
+        if (!nome || nome.trim().length < 2) {
+          Swal.showValidationMessage('Digite um nome válido para o bairro');
+          return false;
+        }
+        return nome.trim().toUpperCase();
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        this.cadastrarNovoBairro(result.value);
+      }
+    });
+  }
+
+  // =========================================================================
+  // NOVO: Cadastra novo bairro e seleciona automaticamente
+  // =========================================================================
+  private cadastrarNovoBairro(nome: string): void {
+    if (!this.cidadeSelecionadaId) return;
+
+    this.bairroService.create({ nome, cidade: this.cidadeSelecionadaId }).subscribe({
+      next: (novoBairro: Bairro) => {
+        Swal.fire('Sucesso!', `Bairro "${novoBairro.nome}" cadastrado.`, 'success');
+        // Recarrega a lista e seleciona o novo bairro
+        this.loadBairros(this.cidadeSelecionadaId!);
+        setTimeout(() => {
+          this.form.endereco.bairro_id = novoBairro.id;
+        }, 500);
+      },
+      error: (err: any) => {
+        console.error('Erro ao cadastrar bairro:', err);
+        let errorMsg = 'Erro ao cadastrar bairro.';
+        if (err.error?.nome) {
+          errorMsg = err.error.nome[0] || err.error.nome;
+        }
+        Swal.fire('Erro', errorMsg, 'error');
+      }
+    });
+  }
+
   onModoEntradaChange(): void {
     if (this.form.endereco.modo_entrada === 'COORDENADAS_DIRETAS') {
       this.form.endereco.logradouro = '';
       this.form.endereco.numero = '';
       this.form.endereco.complemento = '';
-      this.form.endereco.bairro = '';
+      this.form.endereco.bairro_id = null; // ← ALTERADO
       this.form.endereco.cep = '';
       this.form.endereco.coordenadas_manuais = true;
     } else {
@@ -266,29 +379,20 @@ export class OcorrenciasFormComponent implements OnInit {
         const isAdmin = user?.perfil === 'ADMINISTRATIVO';
 
         if (isSuperAdmin || isAdmin) {
-          // Admin vê tudo
           this.servicosPericiais = data;
         } else if (user) {
-          // ==============================================================================
-          // 🎯 CORREÇÃO BASEADA NO SEU ARQUIVO DE REFERÊNCIA (UsuarioServicosComponent)
-          // ==============================================================================
-
           let idsPermitidos: number[] = [];
 
-          // Verifica se a propriedade existe e é um array (conforme seu código de exemplo)
           if (user.servicos_periciais && Array.isArray(user.servicos_periciais)) {
             idsPermitidos = user.servicos_periciais.map((s: any) => Number(s.id));
           }
-          // Fallback: Tenta 'servicos' caso o AuthUser tenha nome diferente do User do banco
           else if (user.servicos && Array.isArray(user.servicos)) {
             idsPermitidos = user.servicos.map((s: any) => Number(s.id || s));
           }
 
           if (idsPermitidos.length > 0) {
-            // Filtra a lista principal comparando os IDs
             this.servicosPericiais = data.filter(s => idsPermitidos.includes(Number(s.id)));
           } else {
-            // Se o usuário não tem serviços vinculados, a lista deve ficar vazia
             console.warn('⚠️ Usuário não possui serviços vinculados (servicos_periciais vazio).');
             this.servicosPericiais = [];
           }
@@ -296,14 +400,12 @@ export class OcorrenciasFormComponent implements OnInit {
           this.servicosPericiais = [];
         }
 
-        // Garante que na edição o serviço antigo apareça, mesmo que ele tenha perdido o vínculo
         this.atualizarListaServicos();
       },
       error: (err: any) => console.error('Erro ao carregar serviços:', err)
     });
   }
 
-  // Garante que o serviço da ocorrência esteja na lista do dropdown (para edição)
   atualizarListaServicos(): void {
     if (this.servicoOriginal && this.servicosPericiais) {
       const exists = this.servicosPericiais.find(s => String(s.id) === String(this.servicoOriginal.id));
@@ -539,19 +641,28 @@ export class OcorrenciasFormComponent implements OnInit {
         if (ocorrencia.endereco) {
           this.existingEnderecoId = ocorrencia.endereco.id;
 
+          // =========================================================================
+          // ALTERADO: Agora carrega bairro_id ao invés de bairro (texto)
+          // =========================================================================
           this.form.endereco = {
             tipo: ocorrencia.endereco.tipo || 'EXTERNA',
             modo_entrada: ocorrencia.endereco.modo_entrada || 'ENDERECO_CONVENCIONAL',
             logradouro: ocorrencia.endereco.logradouro || '',
             numero: ocorrencia.endereco.numero || '',
             complemento: ocorrencia.endereco.complemento || '',
-            bairro: ocorrencia.endereco.bairro || '',
+            bairro_id: ocorrencia.endereco.bairro?.id || ocorrencia.endereco.bairro || null, // ← ALTERADO
             cep: ocorrencia.endereco.cep || '',
             latitude: ocorrencia.endereco.latitude || '',
             longitude: ocorrencia.endereco.longitude || '',
             ponto_referencia: ocorrencia.endereco.ponto_referencia || '',
             coordenadas_manuais: ocorrencia.endereco.coordenadas_manuais || false
           };
+
+          // Se tem cidade, carrega os bairros dessa cidade
+          if (ocorrencia.cidade?.id) {
+            this.cidadeSelecionadaId = ocorrencia.cidade.id;
+            this.loadBairros(ocorrencia.cidade.id);
+          }
         }
 
         this.isLoading = false;
@@ -644,7 +755,6 @@ export class OcorrenciasFormComponent implements OnInit {
   }
 
   private preencherFormulario(ocorrencia: any): void {
-    // CORREÇÃO: Salva o serviço original e tenta atualizar a lista (caso a lista tenha carregado antes)
     this.servicoOriginal = ocorrencia.servico_pericial;
     this.atualizarListaServicos();
 
@@ -701,7 +811,7 @@ export class OcorrenciasFormComponent implements OnInit {
       this.form.endereco.logradouro = '';
       this.form.endereco.numero = '';
       this.form.endereco.complemento = '';
-      this.form.endereco.bairro = '';
+      this.form.endereco.bairro_id = null; // ← ALTERADO
       this.form.endereco.cep = '';
       this.form.endereco.latitude = '';
       this.form.endereco.longitude = '';
@@ -711,6 +821,9 @@ export class OcorrenciasFormComponent implements OnInit {
     }
   }
 
+  // =========================================================================
+  // ALTERADO: salvarEndereco agora envia bairro_id ao invés de bairro (texto)
+  // =========================================================================
   private salvarEndereco(ocorrenciaId: number): Observable<any> {
     const enderecoPayload = {
       ocorrencia: ocorrenciaId,
@@ -719,7 +832,7 @@ export class OcorrenciasFormComponent implements OnInit {
       logradouro: this.form.endereco.logradouro || '',
       numero: this.form.endereco.numero || '',
       complemento: this.form.endereco.complemento || '',
-      bairro: this.form.endereco.bairro || '',
+      bairro_id: this.form.endereco.bairro_id || null, // ← ALTERADO: agora envia ID
       cep: this.form.endereco.cep || '',
       latitude: this.form.endereco.latitude || null,
       longitude: this.form.endereco.longitude || null,
@@ -751,6 +864,17 @@ export class OcorrenciasFormComponent implements OnInit {
           Swal.fire({
             title: 'Campos Obrigatórios',
             text: 'No modo "Endereço Convencional", preencha Logradouro e Número.',
+            icon: 'warning'
+          });
+          return;
+        }
+        // =========================================================================
+        // NOVO: Validação de bairro obrigatório
+        // =========================================================================
+        if (!this.form.endereco.bairro_id) {
+          Swal.fire({
+            title: 'Bairro Obrigatório',
+            text: 'Selecione o bairro da ocorrência.',
             icon: 'warning'
           });
           return;

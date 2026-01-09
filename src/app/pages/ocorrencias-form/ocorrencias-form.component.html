@@ -117,10 +117,6 @@
             <i class="bi bi-arrow-left"></i>
             Voltar
           </button>
-          <button class="btn-primary-sm" (click)="irParaFormulario()">
-            Continuar
-            <i class="bi bi-arrow-right"></i>
-          </button>
         </div>
       </div>
     </div>
@@ -311,6 +307,7 @@
                     formControlName="cidade_id"
                     class="form-control"
                     [disabled]="loadingCidades"
+                    (change)="onCidadeChange()"
                   >
                     <option value="">{{ loadingCidades ? 'Carregando...' : 'Selecione' }}</option>
                     @for (cidade of cidades; track cidade.id) {
@@ -450,15 +447,25 @@
             </div>
 
             <div class="form-row">
+              <!-- ========== BAIRRO AGORA É DROPDOWN ========== -->
               <div class="form-group required" style="grid-column: span 2;">
                 <label>Bairro</label>
-                <input
-                  type="text"
-                  [(ngModel)]="form.endereco.bairro"
+                <select
+                  [(ngModel)]="form.endereco.bairro_id"
                   [ngModelOptions]="{standalone: true}"
                   class="form-control"
-                  placeholder="Ex: Centro, São José..."
+                  [disabled]="loadingBairros || !cidadeSelecionadaId"
                   required>
+                  <option value="">{{ loadingBairros ? 'Carregando...' : (cidadeSelecionadaId ? 'Selecione o bairro' : 'Selecione a cidade primeiro') }}</option>
+                  @for (bairro of bairrosDisponiveis; track bairro.id) {
+                    <option [value]="bairro.id">{{ bairro.nome }}</option>
+                  }
+                </select>
+                <small class="form-hint">
+                  <i class="bi bi-info-circle"></i>
+                  Bairro não encontrado?
+                  <a href="javascript:void(0)" (click)="abrirModalNovoBairro()">Cadastrar novo bairro</a>
+                </small>
               </div>
 
               <div class="form-group">
@@ -605,14 +612,19 @@
                     </div>
 
                     <div class="form-row">
+                      <!-- ========== BAIRRO AGORA É DROPDOWN (modo GPS) ========== -->
                       <div class="form-group">
                         <label>Bairro</label>
-                        <input
-                          type="text"
-                          [(ngModel)]="form.endereco.bairro"
+                        <select
+                          [(ngModel)]="form.endereco.bairro_id"
                           [ngModelOptions]="{standalone: true}"
                           class="form-control"
-                          placeholder="Ex: Centro...">
+                          [disabled]="loadingBairros || !cidadeSelecionadaId">
+                          <option value="">{{ loadingBairros ? 'Carregando...' : (cidadeSelecionadaId ? 'Selecione' : 'Selecione a cidade primeiro') }}</option>
+                          @for (bairro of bairrosDisponiveis; track bairro.id) {
+                            <option [value]="bairro.id">{{ bairro.nome }}</option>
+                          }
+                        </select>
                       </div>
 
                       <div class="form-group">
