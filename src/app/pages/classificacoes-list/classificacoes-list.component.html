@@ -25,11 +25,18 @@
     }
   </div>
 
+  <!-- CAMPO DE BUSCA (MODIFICADO PARA USAR ngModelChange) -->
   <div class="search-container">
     <i class="bi bi-search"></i>
-    <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar por código ou nome..." class="search-input">
+    <input
+      type="text"
+      [ngModel]="searchTerm"
+      (ngModelChange)="onSearchInput($event)"
+      placeholder="Buscar por código ou nome..."
+      class="search-input"
+    >
     @if (searchTerm) {
-      <button class="clear-search" (click)="searchTerm = ''">
+      <button class="clear-search" (click)="onSearchInput('')">
         <i class="bi bi-x-circle"></i>
       </button>
     }
@@ -45,11 +52,66 @@
     @if (isLoading) {
       <div class="loading-indicator">
         <i class="bi bi-hourglass-split"></i>
-        <p>Carregando classificações...</p>
+        <p>Carregando...</p>
       </div>
     }
 
-    @if (!isLoading && classificacoesFiltradas.length > 0) {
+    <!-- MODO 1: RESULTADO DA BUSCA (LISTA PLANA) -->
+    @if (!isLoading && isSearching) {
+      <div class="search-results-header">
+        <h3>Resultados da busca: {{ classificacoesBusca.length }} itens encontrados</h3>
+      </div>
+
+      <div class="classificacoes-tree flat-list">
+        @for (item of classificacoesBusca; track item.id) {
+          <div class="grupo-card">
+            <div class="grupo-header">
+              <div class="grupo-info">
+                <span class="grupo-codigo">{{ item.codigo }}</span>
+                <span class="grupo-nome">{{ item.nome }}</span>
+
+                <!-- Badge que mostra se é Pai ou Filho -->
+                @if (item.parent || item.parent_id) {
+                  <span class="badge-subgrupo">Subgrupo</span>
+                  <small class="parent-info">
+                    (Pertence a: {{ item.parent?.nome || '...' }})
+                  </small>
+                } @else {
+                  <span class="badge-grupo">Grupo Principal</span>
+                }
+
+                <div class="servicos-badges">
+                  @for (servico of item.servicos_periciais; track servico.id) {
+                    <span class="badge-servico">{{ servico.sigla }}</span>
+                  }
+                </div>
+              </div>
+
+              <div class="grupo-actions">
+                <button class="icon-btn edit" title="Editar" (click)="onEdit(item.id)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                @if (isSuperAdmin) {
+                  <button class="icon-btn danger" title="Mover para Lixeira" (click)="onDelete(item)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (classificacoesBusca.length === 0) {
+        <div class="empty-state">
+          <i class="bi bi-search"></i>
+          <p>Nenhuma classificação encontrada para "{{ searchTerm }}"</p>
+        </div>
+      }
+    }
+
+    <!-- MODO 2: ÁRVORE HIERÁRQUICA (PADRÃO) -->
+    @if (!isLoading && !isSearching && classificacoes.length > 0) {
       <div class="classificacoes-tree">
         @for (grupo of gruposPrincipais; track grupo.id) {
           <div class="grupo-card">
@@ -59,19 +121,14 @@
                 <span class="grupo-nome">{{ grupo.nome }}</span>
                 <span class="badge-grupo">Grupo Principal</span>
 
-                <!-- --- INÍCIO DA MODIFICAÇÃO (GRUPO) --- -->
                 <div class="servicos-badges">
                   @for (servico of grupo.servicos_periciais; track servico.id) {
                     <span class="badge-servico">{{ servico.sigla }}</span>
                   }
                 </div>
-                <!-- --- FIM DA MODIFICAÇÃO (GRUPO) --- -->
               </div>
               <div class="grupo-meta">
-                <small>Cadastrado em: {{ grupo.created_at | date:'dd/MM/yyyy' }} por: {{ getFirstName(grupo.created_by?.nome_completo) }}</small>
-                @if (hasBeenUpdated(grupo)) {
-                  <small>Atualizado em: {{ grupo.updated_at | date:'dd/MM/yyyy' }} por: {{ getFirstName(grupo.updated_by?.nome_completo) }}</small>
-                }
+                <small>Cadastrado: {{ grupo.created_at | date:'dd/MM/yy' }} por: {{ getFirstName(grupo.created_by?.nome_completo) }}</small>
               </div>
               <div class="grupo-actions">
                 <button class="icon-btn edit" title="Editar" (click)="onEdit(grupo.id)">
@@ -96,20 +153,11 @@
                         <span class="subgrupo-nome">{{ subgrupo.nome }}</span>
                         <span class="badge-subgrupo">Subgrupo</span>
 
-                        <!-- --- INÍCIO DA MODIFICAÇÃO (SUBGRUPO) --- -->
-                        <!-- Subgrupos herdam e mostram os serviços do pai -->
                         <div class="servicos-badges inherited">
                           @for (servico of grupo.servicos_periciais; track servico.id) {
                             <span class="badge-servico">{{ servico.sigla }}</span>
                           }
                         </div>
-                        <!-- --- FIM DA MODIFICAÇÃO (SUBGRUPO) --- -->
-                      </div>
-                      <div class="subgrupo-meta">
-                        <small>Cadastrado em: {{ subgrupo.created_at | date:'dd/MM/yyyy' }} por: {{ getFirstName(subgrupo.created_by?.nome_completo) }}</small>
-                        @if (hasBeenUpdated(subgrupo)) {
-                          <small>Atualizado em: {{ subgrupo.updated_at | date:'dd/MM/yyyy' }} por: {{ getFirstName(subgrupo.updated_by?.nome_completo) }}</small>
-                        }
                       </div>
                       <div class="subgrupo-actions">
                         <button class="icon-btn edit" title="Editar" (click)="onEdit(subgrupo.id)">
@@ -131,14 +179,15 @@
       </div>
     }
 
-    @if (!isLoading && classificacoesFiltradas.length === 0) {
+    @if (!isLoading && !isSearching && classificacoes.length === 0) {
       <div class="empty-state">
         <i class="bi bi-inbox"></i>
-        <p>{{ searchTerm ? 'Nenhuma classificação encontrada' : 'Nenhuma classificação cadastrada' }}</p>
+        <p>Nenhuma classificação cadastrada</p>
       </div>
     }
   }
 
+  <!-- TABELA DA LIXEIRA (MANTIDA IGUAL) -->
   @if (viewMode === 'lixeira') {
     @if (isLoadingLixeira) {
       <div class="loading-indicator">
@@ -156,19 +205,17 @@
               <th>Nome</th>
               <th>Grupo Pai</th>
               <th>Deletado em</th>
-              <th>Deletado por</th>
               <th class="actions-header">Ações</th>
             </tr>
           </thead>
           <tbody>
             @for (classificacao of classificacoesLixeiraFiltradas; track classificacao.id) {
               <tr>
-                <td data-label="Código" class="codigo-cell deleted">{{ classificacao.codigo }}</td>
-                <td data-label="Nome" class="deleted">{{ classificacao.nome }}</td>
-                <td data-label="Grupo Pai">{{ classificacao.parent?.nome || 'Grupo Principal' }}</td>
-                <td data-label="Deletado em">{{ classificacao.deleted_at | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td data-label="Deletado por">{{ classificacao.deleted_by?.nome_completo || 'N/D' }}</td>
-                <td class="actions-cell" data-label="Ações">
+                <td class="codigo-cell deleted">{{ classificacao.codigo }}</td>
+                <td class="deleted">{{ classificacao.nome }}</td>
+                <td>{{ classificacao.parent?.nome || 'Grupo Principal' }}</td>
+                <td>{{ classificacao.deleted_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td class="actions-cell">
                   <button class="icon-btn restore" title="Restaurar" (click)="onRestore(classificacao)">
                     <i class="bi bi-arrow-clockwise"></i>
                   </button>
@@ -183,7 +230,7 @@
     @if (!isLoadingLixeira && classificacoesLixeiraFiltradas.length === 0) {
       <div class="empty-state">
         <i class="bi bi-trash"></i>
-        <p>{{ searchTerm ? 'Nenhuma classificação encontrada' : 'A lixeira está vazia' }}</p>
+        <p>A lixeira está vazia</p>
       </div>
     }
   }

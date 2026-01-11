@@ -2,12 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-// --- INÍCIO DA MODIFICAÇÃO ---
-// Importa tanto o serviço quanto a INTERFACE
 import { ClassificacaoOcorrenciaService, ClassificacaoOcorrencia } from '../../services/classificacao-ocorrencia.service';
-// --- FIM DA MODIFICAÇÃO ---
 import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-classificacoes-list',
@@ -17,49 +16,63 @@ import Swal from 'sweetalert2';
   styleUrls: ['./classificacoes-list.component.scss']
 })
 export class ClassificacoesListComponent implements OnInit {
-  // --- INÍCIO DA MODIFICAÇÃO ---
-  // Tipa explicitamente a propriedade com a interface importada
   classificacoes: ClassificacaoOcorrencia[] = [];
-  // --- FIM DA MODIFICAÇÃO ---
+
+  // Nova lista específica para resultados de busca (plana)
+  classificacoesBusca: ClassificacaoOcorrencia[] = [];
+
   classificacoesLixeira: ClassificacaoOcorrencia[] = [];
+
   isLoading = true;
   isLoadingLixeira = false;
+
+  // Controla se estamos no modo busca ou modo árvore
+  isSearching = false;
+
   message = '';
   messageType: 'success' | 'error' = 'success';
 
   searchTerm = '';
-  viewMode: 'ativos' | 'lixeira' = 'ativos';
+  private searchSubject = new Subject<string>();
 
+  viewMode: 'ativos' | 'lixeira' = 'ativos';
   isSuperAdmin = false;
 
   constructor(
     private classificacaoService: ClassificacaoOcorrenciaService,
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) {
+    // Configura o debounce para não sobrecarregar o servidor
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      this.executarBusca(term);
+    });
+  }
 
   ngOnInit(): void {
     this.isSuperAdmin = this.authService.isSuperAdmin();
     this.loadClassificacoes();
   }
 
+  // Acionado pelo input no HTML
+  onSearchInput(term: string): void {
+    this.searchTerm = term;
+    this.searchSubject.next(term);
+  }
+
+  // Carrega a árvore padrão (sem busca)
   loadClassificacoes(): void {
     this.isLoading = true;
+    this.isSearching = false;
+
+    // Traz a lista completa para montar a árvore localmente
     this.classificacaoService.getAll().subscribe({
-      // --- INÍCIO DA MODIFICAÇÃO ---
-      // Tipa explicitamente o 'data' que chega da API
       next: (data: ClassificacaoOcorrencia[]) => {
-      // --- FIM DA MODIFICAÇÃO ---
         this.classificacoes = data;
         this.isLoading = false;
-
-        console.log("Dados recebidos da API:", data);
-        const subgrupos = data.filter(c => c.parent_id);
-        if (subgrupos.length > 0) {
-          console.log("Exemplo de um SUBGRUPO (verifique se 'parent' e 'parent_id' existem e estão corretos):", subgrupos[0]);
-        } else {
-          console.log("Nenhum subgrupo encontrado nos dados recebidos.");
-        }
       },
       error: (err: any) => {
         console.error('Erro ao carregar classificações:', err);
@@ -67,6 +80,32 @@ export class ClassificacoesListComponent implements OnInit {
         this.messageType = 'error';
         this.classificacoes = [];
         this.isLoading = false;
+      }
+    });
+  }
+
+  // Executa a busca no servidor (que agora traz pai + filhos em lista plana)
+  executarBusca(term: string): void {
+    if (!term.trim()) {
+      // Se limpou a busca, volta para o modo árvore
+      this.isSearching = false;
+      return;
+    }
+
+    this.isLoading = true;
+    this.isSearching = true;
+
+    // Chama o endpoint de busca do backend
+    this.classificacaoService.search(term).subscribe({
+      next: (data: ClassificacaoOcorrencia[]) => {
+        this.classificacoesBusca = data;
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Erro na busca:', err);
+        this.isLoading = false;
+        // Em caso de erro, volta para o modo árvore para não travar a tela
+        this.isSearching = false;
       }
     });
   }
@@ -88,40 +127,16 @@ export class ClassificacoesListComponent implements OnInit {
     });
   }
 
-  get classificacoesFiltradas(): ClassificacaoOcorrencia[] {
-    if (!this.searchTerm.trim()) {
-      return this.classificacoes;
-    }
-    const term = this.searchTerm.toLowerCase();
-
-    const directMatches = this.classificacoes.filter(c =>
-      c.codigo.toLowerCase().includes(term) || c.nome.toLowerCase().includes(term)
-    );
-    const directMatchIds = new Set(directMatches.map(c => c.id));
-
-    const childrenIds = new Set<number>();
-    this.classificacoes.forEach(c => {
-      if (c.parent_id && directMatchIds.has(c.parent_id)) {
-        childrenIds.add(c.id);
-      }
-    });
-
-    const parentIds = new Set<number>();
-    directMatches.forEach(c => {
-      if (c.parent_id) {
-        parentIds.add(c.parent_id);
-      }
-    });
-
-    const idsToKeep = new Set([
-      ...directMatchIds,
-      ...childrenIds,
-      ...parentIds
-    ]);
-
-    return this.classificacoes.filter(c => idsToKeep.has(c.id));
+  // Getters para a montagem da Árvore (apenas quando NÃO está buscando)
+  get gruposPrincipais(): ClassificacaoOcorrencia[] {
+    return this.classificacoes.filter(c => !c.parent && !c.parent_id);
   }
 
+  getSubgrupos(parentId: number): ClassificacaoOcorrencia[] {
+    return this.classificacoes.filter(c => c.parent?.id === parentId || c.parent_id === parentId);
+  }
+
+  // Getter para a Lixeira (filtro local simples)
   get classificacoesLixeiraFiltradas(): ClassificacaoOcorrencia[] {
     if (!this.searchTerm.trim()) {
       return this.classificacoesLixeira;
@@ -133,17 +148,10 @@ export class ClassificacoesListComponent implements OnInit {
     );
   }
 
-  get gruposPrincipais(): ClassificacaoOcorrencia[] {
-    return this.classificacoesFiltradas.filter(c => !c.parent);
-  }
-
-  getSubgrupos(parentId: number): ClassificacaoOcorrencia[] {
-    return this.classificacoesFiltradas.filter(c => c.parent?.id === parentId);
-  }
-
   switchToAtivos(): void {
     this.viewMode = 'ativos';
     this.searchTerm = '';
+    this.isSearching = false;
     this.loadClassificacoes();
   }
 
@@ -187,7 +195,12 @@ export class ClassificacoesListComponent implements OnInit {
           next: () => {
             this.message = `Classificação "${classificacao.codigo}" movida para a lixeira.`;
             this.messageType = 'success';
-            this.loadClassificacoes();
+            // Recarrega a lista correta
+            if (this.isSearching) {
+              this.executarBusca(this.searchTerm);
+            } else {
+              this.loadClassificacoes();
+            }
           },
           error: (err: any) => {
             console.error('Erro ao deletar:', err);

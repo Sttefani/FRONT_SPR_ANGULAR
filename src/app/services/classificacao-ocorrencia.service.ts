@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
+import { environment } from '../../environments/environment';
 
 export interface ClassificacaoOcorrencia {
   id: number;
@@ -38,13 +38,20 @@ export interface ClassificacaoOcorrencia {
   providedIn: 'root'
 })
 export class ClassificacaoOcorrenciaService {
-  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
+  private baseUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(): Observable<ClassificacaoOcorrencia[]> {
     return this.http.get<ClassificacaoOcorrencia[]>(`${this.baseUrl}/classificacoes/`);
   }
+
+  // --- ADICIONEI ESTE MÉTODO QUE FALTAVA ---
+  search(term: string): Observable<ClassificacaoOcorrencia[]> {
+    let params = new HttpParams().set('search', term);
+    return this.http.get<ClassificacaoOcorrencia[]>(`${this.baseUrl}/classificacoes/`, { params });
+  }
+  // ----------------------------------------
 
   getById(id: number): Observable<ClassificacaoOcorrencia> {
     return this.http.get<ClassificacaoOcorrencia>(`${this.baseUrl}/classificacoes/${id}/`);
