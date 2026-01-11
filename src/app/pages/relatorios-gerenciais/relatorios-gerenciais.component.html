@@ -21,7 +21,6 @@
       </select>
     </div>
 
-    <!-- --- INÍCIO DO NOVO FILTRO --- -->
     <div class="filter-group">
       <label for="cidadeFiltro">Cidade</label>
       <select id="cidadeFiltro" [(ngModel)]="filtros.cidade_id">
@@ -31,7 +30,6 @@
         }
       </select>
     </div>
-    <!-- --- FIM DO NOVO FILTRO --- -->
 
     <div class="filter-group">
       <label for="peritoFiltro">Perito</label>
@@ -73,7 +71,7 @@
   }
 
   @if (!isLoading && relatorios) {
-    <!-- ... (suas tabelas de relatório permanecem exatamente as mesmas) ... -->
+    <!-- Tabela: Ocorrências por Grupo Principal -->
     @if (relatorios.por_grupo_principal && relatorios.por_grupo_principal.length > 0) {
       <div class="data-section">
         <h2>Ocorrências por Grupo Principal</h2>
@@ -88,6 +86,7 @@
       </div>
     }
 
+    <!-- Tabela: Ocorrências por Classificação Específica -->
     @if (relatorios.por_classificacao_especifica && relatorios.por_classificacao_especifica.length > 0) {
       <div class="data-section">
         <h2>Ocorrências por Classificação Específica (Subgrupos)</h2>
@@ -102,6 +101,7 @@
       </div>
     }
 
+    <!-- Tabela: Produção por Perito -->
     @if (relatorios.producao_por_perito && relatorios.producao_por_perito.length > 0) {
       <div class="data-section">
         <h2>Produção por Perito</h2>
@@ -116,6 +116,7 @@
       </div>
     }
 
+    <!-- Tabela: Produção por Serviço Pericial (COM COLUNA TOTAL EXAMES) -->
     @if (relatorios.por_servico && relatorios.por_servico.length > 0) {
       <div class="data-section">
         <h2>Produção por Serviço Pericial</h2>
@@ -123,7 +124,8 @@
           <thead>
             <tr>
               <th>Serviço</th>
-              <th class="text-right">Total de Ocorrências</th>
+              <th class="text-right">Total OCs</th>
+              <th class="text-right">Total Exames</th>
               <th class="text-right">Finalizadas</th>
               <th class="text-right">Em Análise</th>
             </tr>
@@ -133,6 +135,7 @@
               <tr>
                 <td>{{ item.servico_pericial__sigla }} - {{ item.servico_pericial__nome }}</td>
                 <td class="text-right">{{ item.total | number }}</td>
+                <td class="text-right">{{ item.total_exames | number }}</td>
                 <td class="text-right">{{ item.finalizadas | number }}</td>
                 <td class="text-right">{{ item.em_analise | number }}</td>
               </tr>
@@ -141,6 +144,37 @@
         </table>
       </div>
     }
+
+    <!-- Tabela: Exames Solicitados -->
+    <div class="data-section">
+      <h2>Exames Solicitados</h2>
+      @if (relatorios.por_exame && relatorios.por_exame.length > 0) {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Exame</th>
+              <th>Serviço</th>
+              <th class="text-right">Quantidade</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of relatorios.por_exame; track $index) {
+              <tr>
+                <td>{{ item.codigo }}</td>
+                <td>{{ item.nome }}</td>
+                <td>{{ item.servico_sigla }}</td>
+                <td class="text-right">{{ item.quantidade | number }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <div class="empty-state-inline">
+          <p>Nenhum exame foi solicitado no período filtrado.</p>
+        </div>
+      }
+    </div>
 
   } @else if (!isLoading) {
     <div class="empty-state">

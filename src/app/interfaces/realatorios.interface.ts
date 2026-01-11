@@ -19,20 +19,28 @@ export interface RelatorioPerito {
   em_analise: number;
 }
 
-// --- INÍCIO DA NOVA INTERFACE ---
 export interface RelatorioServico {
   servico_pericial__sigla: string;
   servico_pericial__nome: string;
   total: number;
+  total_exames: number;  // ✅ NOVO CAMPO
   finalizadas: number;
   em_analise: number;
 }
-// --- FIM DA NOVA INTERFACE ---
+
+// ✅ NOVA INTERFACE
+export interface RelatorioExame {
+  codigo: string;
+  nome: string;
+  servico_sigla: string;
+  quantidade: number;
+}
 
 // A interface principal que agrupa todos os relatórios
 export interface RelatoriosGerenciais {
   por_grupo_principal: RelatorioGrupoPrincipal[];
   por_classificacao_especifica: RelatorioClassificacaoEspecifica[];
   producao_por_perito: RelatorioPerito[];
-  por_servico: RelatorioServico[]; // <-- ADICIONA A NOVA PROPRIEDADE
+  por_servico: RelatorioServico[];
+  por_exame: RelatorioExame[];  // ✅ NOVO CAMPO
 }

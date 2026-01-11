@@ -641,16 +641,13 @@ export class OcorrenciasFormComponent implements OnInit {
         if (ocorrencia.endereco) {
           this.existingEnderecoId = ocorrencia.endereco.id;
 
-          // =========================================================================
-          // ALTERADO: Agora carrega bairro_id ao invés de bairro (texto)
-          // =========================================================================
           this.form.endereco = {
             tipo: ocorrencia.endereco.tipo || 'EXTERNA',
             modo_entrada: ocorrencia.endereco.modo_entrada || 'ENDERECO_CONVENCIONAL',
             logradouro: ocorrencia.endereco.logradouro || '',
             numero: ocorrencia.endereco.numero || '',
             complemento: ocorrencia.endereco.complemento || '',
-            bairro_id: ocorrencia.endereco.bairro?.id || ocorrencia.endereco.bairro || null, // ← ALTERADO
+            bairro_id: ocorrencia.endereco.bairro_novo_id || null,  // ✅ CORRIGIDO
             cep: ocorrencia.endereco.cep || '',
             latitude: ocorrencia.endereco.latitude || '',
             longitude: ocorrencia.endereco.longitude || '',

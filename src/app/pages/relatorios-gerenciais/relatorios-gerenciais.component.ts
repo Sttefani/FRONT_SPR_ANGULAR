@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { RelatoriosGerenciais } from '../../interfaces/realatorios.interface';
 import { OcorrenciaService } from '../../services/ocorrencia.service';
 import { ServicoPericialService } from '../../services/servico-pericial.service';
-import { CidadeService } from '../../services/cidade.service'; // <-- 1. IMPORTA O SERVIÇO DE CIDADE
+import { CidadeService } from '../../services/cidade.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { ClassificacaoOcorrenciaService } from '../../services/classificacao-ocorrencia.service';
+import { RelatoriosGerenciais } from '../../interfaces/realatorios.interface';
 
 @Component({
   selector: 'app-relatorios-gerenciais',
@@ -27,23 +27,23 @@ export class RelatoriosGerenciaisComponent implements OnInit {
     data_inicio: '',
     data_fim: '',
     servico_id: null as number | null,
-    cidade_id: null as number | null, // <-- 2. ADICIONA A PROPRIEDADE DO NOVO FILTRO
+    cidade_id: null as number | null,
     perito_id: null as number | null,
     classificacao_id: null as number | null
   };
 
   servicosDisponiveis: any[] = [];
-  cidadesDisponiveis: any[] = []; // <-- 2. ADICIONA A LISTA PARA O DROPDOWN
+  cidadesDisponiveis: any[] = [];
   peritosDisponiveis: any[] = [];
   classificacoesDisponiveis: any[] = [];
 
   constructor(
     private ocorrenciaService: OcorrenciaService,
     private servicoPericialService: ServicoPericialService,
-    private cidadeService: CidadeService, // <-- 3. INJETA O SERVIÇO
+    private cidadeService: CidadeService,
     private usuarioService: UsuarioService,
     private classificacaoService: ClassificacaoOcorrenciaService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadFiltroData();
@@ -52,7 +52,7 @@ export class RelatoriosGerenciaisComponent implements OnInit {
 
   loadFiltroData(): void {
     this.servicoPericialService.getAllForDropdown().subscribe((data: any) => this.servicosDisponiveis = data);
-    this.cidadeService.getAllForDropdown().subscribe((data: any) => this.cidadesDisponiveis = data); // <-- 4. ADICIONA A CHAMADA PARA CARREGAR AS CIDADES
+    this.cidadeService.getAllForDropdown().subscribe((data: any) => this.cidadesDisponiveis = data);
     this.usuarioService.getPeritosList().subscribe((data: any) => this.peritosDisponiveis = data);
     this.classificacaoService.getAll().subscribe((data: any) => this.classificacoesDisponiveis = data);
   }
@@ -62,15 +62,13 @@ export class RelatoriosGerenciaisComponent implements OnInit {
       data_inicio: '',
       data_fim: '',
       servico_id: null,
-      cidade_id: null, // <-- 2. ADICIONA AQUI TAMBÉM
+      cidade_id: null,
       perito_id: null,
       classificacao_id: null
     };
     this.aplicarFiltros();
   }
 
-  // A função aplicarFiltros() JÁ ESTÁ PRONTA e vai enviar o 'cidade_id' automaticamente!
-  // Nenhuma mudança é necessária nela.
   aplicarFiltros(): void {
     this.isLoading = true;
     const params: any = {};
@@ -96,6 +94,7 @@ export class RelatoriosGerenciaisComponent implements OnInit {
   getKeyForHeader(header: string): string {
     return 'total_' + header.toLowerCase().replace(/ /g, '_');
   }
+
   gerarPDF(): void {
     this.isGerandoPDF = true;
 
