@@ -101,112 +101,107 @@
           <span class="value">{{ ocorrencia.classificacao.codigo }} - {{ ocorrencia.classificacao.nome }}</span>
         </div>
       </div>
+
       <!-- ======================================================= -->
-<!-- ✅ INÍCIO DO NOVO CARD DE ENDEREÇO (COLE ISTO AQUI) -->
-<!-- ======================================================= -->
+      <!-- CARD DE ENDEREÇO -->
+      <!-- ======================================================= -->
+      @if (ocorrencia.endereco) {
+        <div class="info-card">
+          <h3><i class="bi bi-geo-alt-fill"></i> Endereço do Fato</h3>
 
-@if (ocorrencia.endereco) {
-  <div class="info-card">
-    <h3><i class="bi bi-geo-alt-fill"></i> Endereço do Fato</h3>
+          <!-- Mostra o tipo da ocorrência (Externa/Interna) -->
+          <div class="info-row">
+            <span class="label">Tipo:</span>
+            <span class="value">{{ ocorrencia.endereco.tipo === 'EXTERNA' ? 'Externa (Local de Crime)' : 'Interna (Laboratório)' }}</span>
+          </div>
 
-    <!-- Mostra o tipo da ocorrência (Externa/Interna) -->
-    <div class="info-row">
-      <span class="label">Tipo:</span>
-      <span class="value">{{ ocorrencia.endereco.tipo === 'EXTERNA' ? 'Externa (Local de Crime)' : 'Interna (Laboratório)' }}</span>
-    </div>
+          <!-- O container abaixo só será exibido se o tipo for EXTERNA -->
+          @if (ocorrencia.endereco.tipo === 'EXTERNA') {
 
-    <!-- O container abaixo só será exibido se o tipo for EXTERNA -->
-    @if (ocorrencia.endereco.tipo === 'EXTERNA') {
+            <!-- Usa a propriedade 'endereco_completo' do serializer -->
+            @if (ocorrencia.endereco.endereco_completo && ocorrencia.endereco.endereco_completo !== 'Endereço não informado') {
+              <div class="info-row">
+                <span class="label">Local:</span>
+                <span class="value">{{ ocorrencia.endereco.endereco_completo }}</span>
+              </div>
+            }
 
-      <!-- Usa a propriedade 'endereco_completo' do serializer -->
-      @if (ocorrencia.endereco.endereco_completo && ocorrencia.endereco.endereco_completo !== 'Endereço não informado') {
-        <div class="info-row">
-          <span class="label">Local:</span>
-          <span class="value">{{ ocorrencia.endereco.endereco_completo }}</span>
+            <!-- Mostra o ponto de referência se ele existir -->
+            @if (ocorrencia.endereco.ponto_referencia) {
+              <div class="info-row">
+                <span class="label">Ponto de Referência:</span>
+                <span class="value">{{ ocorrencia.endereco.ponto_referencia }}</span>
+              </div>
+            }
+
+            <!-- Mostra as coordenadas GPS se elas existirem -->
+            @if (ocorrencia.endereco.latitude && ocorrencia.endereco.longitude) {
+              <div class="info-row">
+                <span class="label">Coordenadas GPS:</span>
+                <span class="value">{{ ocorrencia.endereco.latitude }}, {{ ocorrencia.endereco.longitude }}</span>
+              </div>
+            }
+          }
         </div>
       }
-
-      <!-- Mostra o ponto de referência se ele existir -->
-      @if (ocorrencia.endereco.ponto_referencia) {
-        <div class="info-row">
-          <span class="label">Ponto de Referência:</span>
-          <span class="value">{{ ocorrencia.endereco.ponto_referencia }}</span>
-        </div>
-      }
-
-      <!-- Mostra as coordenadas GPS se elas existirem -->
-      @if (ocorrencia.endereco.latitude && ocorrencia.endereco.longitude) {
-        <div class="info-row">
-          <span class="label">Coordenadas GPS:</span>
-          <span class="value">{{ ocorrencia.endereco.latitude }}, {{ ocorrencia.endereco.longitude }}</span>
-        </div>
-      }
-    }
-  </div>
-}
-
-<!-- ======================================================= -->
-<!-- FIM DO NOVO CARD DE ENDEREÇO -->
-<!-- ======================================================= -->
 
       <!-- Card Procedimento -->
-<div class="info-card">
-  <div class="card-header-with-action">
-    <h3><i class="bi bi-file-earmark-text"></i> Procedimento</h3>
+      <div class="info-card">
+        <div class="card-header-with-action">
+          <h3><i class="bi bi-file-earmark-text"></i> Procedimento</h3>
 
-    <!-- Botão de vincular só aparece se NÃO tem procedimento e pode editar -->
-    @if (!ocorrencia.procedimento_cadastrado && podeEditar()) {
-      <button class="btn-link-procedimento" (click)="abrirModalVincularProcedimento()">
-        <i class="bi bi-link"></i> Vincular
-      </button>
-    }
-  </div>
+          <!-- Botão de vincular só aparece se NÃO tem procedimento e pode editar -->
+          @if (!ocorrencia.procedimento_cadastrado && podeEditar()) {
+            <button class="btn-link-procedimento" (click)="abrirModalVincularProcedimento()">
+              <i class="bi bi-link"></i> Vincular
+            </button>
+          }
+        </div>
 
-  @if (ocorrencia.procedimento_cadastrado) {
-    <div class="procedimento-vinculado">
-      <div class="procedimento-info">
-        <div class="info-row">
-          <span class="label">Tipo:</span>
-          <span class="value">{{ ocorrencia.procedimento_cadastrado.tipo_procedimento.sigla }}</span>
-        </div>
-        <div class="info-row">
-          <span class="label">Número:</span>
-          <span class="value">{{ ocorrencia.procedimento_cadastrado.numero }}/{{ ocorrencia.procedimento_cadastrado.ano }}</span>
-        </div>
+        @if (ocorrencia.procedimento_cadastrado) {
+          <div class="procedimento-vinculado">
+            <div class="procedimento-info">
+              <div class="info-row">
+                <span class="label">Tipo:</span>
+                <span class="value">{{ ocorrencia.procedimento_cadastrado.tipo_procedimento.sigla }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Número:</span>
+                <span class="value">{{ ocorrencia.procedimento_cadastrado.numero }}/{{ ocorrencia.procedimento_cadastrado.ano }}</span>
+              </div>
+            </div>
+
+            <!-- Botão de desvincular -->
+            @if (podeGerenciarProcedimento()) {
+              <button class="btn-danger-sm" (click)="desvincularProcedimento()" title="Desvincular procedimento">
+                <i class="bi bi-x-circle"></i>
+              </button>
+            }
+          </div>
+        } @else {
+          <span class="text-muted">Nenhum procedimento vinculado</span>
+        }
+
+        <!-- Documento origem -->
+        @if (ocorrencia.tipo_documento_origem) {
+          <div class="info-row">
+            <span class="label">Documento:</span>
+            <span class="value">{{ ocorrencia.tipo_documento_origem.nome }}</span>
+          </div>
+        }
+        @if (ocorrencia.numero_documento_origem) {
+          <div class="info-row">
+            <span class="label">Nº Doc:</span>
+            <span class="value">{{ ocorrencia.numero_documento_origem }}</span>
+          </div>
+        }
+        @if (ocorrencia.processo_sei_numero) {
+          <div class="info-row">
+            <span class="label">SEI:</span>
+            <span class="value">{{ ocorrencia.processo_sei_numero }}</span>
+          </div>
+        }
       </div>
-
-      <!-- Apenas super admin pode desvincular -->
-      <!-- Botão de desvincular -->
-      @if (podeGerenciarProcedimento()) {
-        <button class="btn-danger-sm" (click)="desvincularProcedimento()" title="Desvincular procedimento">
-          <i class="bi bi-x-circle"></i>
-        </button>
-      }
-    </div>
-  } @else {
-    <span class="text-muted">Nenhum procedimento vinculado</span>
-  }
-
-  <!-- Documento origem continua igual -->
-  @if (ocorrencia.tipo_documento_origem) {
-    <div class="info-row">
-      <span class="label">Documento:</span>
-      <span class="value">{{ ocorrencia.tipo_documento_origem.nome }}</span>
-    </div>
-  }
-  @if (ocorrencia.numero_documento_origem) {
-    <div class="info-row">
-      <span class="label">Nº Doc:</span>
-      <span class="value">{{ ocorrencia.numero_documento_origem }}</span>
-    </div>
-  }
-  @if (ocorrencia.processo_sei_numero) {
-    <div class="info-row">
-      <span class="label">SEI:</span>
-      <span class="value">{{ ocorrencia.processo_sei_numero }}</span>
-    </div>
-  }
-</div>
 
       <!-- Card Perito -->
       <div class="info-card">
@@ -268,7 +263,9 @@
       }
     </div>
 
-    <!-- Exames Solicitados -->
+    <!-- ======================================================= -->
+    <!-- ✅ EXAMES SOLICITADOS (CORRIGIDO - MOSTRA QUANTIDADE) -->
+    <!-- ======================================================= -->
     @if (ocorrencia.exames_solicitados && ocorrencia.exames_solicitados.length > 0) {
       <div class="info-card full-width">
         <h3><i class="bi bi-clipboard-pulse"></i> Exames Solicitados ({{ ocorrencia.exames_solicitados.length }})</h3>
@@ -277,8 +274,20 @@
             <div class="exame-chip">
               <span class="exame-codigo">{{ exame.codigo }}</span>
               <span class="exame-nome">{{ exame.nome }}</span>
+              <!-- ✅ CORREÇÃO: Mostra quantidade se maior que 1 -->
+              @if (exame.quantidade && exame.quantidade > 1) {
+                <span class="exame-quantidade">x{{ exame.quantidade }}</span>
+              }
             </div>
           }
+        </div>
+
+        <!-- ✅ NOVO: Resumo total -->
+        <div class="exames-total">
+          <small>
+            <i class="bi bi-calculator"></i>
+            Total: {{ getTotalExames() }} exame(s)
+          </small>
         </div>
       </div>
     }
@@ -315,12 +324,13 @@
       </div>
     }
   }
+
   <section class="movimentacoes-section" *ngIf="ocorrencia && ocorrenciaId">
-  <app-movimentacao-timeline
-    [ocorrenciaId]="ocorrenciaId"
-    [perfilUsuario]="perfilUsuario">
-  </app-movimentacao-timeline>
-</section>
+    <app-movimentacao-timeline
+      [ocorrenciaId]="ocorrenciaId"
+      [perfilUsuario]="perfilUsuario">
+    </app-movimentacao-timeline>
+  </section>
 
   @if (!isLoading && !ocorrencia) {
     <div class="empty-state">

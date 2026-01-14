@@ -751,7 +751,7 @@
           }
         </div>
 
-        <!-- ========== SEÇÃO: EXAMES ========== -->
+        <!-- ========== SEÇÃO: EXAMES (CORRIGIDA) ========== -->
         <div class="form-section">
           <div class="section-header" (click)="toggleSecao('exames')">
             <div>
@@ -774,6 +774,10 @@
                     <div class="exame-tag">
                       <span>
                         <strong>{{ exame.codigo }}</strong> - {{ exame.nome }}
+                        <!-- ✅ CORREÇÃO: Mostra a quantidade se for maior que 1 -->
+                        @if (exame.quantidade && exame.quantidade > 1) {
+                          <span class="badge-quantidade">(Qtd: {{ exame.quantidade }})</span>
+                        }
                       </span>
                       <button type="button" class="btn-remove-exame" (click)="removerExame(exame)">
                         <i class="bi bi-x"></i>
@@ -781,6 +785,16 @@
                     </div>
                   }
                 </div>
+
+                <!-- ✅ NOVO: Resumo total de exames -->
+                <div class="exames-resumo">
+                  <small>
+                    <i class="bi bi-info-circle"></i>
+                    Total: {{ examesSelecionados.length }} tipo(s) de exame |
+                    {{ getTotalQuantidadeExames() }} exame(s) no total
+                  </small>
+                </div>
+
               } @else {
                 <p class="text-muted-small">Nenhum exame selecionado</p>
               }

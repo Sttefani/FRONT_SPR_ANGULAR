@@ -19,9 +19,9 @@
   --danger-light: #f8d7da;
   --warning-color: #ff9800;
   --info-color: #3182ce;
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.16);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
   --shadow-primary: 0 4px 20px rgba(218, 165, 32, 0.3);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -57,8 +57,13 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // =============================================================================
@@ -74,7 +79,7 @@
   flex-wrap: wrap;
   animation: slideDown 0.5s ease-out;
 
-  > div:first-child {
+  >div:first-child {
     flex: 1;
 
     h1 {
@@ -175,7 +180,9 @@
       letter-spacing: 0.5px;
       border: 2px solid;
 
-      i { font-size: 1.1rem; }
+      i {
+        font-size: 1.1rem;
+      }
 
       &:hover {
         transform: translateY(-3px);
@@ -238,6 +245,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -299,6 +307,7 @@
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -337,6 +346,7 @@
     opacity: 0;
     transform: translateY(-15px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -620,10 +630,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.7;
     transform: scale(0.95);
@@ -714,7 +727,7 @@
         display: grid !important;
         overflow: hidden !important;
 
-        > * {
+        >* {
           min-width: 0 !important; // CRÍTICO para grid
           overflow: hidden !important;
         }
@@ -764,7 +777,7 @@
     width: 100% !important;
     overflow: hidden !important;
 
-    > * {
+    >* {
       min-width: 0 !important; // VITAL para conter grid items
       max-width: 100% !important;
       overflow: hidden !important;
@@ -801,6 +814,7 @@
 // Regra UNIVERSAL para QUALQUER modal ou overlay
 [class*="modal"],
 [class*="overlay"] {
+
   input,
   select,
   textarea,
@@ -811,9 +825,9 @@
   }
 
   // Força grid items a respeitarem bounds
-  [style*="grid"] > *,
-  .form-row-compact > *,
-  [class*="form-row"] > * {
+  [style*="grid"]>*,
+  .form-row-compact>*,
+  [class*="form-row"]>* {
     min-width: 0 !important;
     max-width: 100% !important;
     overflow: hidden !important;
@@ -824,15 +838,33 @@
 // Se o input ainda vazar, é porque o grid está expandindo
 :host ::ng-deep,
 ::ng-deep {
+
   .modal-body .form-row-compact,
   .modal-content .form-row-compact {
+
     // Força cada coluna do grid a ter tamanho máximo
-    > *:nth-child(1) { max-width: 100% !important; min-width: 0 !important; }
-    > *:nth-child(2) { max-width: 100% !important; min-width: 0 !important; }
-    > *:nth-child(3) { max-width: 100% !important; min-width: 0 !important; }
-    > *:nth-child(4) { max-width: 100% !important; min-width: 0 !important; }
+    >*:nth-child(1) {
+      max-width: 100% !important;
+      min-width: 0 !important;
+    }
+
+    >*:nth-child(2) {
+      max-width: 100% !important;
+      min-width: 0 !important;
+    }
+
+    >*:nth-child(3) {
+      max-width: 100% !important;
+      min-width: 0 !important;
+    }
+
+    >*:nth-child(4) {
+      max-width: 100% !important;
+      min-width: 0 !important;
+    }
   }
 }
+
 .movimentacoes-section {
   margin-top: 2rem;
 }
@@ -887,6 +919,40 @@
     }
   }
 
+  /* ============================================================================
+   ADICIONE ESTE CSS AO ARQUIVO: ocorrencias-detalhes.component.scss
+   ============================================================================ */
+
+  /* Badge de quantidade de exame */
+  .exame-quantidade {
+    background: linear-gradient(135deg, #DAA520, #B8860B);
+    color: #000;
+    padding: 0.15rem 0.4rem;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: 0.5rem;
+  }
+
+  /* Resumo total de exames */
+  .exames-total {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #DAA520;
+
+    small {
+      color: #666;
+      font-size: 0.85rem;
+
+      i {
+        color: #DAA520;
+        margin-right: 0.3rem;
+      }
+    }
+  }
+
   .procedimento-vinculado {
     flex-direction: column;
     gap: 1rem;
@@ -897,20 +963,21 @@
       justify-content: center;
     }
   }
-  ::ng-deep .swal2-container select.swal2-input {
-  background-color: white !important;
-  color: #333 !important;
 
-  option {
+  ::ng-deep .swal2-container select.swal2-input {
     background-color: white !important;
     color: #333 !important;
 
-    &:checked,
-    &[selected] {
-      background-color: #DAA520 !important;
-      color: white !important;
-      font-weight: bold !important;
+    option {
+      background-color: white !important;
+      color: #333 !important;
+
+      &:checked,
+      &[selected] {
+        background-color: #DAA520 !important;
+        color: white !important;
+        font-weight: bold !important;
+      }
     }
   }
-}
 }

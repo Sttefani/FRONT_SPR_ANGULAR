@@ -6,7 +6,7 @@ import { OcorrenciaService, Ocorrencia } from '../../services/ocorrencia.service
 import { AuthService } from '../../services/auth.service';
 import { ProcedimentoService } from '../../services/procedimento.service';
 import { ProcedimentoCadastradoService } from '../../services/procedimento-cadastrado.service';
-import { MovimentacaoTimelineComponent } from '../movimentacoes/movimentacao-timeline/movimentacao-timeline.component'; // ← NOVO
+import { MovimentacaoTimelineComponent } from '../movimentacoes/movimentacao-timeline/movimentacao-timeline.component';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -15,7 +15,7 @@ import Swal from 'sweetalert2';
   imports: [
     CommonModule,
     FormsModule,
-    MovimentacaoTimelineComponent // ← NOVO
+    MovimentacaoTimelineComponent
   ],
   templateUrl: './ocorrencias-detalhes.component.html',
   styleUrls: ['./ocorrencias-detalhes.component.scss']
@@ -35,7 +35,7 @@ export class OcorrenciasDetalhesComponent implements OnInit {
 
   tiposProcedimento: any[] = [];
 
-  perfilUsuario: string = ''; // ← NOVO
+  perfilUsuario: string = '';
 
   constructor(
     private ocorrenciaService: OcorrenciaService,
@@ -54,7 +54,7 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     this.isPerito = user?.perfil === 'PERITO';
     this.isOperacional = user?.perfil === 'OPERACIONAL';
 
-    this.perfilUsuario = user?.perfil || ''; // ← NOVO
+    this.perfilUsuario = user?.perfil || '';
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -178,6 +178,7 @@ export class OcorrenciasDetalhesComponent implements OnInit {
       }
     });
   }
+
   buscarEVincularProcedimento(dados: any): void {
     this.procedimentoCadastradoService.verificarExistente(dados.tipo, dados.numero, dados.ano).subscribe({
       next: (response: any) => {
@@ -237,22 +238,13 @@ export class OcorrenciasDetalhesComponent implements OnInit {
       }
     });
   }
-  // No seu arquivo .ts do componente
 
-  /**
- * Pede confirmação e desvincula o procedimento atual da ocorrência.
- * Este método chama o mesmo endpoint de vinculação, mas envia 'null'
- * para executar a lógica de desvinculação no backend com as mesmas
- * regras de segurança e auditoria.
- */
   desvincularProcedimento(): void {
-    // Guarda de segurança para garantir que o ID da ocorrência existe
     if (!this.ocorrenciaId) {
       console.error("ID da ocorrência não encontrado. Ação cancelada.");
       return;
     }
 
-    // Exibe um modal de confirmação para o usuário
     Swal.fire({
       title: 'Confirmar Desvinculação',
       text: 'Tem certeza que deseja desvincular este procedimento?',
@@ -263,33 +255,18 @@ export class OcorrenciasDetalhesComponent implements OnInit {
       confirmButtonColor: '#d33',
       reverseButtons: true
     }).then((result) => {
-      // Procede apenas se o usuário clicar em "Sim, desvincular"
       if (result.isConfirmed) {
-        // Chama o endpoint, passando 'null' para indicar desvinculação
         this.ocorrenciaService.vincularProcedimento(this.ocorrenciaId!, null).subscribe({
-          // Bloco executado em caso de SUCESSO na chamada da API
           next: (response) => {
-            // Usa a mensagem de sucesso do backend ou uma padrão
             const successMsg = response?.message || 'O procedimento foi removido com sucesso.';
             Swal.fire('Desvinculado!', successMsg, 'success');
-
-            // Recarrega os dados da ocorrência para atualizar a tela
             this.loadOcorrencia(this.ocorrenciaId!);
           },
-          // Bloco executado em caso de ERRO na chamada da API
           error: (err) => {
-            // Define uma mensagem padrão como último recurso
             let errorMsg = 'Erro ao desvincular o procedimento.';
-
-            // Verifica se o corpo do erro (err.error) existe e é um objeto
             if (err.error && typeof err.error === 'object') {
-              // Procura pela nossa chave customizada 'error',
-              // se não achar, procura pela chave padrão do Django 'detail'.
-              // Se não achar nenhuma das duas, mantém a mensagem padrão.
               errorMsg = err.error.error || err.error.detail || errorMsg;
             }
-
-            // Exibe o SweetAlert com a mensagem de erro correta
             Swal.fire('Ação Não Permitida', errorMsg, 'error');
           }
         });
@@ -484,13 +461,9 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     });
   }
 
-  // ====================================================================
-  // ✅ FUNÇÃO MELHORADA: Impressão de PDF com validações
-  // ====================================================================
   onImprimirPDF(): void {
     if (!this.ocorrencia) return;
 
-    // ✅ Coleta avisos de campos incompletos (sem bloquear)
     const avisos: string[] = [];
 
     if (!this.ocorrencia.perito_atribuido) {
@@ -505,7 +478,6 @@ export class OcorrenciasDetalhesComponent implements OnInit {
       avisos.push('Histórico vazio ou incompleto');
     }
 
-    // ✅ Se tem avisos, pergunta se quer continuar
     if (avisos.length > 0) {
       Swal.fire({
         title: 'Atenção',
@@ -530,15 +502,10 @@ export class OcorrenciasDetalhesComponent implements OnInit {
       return;
     }
 
-    // ✅ Se não tem avisos, gera direto
     this.executarGeracaoPDF();
   }
 
-  // ====================================================================
-  // ✅ NOVA FUNÇÃO PRIVADA: Executa a geração do PDF
-  // ====================================================================
   private executarGeracaoPDF(): void {
-    // ✅ Mostra loading durante a geração
     Swal.fire({
       title: 'Gerando PDF...',
       html: '<p>Aguarde enquanto o documento é gerado.</p>',
@@ -557,15 +524,13 @@ export class OcorrenciasDetalhesComponent implements OnInit {
         const link = document.createElement('a');
         link.href = url;
 
-        // ✅ Nome de arquivo melhorado e seguro
         const numeroLimpo = this.ocorrencia!.numero_ocorrencia.replace(/\//g, '-');
-        const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        const timestamp = new Date().toISOString().slice(0, 10);
         link.download = `Ocorrencia_${numeroLimpo}_${timestamp}.pdf`;
 
         link.click();
         window.URL.revokeObjectURL(url);
 
-        // ✅ Feedback de sucesso
         Swal.fire({
           title: 'Sucesso!',
           text: 'PDF gerado e baixado com sucesso.',
@@ -578,7 +543,6 @@ export class OcorrenciasDetalhesComponent implements OnInit {
         Swal.close();
         console.error('Erro ao gerar PDF:', err);
 
-        // ✅ Mensagem de erro mais específica
         let errorMsg = 'Não foi possível gerar o PDF. Tente novamente.';
         if (err.error?.detail) {
           errorMsg = err.error.detail;
@@ -598,10 +562,19 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     });
   }
 
+  // =========================================================================
+  // ✅ NOVO: Calcula total de exames considerando quantidade
+  // =========================================================================
+  getTotalExames(): number {
+    if (!this.ocorrencia?.exames_solicitados) return 0;
+    return this.ocorrencia.exames_solicitados.reduce((total, exame) => {
+      return total + (exame.quantidade || 1);
+    }, 0);
+  }
+
   podeEditar(): boolean {
     if (!this.ocorrencia) return false;
 
-    // SE FOI REABERTA, pode editar
     if (this.ocorrencia.reaberta_por) {
       if (this.isSuperAdmin) return true;
 
@@ -614,7 +587,6 @@ export class OcorrenciasDetalhesComponent implements OnInit {
       return this.isPerito || this.isOperacional;
     }
 
-    // SE NÃO FOI REABERTA, verifica se está finalizada
     const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
       !!this.ocorrencia.finalizada_por ||
       !!this.ocorrencia.data_finalizacao;
@@ -627,14 +599,12 @@ export class OcorrenciasDetalhesComponent implements OnInit {
       return true;
     }
 
-    // Verifica se tem perito atribuído
     if (this.ocorrencia.perito_atribuido) {
       const user = this.authService.getCurrentUser();
       const resultado = Number(user?.id) === Number(this.ocorrencia.perito_atribuido.id);
       return resultado;
     }
 
-    // Sem perito atribuído
     const resultadoFinal = this.isPerito || this.isOperacional;
     return resultadoFinal;
   }
@@ -688,24 +658,17 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   podeGerenciarProcedimento(): boolean {
     if (!this.ocorrencia) return false;
 
-    // Se finalizada, ninguém pode
     if (this.ocorrencia.esta_finalizada) return false;
 
-    // Super admin sempre pode
     if (this.isSuperAdmin) return true;
 
-    // Se tem perito, só o perito pode
     if (this.ocorrencia.perito_atribuido) {
       const user = this.authService.getCurrentUser();
-
-      // ✅ CORREÇÃO: Converte AMBOS para Number antes de comparar
       const meuId = Number(user?.id);
       const peritoId = Number(this.ocorrencia.perito_atribuido.id);
-
       return meuId === peritoId;
     }
 
-    // Se não tem perito, qualquer um pode
     return true;
   }
 }

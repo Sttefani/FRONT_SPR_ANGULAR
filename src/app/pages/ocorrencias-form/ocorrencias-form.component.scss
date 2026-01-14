@@ -17,9 +17,9 @@
   --danger-light: #f8d7da;
   --warning: #ff9800;
   --info: #3182ce;
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.16);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
   --shadow-primary: 0 4px 20px rgba(218, 165, 32, 0.3);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -94,7 +94,7 @@
 }
 
 .question-card {
-  background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,249,250,0.95));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 249, 250, 0.95));
   backdrop-filter: blur(10px);
   border-radius: 24px;
   padding: 3rem 2rem;
@@ -184,7 +184,8 @@
       background: var(--success-light);
       box-shadow: 0 8px 24px rgba(40, 167, 69, 0.3);
 
-      i, span {
+      i,
+      span {
         color: var(--success);
       }
     }
@@ -201,7 +202,8 @@
       background: var(--danger-light);
       box-shadow: 0 8px 24px rgba(220, 53, 69, 0.3);
 
-      i, span {
+      i,
+      span {
         color: var(--danger);
       }
     }
@@ -322,7 +324,8 @@
   margin-top: 1.2rem;
 }
 
-.btn-secondary-sm, .btn-primary-sm {
+.btn-secondary-sm,
+.btn-primary-sm {
   padding: 0.65rem 1.3rem;
   border-radius: 10px;
   cursor: pointer;
@@ -445,7 +448,7 @@
     }
   }
 
-  > div {
+  >div {
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -466,7 +469,7 @@
     }
   }
 
-  > i:last-child {
+  >i:last-child {
     font-size: 1.1rem;
     color: var(--text-light);
     transition: var(--transition);
@@ -509,7 +512,8 @@
   }
 }
 
-.form-control, .form-control-sm {
+.form-control,
+.form-control-sm {
   width: 100%;
   padding: 0.65rem 0.9rem;
   border: 2px solid #cbd5e0;
@@ -606,7 +610,7 @@
       position: absolute;
       opacity: 0;
 
-      &:checked + .radio-label {
+      &:checked+.radio-label {
         color: var(--primary);
         font-weight: 700;
 
@@ -686,10 +690,21 @@
     }
   }
 
-  .col-md-8 { grid-column: span 2; }
-  .col-md-5 { grid-column: span 2; }
-  .col-md-4 { grid-column: span 1; }
-  .col-md-3 { grid-column: span 1; }
+  .col-md-8 {
+    grid-column: span 2;
+  }
+
+  .col-md-5 {
+    grid-column: span 2;
+  }
+
+  .col-md-4 {
+    grid-column: span 1;
+  }
+
+  .col-md-3 {
+    grid-column: span 1;
+  }
 }
 
 // ==========================================
@@ -794,7 +809,8 @@
   border-top: 2px solid var(--bg-main);
 }
 
-.btn-cancel-form, .btn-submit {
+.btn-cancel-form,
+.btn-submit {
   padding: 0.85rem 1.8rem;
   border-radius: 12px;
   cursor: pointer;
@@ -887,48 +903,109 @@
 // 🎬 ANIMAÇÕES
 // ==========================================
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  50% { transform: scale(1.1) rotate(180deg); }
+
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+
+  50% {
+    transform: scale(1.1) rotate(180deg);
+  }
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes searchPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(-30px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes expandSection {
-  from { opacity: 0; max-height: 0; }
-  to { opacity: 1; max-height: 1000px; }
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // ==========================================
@@ -994,13 +1071,13 @@
     grid-template-columns: 1fr;
   }
 
- .endereco-section {
-  .form-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);  // ← 3 colunas iguais
-    gap: 0.7rem;
+  .endereco-section {
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); // ← 3 colunas iguais
+      gap: 0.7rem;
+    }
   }
-}
 
   .endereco-section .col-md-8,
   .endereco-section .col-md-5,
@@ -1009,6 +1086,7 @@
     grid-column: span 1;
   }
 }
+
 // ========================================
 // ESTILOS PARA SEÇÃO DE ENDEREÇO
 // ========================================
@@ -1282,6 +1360,40 @@
   background: white;
   border-radius: 6px;
   border: 1px solid #e9ecef;
+}
+
+/* ============================================================================
+   ADICIONE ESTE CSS AO ARQUIVO: ocorrencias-form.component.scss
+   ============================================================================ */
+
+/* Badge de quantidade de exame */
+.badge-quantidade {
+  background: linear-gradient(135deg, #DAA520, #B8860B);
+  color: #000;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 0.5rem;
+}
+
+/* Resumo total de exames */
+.exames-resumo {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #DAA520;
+
+  small {
+    color: #666;
+    font-size: 0.85rem;
+
+    i {
+      color: #DAA520;
+      margin-right: 0.3rem;
+    }
+  }
 }
 
 // ========================================

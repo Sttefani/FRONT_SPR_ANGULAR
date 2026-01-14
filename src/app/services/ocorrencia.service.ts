@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { RelatoriosGerenciais } from '../interfaces/realatorios.interface';
-import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
+import { environment } from '../../environments/environment';
 
 // ===================================================================
 //  INÍCIO DAS INTERFACES CORRIGIDAS E COMPLETAS
@@ -34,13 +34,29 @@ export interface Autoridade {
 export interface Endereco {
   id: number;
   tipo: 'INTERNA' | 'EXTERNA';
+  modo_entrada?: 'ENDERECO_CONVENCIONAL' | 'COORDENADAS_DIRETAS';
   logradouro?: string;
   numero?: string;
+  complemento?: string;
   bairro?: string;
+  bairro_novo_id?: number;  // ✅ ID do bairro para edição
+  bairro_nome?: string;
+  cep?: string;
   ponto_referencia?: string;
   latitude?: string;
   longitude?: string;
+  coordenadas_manuais?: boolean;
   endereco_completo?: string;
+  tem_coordenadas?: boolean;
+}
+
+// ✅ CORREÇÃO: Interface para exames COM quantidade
+export interface ExameSolicitado {
+  id: number;
+  codigo: string;
+  nome: string;
+  servico?: string;
+  quantidade?: number;  // ✅ CAMPO ADICIONADO
 }
 
 /**
@@ -58,7 +74,7 @@ export interface Ocorrencia {
   procedimento_cadastrado?: any;
   tipo_documento_origem?: SimpleLookup;
   perito_atribuido?: UserNested;
-  exames_solicitados?: any[];
+  exames_solicitados?: ExameSolicitado[];  // ✅ USA A INTERFACE COM QUANTIDADE
   data_fato: string;
   hora_fato?: string;
   historico?: string;
@@ -89,6 +105,7 @@ export interface PaginatedResponse {
   previous: string | null;
   results: Ocorrencia[];
 }
+
 // Interface específica para o FullCalendar (ADD-ON)
 export interface EventoCalendario {
   id: number;
@@ -100,6 +117,7 @@ export interface EventoCalendario {
     status: string;
   };
 }
+
 // ===================================================================
 //  FIM DAS INTERFACES
 // ===================================================================
@@ -109,7 +127,7 @@ export interface EventoCalendario {
   providedIn: 'root'
 })
 export class OcorrenciaService {
-  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
+  private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
@@ -259,12 +277,12 @@ export class OcorrenciaService {
       responseType: 'blob'
     });
   }
+
   getOcorrenciasCalendario(start: string, end: string): Observable<EventoCalendario[]> {
     const params = new HttpParams()
       .set('start', start)
       .set('end', end);
 
-    // Certifique-se que a URL está batendo com a do seu Backend Django
     return this.http.get<EventoCalendario[]>(`${this.baseUrl}/ocorrencias/dados-calendario/`, { params });
   }
 }

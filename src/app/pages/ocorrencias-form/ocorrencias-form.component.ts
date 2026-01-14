@@ -30,7 +30,8 @@ interface TipoDocumento { id: number; nome: string; }
 interface TipoProcedimento { id: number; sigla: string; nome: string; }
 interface Cargo { id: number; nome: string; }
 interface Autoridade { id: number; nome: string; cargo: Cargo; }
-interface Exame { id: number; codigo: string; nome: string; }
+// ✅ CORREÇÃO: Interface Exame agora inclui quantidade
+interface Exame { id: number; codigo: string; nome: string; quantidade?: number; }
 
 @Component({
   selector: 'app-ocorrencias-form',
@@ -630,7 +631,7 @@ export class OcorrenciasFormComponent implements OnInit {
   }
 
   // =========================================================================
-  // ✅ CORRIGIDO: loadOcorrencia agora passa o bairro_id para loadBairros
+  // ✅ CORRIGIDO: loadOcorrencia preserva o tipo do endereço
   // =========================================================================
   loadOcorrencia(id: number): void {
     this.isLoading = true;
@@ -654,9 +655,13 @@ export class OcorrenciasFormComponent implements OnInit {
           // ✅ Guarda o bairro_id para selecionar depois
           const bairroIdParaSelecionar = ocorrencia.endereco.bairro_novo_id || null;
 
-          // Preenche os dados do endereço (exceto bairro_id que será selecionado após carregar a lista)
+          // ✅ CORREÇÃO: Guarda o tipo ANTES de qualquer operação assíncrona
+          const tipoEndereco = ocorrencia.endereco.tipo || 'EXTERNA';
+          console.log('📍 TIPO ENDEREÇO CARREGADO:', tipoEndereco);
+
+          // Preenche os dados do endereço
           this.form.endereco = {
-            tipo: ocorrencia.endereco.tipo || 'EXTERNA',
+            tipo: tipoEndereco,
             modo_entrada: ocorrencia.endereco.modo_entrada || 'ENDERECO_CONVENCIONAL',
             logradouro: ocorrencia.endereco.logradouro || '',
             numero: ocorrencia.endereco.numero || '',
@@ -675,6 +680,13 @@ export class OcorrenciasFormComponent implements OnInit {
             // ✅ Passa o bairro_id para ser selecionado após carregar a lista
             this.loadBairros(ocorrencia.cidade.id, bairroIdParaSelecionar);
           }
+
+          // ✅ CORREÇÃO: Força o tipo novamente após um pequeno delay
+          // (para garantir que não seja sobrescrito por eventos do Angular)
+          setTimeout(() => {
+            this.form.endereco.tipo = tipoEndereco;
+            console.log('📍 TIPO ENDEREÇO CONFIRMADO:', this.form.endereco.tipo);
+          }, 200);
         }
 
         this.isLoading = false;
@@ -766,6 +778,9 @@ export class OcorrenciasFormComponent implements OnInit {
     }
   }
 
+  // =========================================================================
+  // ✅ CORRIGIDO: preencherFormulario preserva quantidade dos exames
+  // =========================================================================
   private preencherFormulario(ocorrencia: any): void {
     this.servicoOriginal = ocorrencia.servico_pericial;
     this.atualizarListaServicos();
@@ -787,7 +802,20 @@ export class OcorrenciasFormComponent implements OnInit {
       historico: ocorrencia.historico || ''
     });
 
-    this.examesSelecionados = ocorrencia.exames_solicitados || [];
+    // =========================================================================
+    // ✅ CORREÇÃO: Preserva a quantidade dos exames
+    // =========================================================================
+    if (ocorrencia.exames_solicitados && Array.isArray(ocorrencia.exames_solicitados)) {
+      this.examesSelecionados = ocorrencia.exames_solicitados.map((e: any) => ({
+        id: e.id,
+        codigo: e.codigo,
+        nome: e.nome,
+        quantidade: e.quantidade || 1
+      }));
+    } else {
+      this.examesSelecionados = [];
+    }
+
     this.procedimentoVinculado = ocorrencia.procedimento_cadastrado || null;
   }
 
@@ -834,6 +862,15 @@ export class OcorrenciasFormComponent implements OnInit {
   }
 
   // =========================================================================
+  // ✅ NOVO: Calcula total de exames considerando quantidade
+  // =========================================================================
+  getTotalQuantidadeExames(): number {
+    return this.examesSelecionados.reduce((total, exame) => {
+      return total + (exame.quantidade || 1);
+    }, 0);
+  }
+
+  // =========================================================================
   // salvarEndereco envia bairro_id
   // =========================================================================
   private salvarEndereco(ocorrenciaId: number): Observable<any> {
@@ -852,6 +889,10 @@ export class OcorrenciasFormComponent implements OnInit {
       coordenadas_manuais: this.form.endereco.coordenadas_manuais
     };
 
+    // ✅ DEBUG: Log para verificar o payload
+    console.log('📤 PAYLOAD ENDEREÇO:', enderecoPayload);
+    console.log('📤 TIPO SENDO ENVIADO:', enderecoPayload.tipo);
+
     const baseUrl = environment.apiUrl;
 
     if (this.isEditMode && this.existingEnderecoId) {
@@ -863,6 +904,9 @@ export class OcorrenciasFormComponent implements OnInit {
     }
   }
 
+  // =========================================================================
+  // ✅ CORRIGIDO: onSubmit envia exames COM quantidade
+  // =========================================================================
   onSubmit(): void {
     if (this.ocorrenciaForm.invalid) {
       this.ocorrenciaForm.markAllAsTouched();
@@ -907,6 +951,14 @@ export class OcorrenciasFormComponent implements OnInit {
     const formValues = this.ocorrenciaForm.getRawValue();
     let payload: any;
 
+    // =========================================================================
+    // ✅ CORREÇÃO: Monta exames COM quantidade
+    // =========================================================================
+    const examesComQuantidade = this.examesSelecionados.map(e => ({
+      id: e.id,
+      quantidade: e.quantidade || 1
+    }));
+
     if (this.isEditMode) {
       payload = {
         classificacao_id: formValues.classificacao_id,
@@ -919,7 +971,8 @@ export class OcorrenciasFormComponent implements OnInit {
         data_documento_origem: formValues.data_documento_origem || null,
         tipo_documento_origem_id: formValues.tipo_documento_origem_id,
         perito_atribuido_id: formValues.perito_atribuido_id,
-        exames_ids: this.examesSelecionados.map(e => e.id)
+        // ✅ CORREÇÃO: Envia exames com quantidade
+        exames: examesComQuantidade
       };
     } else {
       payload = {
@@ -936,7 +989,8 @@ export class OcorrenciasFormComponent implements OnInit {
         processo_sei_numero: formValues.processo_sei_numero,
         perito_atribuido_id: formValues.perito_atribuido_id,
         historico: formValues.historico,
-        exames_ids: this.examesSelecionados.map(e => e.id),
+        // ✅ CORREÇÃO: Envia exames com quantidade
+        exames: examesComQuantidade,
         procedimento_cadastrado_id: this.procedimentoVinculado ? this.procedimentoVinculado.id : null
       };
     }
