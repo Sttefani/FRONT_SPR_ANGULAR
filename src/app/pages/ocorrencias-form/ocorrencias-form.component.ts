@@ -30,7 +30,6 @@ interface TipoDocumento { id: number; nome: string; }
 interface TipoProcedimento { id: number; sigla: string; nome: string; }
 interface Cargo { id: number; nome: string; }
 interface Autoridade { id: number; nome: string; cargo: Cargo; }
-// ✅ CORREÇÃO: Interface Exame agora inclui quantidade
 interface Exame { id: number; codigo: string; nome: string; quantidade?: number; }
 
 @Component({
@@ -55,7 +54,6 @@ export class OcorrenciasFormComponent implements OnInit {
   procedimentoEncontrado = false;
   procedimentoVinculado: any = null;
 
-  // Propriedade para armazenar o serviço original da ocorrência (para edição)
   servicoOriginal: any = null;
 
   secoesAbertas = {
@@ -92,13 +90,9 @@ export class OcorrenciasFormComponent implements OnInit {
   modalExamesAberto = false;
   mostrarEnderecoOpcional = false;
 
-  // =========================================================================
-  // Propriedades para Bairros
-  // =========================================================================
   bairrosDisponiveis: Bairro[] = [];
   loadingBairros = false;
   cidadeSelecionadaId: number | null = null;
-  // =========================================================================
 
   form = {
     endereco: {
@@ -156,11 +150,7 @@ export class OcorrenciasFormComponent implements OnInit {
       this.onServicoPericialChange(servicoId);
     });
 
-    // =========================================================================
-    // Observa mudanças na cidade para carregar bairros (apenas para novos registros)
-    // =========================================================================
     this.ocorrenciaForm.get('cidade_id')?.valueChanges.subscribe(cidadeId => {
-      // Só limpa o bairro se NÃO estiver em modo edição ou se o usuário mudou a cidade manualmente
       if (!this.isEditMode) {
         this.onCidadeChange(cidadeId);
       }
@@ -192,9 +182,6 @@ export class OcorrenciasFormComponent implements OnInit {
     });
   }
 
-  // =========================================================================
-  // Método chamado quando a cidade muda (para novos registros)
-  // =========================================================================
   onCidadeChange(cidadeId?: number | null): void {
     if (cidadeId === undefined) {
       cidadeId = this.ocorrenciaForm.get('cidade_id')?.value;
@@ -209,9 +196,6 @@ export class OcorrenciasFormComponent implements OnInit {
     }
   }
 
-  // =========================================================================
-  // ✅ CORRIGIDO: Carrega bairros com opção de pré-selecionar um bairro
-  // =========================================================================
   loadBairros(cidadeId: number, bairroIdParaSelecionar?: number | null): void {
     this.loadingBairros = true;
     this.bairroService.getDropdownByCidade(cidadeId).subscribe({
@@ -219,9 +203,7 @@ export class OcorrenciasFormComponent implements OnInit {
         this.bairrosDisponiveis = bairros;
         this.loadingBairros = false;
 
-        // ✅ CORREÇÃO: Se foi passado um bairro para selecionar, seleciona após carregar a lista
         if (bairroIdParaSelecionar) {
-          // Usa setTimeout para garantir que o Angular atualizou o DOM
           setTimeout(() => {
             this.form.endereco.bairro_id = bairroIdParaSelecionar;
           }, 100);
@@ -234,9 +216,6 @@ export class OcorrenciasFormComponent implements OnInit {
     });
   }
 
-  // =========================================================================
-  // Abre modal para cadastrar novo bairro
-  // =========================================================================
   abrirModalNovoBairro(): void {
     if (!this.cidadeSelecionadaId) {
       Swal.fire('Atenção', 'Selecione uma cidade primeiro.', 'warning');
@@ -269,16 +248,12 @@ export class OcorrenciasFormComponent implements OnInit {
     });
   }
 
-  // =========================================================================
-  // Cadastra novo bairro e seleciona automaticamente
-  // =========================================================================
   private cadastrarNovoBairro(nome: string): void {
     if (!this.cidadeSelecionadaId) return;
 
     this.bairroService.create({ nome, cidade: this.cidadeSelecionadaId }).subscribe({
       next: (novoBairro: Bairro) => {
         Swal.fire('Sucesso!', `Bairro "${novoBairro.nome}" cadastrado.`, 'success');
-        // Recarrega a lista e seleciona o novo bairro
         this.loadBairros(this.cidadeSelecionadaId!, novoBairro.id);
       },
       error: (err: any) => {
@@ -630,9 +605,6 @@ export class OcorrenciasFormComponent implements OnInit {
     (this.secoesAbertas as any)[secao] = true;
   }
 
-  // =========================================================================
-  // ✅ CORRIGIDO: loadOcorrencia preserva o tipo do endereço
-  // =========================================================================
   loadOcorrencia(id: number): void {
     this.isLoading = true;
     this.isEditMode = true;
@@ -652,21 +624,17 @@ export class OcorrenciasFormComponent implements OnInit {
         if (ocorrencia.endereco) {
           this.existingEnderecoId = ocorrencia.endereco.id;
 
-          // ✅ Guarda o bairro_id para selecionar depois
           const bairroIdParaSelecionar = ocorrencia.endereco.bairro_novo_id || null;
-
-          // ✅ CORREÇÃO: Guarda o tipo ANTES de qualquer operação assíncrona
           const tipoEndereco = ocorrencia.endereco.tipo || 'EXTERNA';
           console.log('📍 TIPO ENDEREÇO CARREGADO:', tipoEndereco);
 
-          // Preenche os dados do endereço
           this.form.endereco = {
             tipo: tipoEndereco,
             modo_entrada: ocorrencia.endereco.modo_entrada || 'ENDERECO_CONVENCIONAL',
             logradouro: ocorrencia.endereco.logradouro || '',
             numero: ocorrencia.endereco.numero || '',
             complemento: ocorrencia.endereco.complemento || '',
-            bairro_id: null,  // Será preenchido após carregar a lista de bairros
+            bairro_id: null,
             cep: ocorrencia.endereco.cep || '',
             latitude: ocorrencia.endereco.latitude || '',
             longitude: ocorrencia.endereco.longitude || '',
@@ -674,15 +642,11 @@ export class OcorrenciasFormComponent implements OnInit {
             coordenadas_manuais: ocorrencia.endereco.coordenadas_manuais || false
           };
 
-          // Se tem cidade, carrega os bairros e seleciona o bairro correto
           if (ocorrencia.cidade?.id) {
             this.cidadeSelecionadaId = ocorrencia.cidade.id;
-            // ✅ Passa o bairro_id para ser selecionado após carregar a lista
             this.loadBairros(ocorrencia.cidade.id, bairroIdParaSelecionar);
           }
 
-          // ✅ CORREÇÃO: Força o tipo novamente após um pequeno delay
-          // (para garantir que não seja sobrescrito por eventos do Angular)
           setTimeout(() => {
             this.form.endereco.tipo = tipoEndereco;
             console.log('📍 TIPO ENDEREÇO CONFIRMADO:', this.form.endereco.tipo);
@@ -778,9 +742,6 @@ export class OcorrenciasFormComponent implements OnInit {
     }
   }
 
-  // =========================================================================
-  // ✅ CORRIGIDO: preencherFormulario preserva quantidade dos exames
-  // =========================================================================
   private preencherFormulario(ocorrencia: any): void {
     this.servicoOriginal = ocorrencia.servico_pericial;
     this.atualizarListaServicos();
@@ -802,9 +763,6 @@ export class OcorrenciasFormComponent implements OnInit {
       historico: ocorrencia.historico || ''
     });
 
-    // =========================================================================
-    // ✅ CORREÇÃO: Preserva a quantidade dos exames
-    // =========================================================================
     if (ocorrencia.exames_solicitados && Array.isArray(ocorrencia.exames_solicitados)) {
       this.examesSelecionados = ocorrencia.exames_solicitados.map((e: any) => ({
         id: e.id,
@@ -861,18 +819,12 @@ export class OcorrenciasFormComponent implements OnInit {
     }
   }
 
-  // =========================================================================
-  // ✅ NOVO: Calcula total de exames considerando quantidade
-  // =========================================================================
   getTotalQuantidadeExames(): number {
     return this.examesSelecionados.reduce((total, exame) => {
       return total + (exame.quantidade || 1);
     }, 0);
   }
 
-  // =========================================================================
-  // salvarEndereco envia bairro_id
-  // =========================================================================
   private salvarEndereco(ocorrenciaId: number): Observable<any> {
     const enderecoPayload = {
       ocorrencia: ocorrenciaId,
@@ -889,7 +841,6 @@ export class OcorrenciasFormComponent implements OnInit {
       coordenadas_manuais: this.form.endereco.coordenadas_manuais
     };
 
-    // ✅ DEBUG: Log para verificar o payload
     console.log('📤 PAYLOAD ENDEREÇO:', enderecoPayload);
     console.log('📤 TIPO SENDO ENVIADO:', enderecoPayload.tipo);
 
@@ -905,7 +856,7 @@ export class OcorrenciasFormComponent implements OnInit {
   }
 
   // =========================================================================
-  // ✅ CORRIGIDO: onSubmit envia exames COM quantidade
+  // ✅ CORRIGIDO: onSubmit SEMPRE salva endereço (INTERNA ou EXTERNA)
   // =========================================================================
   onSubmit(): void {
     if (this.ocorrenciaForm.invalid) {
@@ -914,6 +865,7 @@ export class OcorrenciasFormComponent implements OnInit {
       return;
     }
 
+    // ✅ Validações só para EXTERNA
     if (this.form.endereco.tipo === 'EXTERNA') {
       if (this.form.endereco.modo_entrada === 'ENDERECO_CONVENCIONAL') {
         if (!this.form.endereco.logradouro || !this.form.endereco.numero) {
@@ -951,9 +903,6 @@ export class OcorrenciasFormComponent implements OnInit {
     const formValues = this.ocorrenciaForm.getRawValue();
     let payload: any;
 
-    // =========================================================================
-    // ✅ CORREÇÃO: Monta exames COM quantidade
-    // =========================================================================
     const examesComQuantidade = this.examesSelecionados.map(e => ({
       id: e.id,
       quantidade: e.quantidade || 1
@@ -971,7 +920,6 @@ export class OcorrenciasFormComponent implements OnInit {
         data_documento_origem: formValues.data_documento_origem || null,
         tipo_documento_origem_id: formValues.tipo_documento_origem_id,
         perito_atribuido_id: formValues.perito_atribuido_id,
-        // ✅ CORREÇÃO: Envia exames com quantidade
         exames: examesComQuantidade
       };
     } else {
@@ -989,7 +937,6 @@ export class OcorrenciasFormComponent implements OnInit {
         processo_sei_numero: formValues.processo_sei_numero,
         perito_atribuido_id: formValues.perito_atribuido_id,
         historico: formValues.historico,
-        // ✅ CORREÇÃO: Envia exames com quantidade
         exames: examesComQuantidade,
         procedimento_cadastrado_id: this.procedimentoVinculado ? this.procedimentoVinculado.id : null
       };
@@ -1001,42 +948,31 @@ export class OcorrenciasFormComponent implements OnInit {
 
     request.subscribe({
       next: (ocorrencia: any) => {
-        if (this.form.endereco.tipo === 'EXTERNA' || this.existingEnderecoId) {
-          this.salvarEndereco(ocorrencia.id).subscribe({
-            next: () => {
-              const action = this.isEditMode ? 'atualizada' : 'cadastrada';
-              Swal.fire({
-                title: 'Sucesso!',
-                text: `Ocorrência ${action} com sucesso! Número: ${ocorrencia.numero_ocorrencia}`,
-                icon: 'success',
-                confirmButtonText: 'Ok'
-              }).then(() => {
-                this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
-              });
-            },
-            error: (enderecoErr: any) => {
-              console.error('Erro ao salvar endereço:', enderecoErr);
-              Swal.fire({
-                title: 'Aviso',
-                text: 'Ocorrência salva, mas houve erro ao salvar o endereço.',
-                icon: 'warning',
-                confirmButtonText: 'Ok'
-              }).then(() => {
-                this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
-              });
-            }
-          });
-        } else {
-          const action = this.isEditMode ? 'atualizada' : 'cadastrada';
-          Swal.fire({
-            title: 'Sucesso!',
-            text: `Ocorrência ${action} com sucesso! Número: ${ocorrencia.numero_ocorrencia}`,
-            icon: 'success',
-            confirmButtonText: 'Ok'
-          }).then(() => {
-            this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
-          });
-        }
+        // ✅ CORREÇÃO: SEMPRE salva endereço (INTERNA ou EXTERNA)
+        this.salvarEndereco(ocorrencia.id).subscribe({
+          next: () => {
+            const action = this.isEditMode ? 'atualizada' : 'cadastrada';
+            Swal.fire({
+              title: 'Sucesso!',
+              text: `Ocorrência ${action} com sucesso! Número: ${ocorrencia.numero_ocorrencia}`,
+              icon: 'success',
+              confirmButtonText: 'Ok'
+            }).then(() => {
+              this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+            });
+          },
+          error: (enderecoErr: any) => {
+            console.error('Erro ao salvar endereço:', enderecoErr);
+            Swal.fire({
+              title: 'Aviso',
+              text: 'Ocorrência salva, mas houve erro ao salvar o endereço.',
+              icon: 'warning',
+              confirmButtonText: 'Ok'
+            }).then(() => {
+              this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+            });
+          }
+        });
       },
       error: (err: any) => {
         console.error('ERRO DETALHADO DO BACKEND:', err);
