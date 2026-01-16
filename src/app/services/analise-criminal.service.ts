@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
+import { environment } from '../../environments/environment';
 
 export interface EstatisticaCriminal {
   total_ocorrencias: number;
@@ -23,14 +23,13 @@ export interface EstatisticaCriminal {
   }>;
 }
 
-// ✅ 1. É uma boa prática separar a interface do endereço.
 export interface EnderecoGeo {
   latitude: number;
   longitude: number;
   bairro: string;
   logradouro: string;
-  modo_entrada?: string; // ✅ 2. Propriedade adicionada
-  coordenadas_manuais?: boolean; // ✅ 3. Propriedade adicionada
+  modo_entrada?: string;
+  coordenadas_manuais?: boolean;
 }
 
 export interface OcorrenciaGeo {
@@ -40,7 +39,7 @@ export interface OcorrenciaGeo {
     codigo: string;
     nome: string;
   };
-  endereco?: EnderecoGeo; // ✅ 4. Usando a interface corrigida e garantindo que seja opcional
+  endereco?: EnderecoGeo;
   data_fato: string;
   cidade: {
     nome: string;
@@ -51,19 +50,51 @@ export interface OcorrenciaGeo {
   providedIn: 'root'
 })
 export class AnaliseCriminalService {
-  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
+  private baseUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
+
+  /**
+   * ✅ CORREÇÃO: Método utilitário para limpar filtros
+   * Remove valores null, undefined, strings vazias e "null" string
+   */
+  private buildCleanParams(filtros: any): HttpParams {
+    let params = new HttpParams();
+
+    if (!filtros) return params;
+
+    Object.keys(filtros).forEach(key => {
+      const value = filtros[key];
+
+      // Só adiciona se tiver valor válido
+      if (
+        value !== null &&
+        value !== undefined &&
+        value !== '' &&
+        value !== 'null'
+      ) {
+        params = params.set(key, String(value));
+      }
+    });
+
+    return params;
+  }
 
   getEstatisticas(filtros?: any): Observable<EstatisticaCriminal> {
-    return this.http.get<EstatisticaCriminal>(`${this.baseUrl}/analise-criminal/estatisticas/`, {
-      params: filtros || {}
-    });
+    const params = this.buildCleanParams(filtros);
+
+    return this.http.get<EstatisticaCriminal>(
+      `${this.baseUrl}/analise-criminal/estatisticas/`,
+      { params }
+    );
   }
 
   getOcorrenciasGeo(filtros?: any): Observable<OcorrenciaGeo[]> {
-    return this.http.get<OcorrenciaGeo[]>(`${this.baseUrl}/analise-criminal/mapa/`, {
-      params: filtros || {}
-    });
+    const params = this.buildCleanParams(filtros);
+
+    return this.http.get<OcorrenciaGeo[]>(
+      `${this.baseUrl}/analise-criminal/mapa/`,
+      { params }
+    );
   }
 }

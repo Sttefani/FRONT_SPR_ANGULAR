@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -20,7 +20,7 @@ interface DropdownItem {
   templateUrl: './analise-criminal.component.html',
   styleUrls: ['./analise-criminal.component.scss']
 })
-export class AnaliseCriminalComponent implements OnInit {
+export class AnaliseCriminalComponent implements OnInit, OnDestroy {
   private map: any = null;
   private heatLayer: any = null;
   private markersLayer: any = null;
@@ -29,8 +29,11 @@ export class AnaliseCriminalComponent implements OnInit {
   estatisticas: EstatisticaCriminal | null = null;
 
   filtros = {
-    data_inicio: '', data_fim: '', classificacao_id: null as number | null,
-    cidade_id: null as number | null, bairro: ''
+    data_inicio: '',
+    data_fim: '',
+    classificacao_id: undefined as number | undefined,
+    cidade_id: undefined as number | undefined,
+    bairro: ''
   };
 
   classificacoes: DropdownItem[] = [];
@@ -44,6 +47,9 @@ export class AnaliseCriminalComponent implements OnInit {
   private leafletPluginsLoaded = false;
   private leafletLoaded = false;
 
+  // ✅ Cache dos pontos filtrados para reutilizar na alternância
+  private pontosCache: number[][] = [];
+
   constructor(
     private analiseService: AnaliseCriminalService,
     private classificacaoService: ClassificacaoOcorrenciaService,
@@ -53,6 +59,15 @@ export class AnaliseCriminalComponent implements OnInit {
   ngOnInit(): void {
     this.loadDropdowns();
     this.loadDados();
+  }
+
+  ngOnDestroy(): void {
+    if (this.map) {
+      try {
+        this.map.remove();
+      } catch (e) { /* ignore */ }
+      this.map = null;
+    }
   }
 
   loadDropdowns(): void {
@@ -67,33 +82,67 @@ export class AnaliseCriminalComponent implements OnInit {
     });
   }
 
+  private prepararFiltros(): any {
+    const filtrosLimpos: any = {};
+
+    if (this.filtros.data_inicio && this.filtros.data_inicio.trim() !== '') {
+      filtrosLimpos.data_inicio = this.filtros.data_inicio;
+    }
+    if (this.filtros.data_fim && this.filtros.data_fim.trim() !== '') {
+      filtrosLimpos.data_fim = this.filtros.data_fim;
+    }
+    if (this.filtros.classificacao_id != null && this.filtros.classificacao_id !== undefined) {
+      filtrosLimpos.classificacao_id = this.filtros.classificacao_id;
+    }
+    if (this.filtros.cidade_id != null && this.filtros.cidade_id !== undefined) {
+      filtrosLimpos.cidade_id = this.filtros.cidade_id;
+    }
+    if (this.filtros.bairro && this.filtros.bairro.trim() !== '') {
+      filtrosLimpos.bairro = this.filtros.bairro.trim();
+    }
+
+    console.log('Filtros preparados para envio:', filtrosLimpos);
+    return filtrosLimpos;
+  }
+
   loadDados(): void {
     this.isLoading = true;
     this.semResultados = false;
     this.loadingStep = 1;
+    this.pontosCache = []; // Limpar cache
 
+    // Limpar mapa existente
     if (this.map) {
-      try { this.map.remove(); } catch (e) { /* ignore */ }
+      try {
+        this.map.remove();
+      } catch (e) { /* ignore */ }
       this.map = null;
+      this.heatLayer = null;
+      this.markersLayer = null;
     }
 
-    const estatisticas$ = this.analiseService.getEstatisticas(this.filtros);
-    const ocorrenciasGeo$ = this.analiseService.getOcorrenciasGeo(this.filtros);
+    const filtrosParaEnvio = this.prepararFiltros();
+    const estatisticas$ = this.analiseService.getEstatisticas(filtrosParaEnvio);
+    const ocorrenciasGeo$ = this.analiseService.getOcorrenciasGeo(filtrosParaEnvio);
 
     this.loadingStep = 2;
     forkJoin([estatisticas$, ocorrenciasGeo$]).subscribe({
       next: ([estatisticasData, ocorrenciasData]) => {
-        console.log("--- TESTE 1: DADOS DA API ---");
+        console.log("--- DADOS DA API ---");
         console.log(`Total de ocorrências GEO recebidas: ${ocorrenciasData.length}`);
-        console.log("Dados brutos recebidos:", ocorrenciasData);
-        console.log("-------------------------------");
+
+        if (ocorrenciasData.length > 0) {
+          console.log("Exemplo de ocorrência:", JSON.stringify(ocorrenciasData[0], null, 2));
+        }
 
         this.estatisticas = estatisticasData;
         this.ocorrenciasGeo = ocorrenciasData;
         this.loadingStep = 3;
         this.isLoading = false;
 
-        if (ocorrenciasData.length === 0) this.semResultados = true;
+        if (ocorrenciasData.length === 0) {
+          this.semResultados = true;
+        }
 
         this.waitForMapContainerAndInit();
       },
@@ -122,15 +171,11 @@ export class AnaliseCriminalComponent implements OnInit {
     requestAnimationFrame(() => this.waitForMapContainerAndInit(tries + 1));
   }
 
-  // Carrega leaflet e plugins dinamicamente em runtime (sem `import * as L`)
   private async ensureLeafletAndPlugins(): Promise<void> {
     if (!this.leafletLoaded) {
       try {
-        // Import Leaflet dinamicamente
         const leafletModule = await import('leaflet');
-        // alguns bundlers expõem no default, outros não -> normaliza
         const L = (leafletModule && (leafletModule.default ?? leafletModule)) as any;
-        // garante que window.L exista (plugins esperam global L)
         (window as any).L = L;
         this.leafletLoaded = true;
       } catch (err) {
@@ -141,21 +186,18 @@ export class AnaliseCriminalComponent implements OnInit {
 
     if (!this.leafletPluginsLoaded) {
       try {
-        // Imports dos plugins — eles executam side-effects e adicionam ao L
         await Promise.all([
           import('leaflet.markercluster'),
           import('leaflet.heat')
         ]);
         this.leafletPluginsLoaded = true;
       } catch (err) {
-        console.error('Falha ao carregar plugins leaflet.markercluster/leaflet.heat:', err);
-        // não throw para permitir fallback controlado; mas loga
+        console.error('Falha ao carregar plugins leaflet:', err);
         throw err;
       }
     }
   }
 
-  // Inicializa o mapa após garantir L + plugins
   private async initMap(): Promise<void> {
     if (this.map) return;
     await this.ensureLeafletAndPlugins();
@@ -165,25 +207,12 @@ export class AnaliseCriminalComponent implements OnInit {
       throw new Error('Leaflet (L) não está disponível após import dinâmico.');
     }
 
-    // Cria mapa
     this.map = L.map('map', { center: [2.8235, -60.6758], zoom: 13 });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors', maxZoom: 18,
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18,
     }).addTo(this.map);
-
-    // Cria marker cluster (ou LayerGroup como fallback)
-    if (typeof L.markerClusterGroup === 'function') {
-      this.markersLayer = L.markerClusterGroup({
-        spiderfyOnMaxZoom: true,
-        showCoverageOnHover: false,
-        zoomToBoundsOnClick: true,
-        chunkedLoading: true
-      });
-    } else {
-      console.warn('markerClusterGroup não disponível; usando LayerGroup como fallback.');
-      this.markersLayer = L.layerGroup();
-    }
   }
 
   atualizarMapa(): void {
@@ -192,120 +221,225 @@ export class AnaliseCriminalComponent implements OnInit {
       return;
     }
 
-    // ✅✅✅ LÓGICA DE LIMPEZA REFINADA ✅✅✅
-    // 1. Remove layers DO MAPA
-    if (this.heatLayer && this.map.hasLayer(this.heatLayer)) {
-      console.log("Removendo heatLayer do mapa.");
-      this.map.removeLayer(this.heatLayer);
-    }
-    if (this.map.hasLayer(this.markersLayer)) {
-      console.log("Removendo markersLayer do mapa.");
-      this.map.removeLayer(this.markersLayer);
-    }
-    // 2. Limpa os DADOS dos layers
-    this.markersLayer.clearLayers(); // Limpa dados do cluster
-    this.heatLayer = null; // Destroi a referência do heatmap
+    const L = (window as any).L;
 
-    console.log(`--- TESTE 2: DENTRO DO atualizarMapa ---`);
-    console.log(`this.ocorrenciasGeo (ANTES do filtro): ${this.ocorrenciasGeo.length} itens`);
+    // ✅ CORREÇÃO 1: Limpar layers de forma mais robusta
+    this.limparLayers();
 
-    const ocorrenciasFiltradas = this.ocorrenciasGeo.filter(o => o.endereco?.latitude && o.endereco?.longitude);
+    // Filtrar ocorrências com coordenadas válidas
+    const ocorrenciasFiltradas = this.ocorrenciasGeo.filter(o => {
+      const lat = o.endereco?.latitude;
+      const lng = o.endereco?.longitude;
+      const latValido = lat !== null && lat !== undefined && !isNaN(Number(lat)) && Number(lat) !== 0;
+      const lngValido = lng !== null && lng !== undefined && !isNaN(Number(lng)) && Number(lng) !== 0;
+      return latValido && lngValido;
+    });
 
-    console.log(`--- TESTE 3: O PONTO CRÍTICO ---`);
-    console.log(`Ocorrências (DEPOIS do filtro de lat/lng): ${ocorrenciasFiltradas.length} itens`);
+    console.log(`Ocorrências com coordenadas válidas: ${ocorrenciasFiltradas.length} de ${this.ocorrenciasGeo.length}`);
 
     if (ocorrenciasFiltradas.length === 0) {
+      console.warn('Nenhuma ocorrência com coordenadas válidas encontrada.');
       this.map.setView([2.8235, -60.6758], 13);
       return;
     }
 
-    const points = ocorrenciasFiltradas.map(o => {
-      const lat = Number(Number(o.endereco!.latitude).toFixed(4));
-      const lng = Number(Number(o.endereco!.longitude).toFixed(4));
-      return [lat, lng, 1]; // Intensidade 1 para heatmap
+    // ✅ CORREÇÃO 2: Guardar pontos no cache para reutilizar na alternância
+    this.pontosCache = ocorrenciasFiltradas.map(o => {
+      const lat = Number(o.endereco!.latitude);
+      const lng = Number(o.endereco!.longitude);
+      return [lat, lng, 1];
     });
 
+    console.log(`Pontos no cache: ${this.pontosCache.length}`);
+
+    // Renderizar conforme modo de visualização
     if (this.visualizacao === 'heatmap') {
-      const L = (window as any).L;
-      if (typeof L.heatLayer === 'function') {
-        this.heatLayer = L.heatLayer(points as any, { radius: 35, blur: 30, gradient: { 0.0: 'blue', 0.5: 'lime', 1.0: 'red' } })
-          .addTo(this.map);
-      } else {
-        console.warn('heatLayer não disponível; pulando heatmap.');
-      }
+      this.renderizarHeatmap();
     } else {
-      const L = (window as any).L;
-      // Garante markerCluster (re-tenta carregar se necessário)
-      if (typeof L.markerClusterGroup !== 'function' && !this.leafletPluginsLoaded) {
-        // Nota: Idealmente seria async, mas como esta função ficou void por causa do conflito,
-        // o import pode não bloquear a execução. Mantendo a lógica original do repo.
-      }
-
-      if (typeof L.markerClusterGroup === 'function') {
-        // Recria se foi destruído ou limpa
-        if (!this.markersLayer) {
-          this.markersLayer = L.markerClusterGroup({
-            spiderfyOnMaxZoom: true,
-            showCoverageOnHover: false,
-            zoomToBoundsOnClick: true,
-            chunkedLoading: true
-          });
-        }
-      } else {
-        if (!this.markersLayer) this.markersLayer = L.layerGroup();
-      }
-
-      const markersToAdd: any[] = [];
-      const icon = this.createLeafletIcon();
-
-      ocorrenciasFiltradas.forEach(o => {
-        const lat = Number(Number(o.endereco!.latitude).toFixed(4));
-        const lng = Number(Number(o.endereco!.longitude).toFixed(4));
-        const popupContent = this.createPopupContent(o);
-        const marker = L.marker([lat, lng], { icon: icon })
-          .bindPopup(popupContent);
-        markersToAdd.push(marker);
-      });
-
-      if (typeof this.markersLayer.addLayers === 'function') {
-        this.markersLayer.addLayers(markersToAdd);
-      } else {
-        // fallback: addLayer individual
-        markersToAdd.forEach(m => this.markersLayer.addLayer ? this.markersLayer.addLayer(m) : null);
-      }
-
-      this.map.addLayer(this.markersLayer);
+      this.renderizarMarcadores(ocorrenciasFiltradas);
     }
 
-    const isFiltered = this.filtros.cidade_id != null ||
-      this.filtros.classificacao_id != null ||
-      (this.filtros.data_inicio && this.filtros.data_inicio !== '') ||
-      (this.filtros.data_fim && this.filtros.data_fim !== '') ||
+    // ✅ CORREÇÃO 3: Ajustar visualização DEPOIS de adicionar os layers
+    setTimeout(() => {
+      this.ajustarVisualizacaoMapa();
+    }, 100);
+  }
+
+  /**
+   * ✅ NOVO: Método separado para limpar layers
+   */
+  private limparLayers(): void {
+    const L = (window as any).L;
+
+    // Remover heatLayer
+    if (this.heatLayer) {
+      try {
+        if (this.map.hasLayer(this.heatLayer)) {
+          this.map.removeLayer(this.heatLayer);
+        }
+      } catch (e) {
+        console.warn('Erro ao remover heatLayer:', e);
+      }
+      this.heatLayer = null;
+    }
+
+    // Remover markersLayer
+    if (this.markersLayer) {
+      try {
+        if (this.map.hasLayer(this.markersLayer)) {
+          this.map.removeLayer(this.markersLayer);
+        }
+        this.markersLayer.clearLayers();
+      } catch (e) {
+        console.warn('Erro ao remover markersLayer:', e);
+      }
+      this.markersLayer = null;
+    }
+  }
+
+  /**
+   * ✅ NOVO: Método separado para renderizar heatmap
+   */
+  private renderizarHeatmap(): void {
+    const L = (window as any).L;
+
+    if (typeof L.heatLayer !== 'function') {
+      console.error('L.heatLayer não está disponível!');
+      return;
+    }
+
+    if (this.pontosCache.length === 0) {
+      console.warn('Sem pontos para renderizar heatmap');
+      return;
+    }
+
+    // ✅ CONFIGURAÇÃO EQUILIBRADA DO HEATMAP
+    this.heatLayer = L.heatLayer(this.pontosCache, {
+      radius: 18,           // Raio base
+      blur: 12,             // Blur para suavizar
+      maxZoom: 14,          // ✅ Ajuste fino
+      max: 1.0,             // Intensidade máxima
+      minOpacity: 0.4,      // Opacidade mínima
+      gradient: {
+        0.0: 'blue',
+        0.3: 'cyan',
+        0.5: 'lime',
+        0.7: 'yellow',
+        0.85: 'orange',
+        1.0: 'red'
+      }
+    });
+
+    this.heatLayer.addTo(this.map);
+    console.log('✅ HeatLayer adicionado ao mapa com', this.pontosCache.length, 'pontos');
+  }
+
+  /**
+   * ✅ NOVO: Método separado para renderizar marcadores
+   */
+  private renderizarMarcadores(ocorrenciasFiltradas: OcorrenciaGeo[]): void {
+    const L = (window as any).L;
+
+    // Criar markersLayer
+    if (typeof L.markerClusterGroup === 'function') {
+      this.markersLayer = L.markerClusterGroup({
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        chunkedLoading: true,
+        maxClusterRadius: 50
+      });
+    } else {
+      this.markersLayer = L.layerGroup();
+    }
+
+    const icon = this.createLeafletIcon();
+    const markersToAdd: any[] = [];
+
+    ocorrenciasFiltradas.forEach(o => {
+      const lat = Number(o.endereco!.latitude);
+      const lng = Number(o.endereco!.longitude);
+      const popupContent = this.createPopupContent(o);
+      const marker = L.marker([lat, lng], { icon }).bindPopup(popupContent);
+      markersToAdd.push(marker);
+    });
+
+    if (typeof this.markersLayer.addLayers === 'function') {
+      this.markersLayer.addLayers(markersToAdd);
+    } else {
+      markersToAdd.forEach(m => this.markersLayer.addLayer(m));
+    }
+
+    this.map.addLayer(this.markersLayer);
+    console.log('✅ MarkersLayer adicionado ao mapa com', markersToAdd.length, 'marcadores');
+  }
+
+  /**
+   * ✅ CORREÇÃO: Ajustar bounds do mapa de forma robusta
+   */
+  private ajustarVisualizacaoMapa(): void {
+    const L = (window as any).L;
+
+    if (this.pontosCache.length === 0) {
+      this.map.setView([2.8235, -60.6758], 13);
+      return;
+    }
+
+    const temFiltroAtivo =
+      (this.filtros.cidade_id != null && this.filtros.cidade_id !== undefined) ||
+      (this.filtros.classificacao_id != null && this.filtros.classificacao_id !== undefined) ||
+      (this.filtros.data_inicio && this.filtros.data_inicio.trim() !== '') ||
+      (this.filtros.data_fim && this.filtros.data_fim.trim() !== '') ||
       (this.filtros.bairro && this.filtros.bairro.trim() !== '');
 
-    if (isFiltered) {
-      console.log("Filtro aplicado, aplicando fitBounds.");
-      const L = (window as any).L;
-      // Usa os 'points' arredondados para calcular os limites
-      const bounds = L.latLngBounds(points.map((p: any) => [p[0], p[1]]));
-      // Adiciona um pequeno buffer para garantir que todos os pontos sejam visíveis
-      const bufferedBounds = bounds.pad(0.1); // 10% de buffer
-      this.map.fitBounds(bufferedBounds, { padding: [50, 50] });
+    // ✅ CORREÇÃO: Sempre centralizar nos pontos quando há filtro OU poucos pontos
+    if (temFiltroAtivo || this.pontosCache.length <= 10) {
+      console.log("Ajustando bounds para os pontos filtrados...");
+
+      const latLngs = this.pontosCache.map((p: number[]) => L.latLng(p[0], p[1]));
+
+      if (latLngs.length === 1) {
+        // ✅ CORREÇÃO ESPECIAL: Para 1 único ponto, centralizar com zoom fixo
+        const ponto = latLngs[0];
+        console.log(`Único ponto encontrado: [${ponto.lat}, ${ponto.lng}]`);
+        this.map.setView([ponto.lat, ponto.lng], 14);
+      } else {
+        // Múltiplos pontos: usar fitBounds
+        const bounds = L.latLngBounds(latLngs);
+
+        // ✅ CORREÇÃO: Verificar se bounds é válido
+        if (bounds.isValid()) {
+          const bufferedBounds = bounds.pad(0.2); // 20% de margem
+          this.map.fitBounds(bufferedBounds, {
+            padding: [50, 50],
+            maxZoom: 15  // ✅ Limitar zoom máximo
+          });
+          console.log("fitBounds aplicado com sucesso");
+        } else {
+          console.warn("Bounds inválido, usando vista padrão");
+          this.map.setView([2.8235, -60.6758], 13);
+        }
+      }
     } else {
-      // Se não estiver filtrado, garante que o mapa esteja na visão inicial
       console.log("Nenhum filtro aplicado, centralizando na visão inicial.");
       this.map.setView([2.8235, -60.6758], 13);
     }
+
+    // ✅ CORREÇÃO: Forçar redesenho do mapa
+    setTimeout(() => {
+      this.map.invalidateSize();
+    }, 100);
   }
 
   private createLeafletIcon(): any {
     const L = (window as any).L;
-    // Usa ícones padrão do Leaflet via URL (CDN)
     return L.icon({
       iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
       iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
       shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
       shadowSize: [41, 41]
     });
   }
@@ -324,15 +458,53 @@ export class AnaliseCriminalComponent implements OnInit {
       </div>`;
   }
 
-  aplicarFiltros(): void { this.loadDados(); }
-
-  limparFiltros(): void {
-    this.filtros = { data_inicio: '', data_fim: '', classificacao_id: null, cidade_id: null, bairro: '' };
+  aplicarFiltros(): void {
+    console.log('Aplicando filtros:', this.filtros);
     this.loadDados();
   }
 
-  async alternarVisualizacao(): Promise<void> {
+  limparFiltros(): void {
+    this.filtros = {
+      data_inicio: '',
+      data_fim: '',
+      classificacao_id: undefined,
+      cidade_id: undefined,
+      bairro: ''
+    };
+    this.loadDados();
+  }
+
+  /**
+   * ✅ CORREÇÃO: Alternar visualização SEM recarregar dados
+   */
+  alternarVisualizacao(): void {
     this.visualizacao = this.visualizacao === 'heatmap' ? 'markers' : 'heatmap';
-    await this.atualizarMapa();
+    console.log(`Alternando para: ${this.visualizacao}`);
+
+    // ✅ Limpar layers atuais
+    this.limparLayers();
+
+    // ✅ Re-renderizar com os dados em cache
+    if (this.pontosCache.length > 0) {
+      if (this.visualizacao === 'heatmap') {
+        this.renderizarHeatmap();
+      } else {
+        // Para marcadores, precisamos das ocorrências filtradas
+        const ocorrenciasFiltradas = this.ocorrenciasGeo.filter(o => {
+          const lat = o.endereco?.latitude;
+          const lng = o.endereco?.longitude;
+          const latValido = lat !== null && lat !== undefined && !isNaN(Number(lat)) && Number(lat) !== 0;
+          const lngValido = lng !== null && lng !== undefined && !isNaN(Number(lng)) && Number(lng) !== 0;
+          return latValido && lngValido;
+        });
+        this.renderizarMarcadores(ocorrenciasFiltradas);
+      }
+
+      // Manter a mesma visualização (não resetar zoom)
+      // Apenas forçar redesenho
+      setTimeout(() => {
+        this.map.invalidateSize();
+      }, 100);
+    }
   }
 }

@@ -66,8 +66,12 @@
 
       <div class="form-group">
         <label>Classificação</label>
-        <select [(ngModel)]="filtros.classificacao_id" class="form-control-filtro">
-          <option [value]="null">Todas</option>
+        <!-- ✅ CORREÇÃO: Usar string vazia como valor padrão e converter no change -->
+        <select
+          [ngModel]="filtros.classificacao_id ?? ''"
+          (ngModelChange)="filtros.classificacao_id = $event === '' ? undefined : +$event"
+          class="form-control-filtro">
+          <option value="">Todas</option>
           @for (c of classificacoes; track c.id) {
             <option [value]="c.id">{{ c.codigo }} - {{ c.nome }}</option>
           }
@@ -76,8 +80,12 @@
 
       <div class="form-group">
         <label>Cidade</label>
-        <select [(ngModel)]="filtros.cidade_id" class="form-control-filtro">
-          <option [value]="null">Todas</option>
+        <!-- ✅ CORREÇÃO: Usar string vazia como valor padrão e converter no change -->
+        <select
+          [ngModel]="filtros.cidade_id ?? ''"
+          (ngModelChange)="filtros.cidade_id = $event === '' ? undefined : +$event"
+          class="form-control-filtro">
+          <option value="">Todas</option>
           @for (cidade of cidades; track cidade.id) {
             <option [value]="cidade.id">{{ cidade.nome }}</option>
           }
@@ -191,7 +199,6 @@
       </div>
 
       <div id="map" class="mapa"></div>
-
-      </div>
+    </div>
   }
 </div>
