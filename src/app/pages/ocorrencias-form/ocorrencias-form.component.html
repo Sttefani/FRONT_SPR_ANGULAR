@@ -1,5 +1,4 @@
 <div class="container">
-  <!-- ========== HEADER ========== -->
   <div class="header-form">
     <div>
       <h1>{{ isEditMode ? 'Editar Ocorrência' : 'Nova Ocorrência' }}</h1>
@@ -13,7 +12,6 @@
     </button>
   </div>
 
-  <!-- ========== ETAPA 1: TEM PROCEDIMENTO? ========== -->
   @if (etapaAtual === 'procedimento-check' && !isEditMode) {
     <div class="wizard-step">
       <div class="question-card">
@@ -39,7 +37,6 @@
     </div>
   }
 
-  <!-- ========== ETAPA 2: BUSCAR PROCEDIMENTO ========== -->
   @if (etapaAtual === 'busca-procedimento') {
     <div class="wizard-step">
       <div class="search-card">
@@ -122,10 +119,8 @@
     </div>
   }
 
-  <!-- ========== ETAPA 3: FORMULÁRIO PRINCIPAL ========== -->
   @if (etapaAtual === 'formulario') {
 
-    <!-- Loading -->
     @if (isLoading) {
       <div class="loading">
         <i class="bi bi-hourglass-split"></i>
@@ -133,11 +128,9 @@
       </div>
     }
 
-    <!-- Formulário -->
     @if (!isLoading) {
       <form [formGroup]="ocorrenciaForm" (ngSubmit)="onSubmit()">
 
-        <!-- Banner de Procedimento Vinculado -->
         @if (procedimentoVinculado) {
           <div class="info-banner">
             <i class="bi bi-link-45deg"></i>
@@ -155,7 +148,6 @@
           </div>
         }
 
-        <!-- ========== SEÇÃO: IDENTIFICAÇÃO ========== -->
         <div class="form-section">
           <div class="section-header" (click)="toggleSecao('identificacao')">
             <div>
@@ -167,7 +159,6 @@
 
           @if (secoesAbertas.identificacao) {
             <div class="section-content">
-              <!-- Linha 1: Serviço e Unidade -->
               <div class="form-row">
                 <div class="form-group required">
                   <label>Serviço Pericial</label>
@@ -198,7 +189,6 @@
                 </div>
               </div>
 
-              <!-- Linha 2: Cargo e Autoridade -->
               <div class="form-row">
                 <div class="form-group required">
                   <label>Cargo</label>
@@ -246,7 +236,6 @@
                 </div>
               </div>
 
-              <!-- Linha 3: Classificação -->
               <div class="form-row">
                 <div class="form-group required">
                   <label>Classificação</label>
@@ -268,7 +257,6 @@
           }
         </div>
 
-        <!-- ========== SEÇÃO: LOCAL E DATA DO FATO ========== -->
         <div class="form-section">
           <div class="section-header" (click)="toggleSecao('local')">
             <div>
@@ -320,312 +308,142 @@
           }
         </div>
 
-  <!-- ========== SEÇÃO: TIPO DE OCORRÊNCIA E ENDEREÇO ========== -->
-<div class="form-section">
-  <div class="section-header" (click)="toggleSecao('endereco')">
-    <div>
-      <i class="bi bi-pin-map"></i>
-      <h3>Tipo de Ocorrência e Endereço</h3>
-    </div>
-    <i class="bi" [ngClass]="secoesAbertas.endereco ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
-  </div>
-
-  @if (secoesAbertas.endereco) {
-    <div class="section-content">
-
-      <!-- ========== TIPO DE OCORRÊNCIA ========== -->
-      <div class="form-group required">
-        <label>Tipo de Ocorrência</label>
-        <div class="tipo-ocorrencia-toggle">
-          <label class="radio-option">
-            <input
-              type="radio"
-              name="tipo_ocorrencia"
-              [(ngModel)]="form.endereco.tipo"
-              [ngModelOptions]="{standalone: true}"
-              value="INTERNA"
-              (change)="onTipoOcorrenciaChange()">
-            <span class="radio-label">
-              <i class="bi bi-building"></i> Interna (Laboratório)
-            </span>
-          </label>
-
-          <label class="radio-option">
-            <input
-              type="radio"
-              name="tipo_ocorrencia"
-              [(ngModel)]="form.endereco.tipo"
-              [ngModelOptions]="{standalone: true}"
-              value="EXTERNA"
-              (change)="onTipoOcorrenciaChange()">
-            <span class="radio-label">
-              <i class="bi bi-geo-alt-fill"></i> Externa (Cena de Crime)
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <!-- ========== SEÇÃO DE ENDEREÇO (SÓ APARECE SE EXTERNA) ========== -->
-      @if (form.endereco.tipo === 'EXTERNA') {
-        <div class="endereco-section">
-          <div class="section-divider"></div>
-
-          <h5 class="section-subtitle">
-            <i class="bi bi-geo-alt"></i> Localização da Ocorrência
-          </h5>
-
-          <!-- NOVO: TOGGLE DE MODO DE ENTRADA -->
-          <div class="modo-entrada-container">
-            <label class="label-destaque">Como deseja informar a localização? *</label>
-            <div class="modo-entrada-toggle">
-              <label class="modo-option" [class.active]="form.endereco.modo_entrada === 'ENDERECO_CONVENCIONAL'">
-                <input
-                  type="radio"
-                  name="modo_entrada"
-                  [(ngModel)]="form.endereco.modo_entrada"
-                  [ngModelOptions]="{standalone: true}"
-                  value="ENDERECO_CONVENCIONAL"
-                  (change)="onModoEntradaChange()">
-                <div class="modo-content">
-                  <i class="bi bi-house-door"></i>
-                  <span>Endereço Convencional</span>
-                  <small>Rua, número, bairro...</small>
-                </div>
-              </label>
-
-              <label class="modo-option" [class.active]="form.endereco.modo_entrada === 'COORDENADAS_DIRETAS'">
-                <input
-                  type="radio"
-                  name="modo_entrada"
-                  [(ngModel)]="form.endereco.modo_entrada"
-                  [ngModelOptions]="{standalone: true}"
-                  value="COORDENADAS_DIRETAS"
-                  (change)="onModoEntradaChange()">
-                <div class="modo-content">
-                  <i class="bi bi-pin-map-fill"></i>
-                  <span>Coordenadas GPS</span>
-                  <small>Latitude e Longitude</small>
-                </div>
-              </label>
+        <div class="form-section">
+          <div class="section-header" (click)="toggleSecao('endereco')">
+            <div>
+              <i class="bi bi-pin-map"></i>
+              <h3>Tipo de Ocorrência e Endereço</h3>
             </div>
+            <i class="bi" [ngClass]="secoesAbertas.endereco ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
           </div>
 
-          <!-- MODO: ENDEREÇO CONVENCIONAL -->
-          @if (form.endereco.modo_entrada === 'ENDERECO_CONVENCIONAL') {
-            <div class="form-row">
-              <div class="form-group required" style="grid-column: span 2;">
-                <label>Logradouro</label>
-                <input
-                  type="text"
-                  [(ngModel)]="form.endereco.logradouro"
-                  [ngModelOptions]="{standalone: true}"
-                  class="form-control"
-                  placeholder="Ex: Rua das Flores, Av. Brasil..."
-                  required>
-              </div>
+          @if (secoesAbertas.endereco) {
+            <div class="section-content">
 
               <div class="form-group required">
-                <label>Número</label>
-                <input
-                  type="text"
-                  [(ngModel)]="form.endereco.numero"
-                  [ngModelOptions]="{standalone: true}"
-                  class="form-control"
-                  placeholder="Ex: 123, S/N..."
-                  required>
-              </div>
+                <label>Tipo de Ocorrência</label>
+                <div class="tipo-ocorrencia-toggle">
+                  <label class="radio-option">
+                    <input
+                      type="radio"
+                      name="tipo_ocorrencia"
+                      [(ngModel)]="form.endereco.tipo"
+                      [ngModelOptions]="{standalone: true}"
+                      value="INTERNA"
+                      (change)="onTipoOcorrenciaChange()">
+                    <span class="radio-label">
+                      <i class="bi bi-building"></i> Interna (Laboratório)
+                    </span>
+                  </label>
 
-              <div class="form-group">
-                <label>Complemento</label>
-                <input
-                  type="text"
-                  [(ngModel)]="form.endereco.complemento"
-                  [ngModelOptions]="{standalone: true}"
-                  class="form-control"
-                  placeholder="Ex: Apto 101, Bloco B...">
-              </div>
-            </div>
-
-            <div class="form-row">
-              <!-- ========== BAIRRO AGORA É DROPDOWN ========== -->
-              <div class="form-group required" style="grid-column: span 2;">
-                <label>Bairro</label>
-                <select
-                  [(ngModel)]="form.endereco.bairro_id"
-                  [ngModelOptions]="{standalone: true}"
-                  class="form-control"
-                  [disabled]="loadingBairros || !cidadeSelecionadaId"
-                  required>
-                  <option value="">{{ loadingBairros ? 'Carregando...' : (cidadeSelecionadaId ? 'Selecione o bairro' : 'Selecione a cidade primeiro') }}</option>
-                  @for (bairro of bairrosDisponiveis; track bairro.id) {
-                    <option [value]="bairro.id">{{ bairro.nome }}</option>
-                  }
-                </select>
-                <small class="form-hint">
-                  <i class="bi bi-info-circle"></i>
-                  Bairro não encontrado?
-                  <a href="javascript:void(0)" (click)="abrirModalNovoBairro()">Cadastrar novo bairro</a>
-                </small>
-              </div>
-
-              <div class="form-group">
-                <label>CEP</label>
-                <input
-                  type="text"
-                  [(ngModel)]="form.endereco.cep"
-                  [ngModelOptions]="{standalone: true}"
-                  class="form-control"
-                  placeholder="00000-000"
-                  maxlength="9">
-              </div>
-            </div>
-
-            <!-- Coordenadas Opcionais (modo endereço) -->
-            <div class="coordenadas-opcionais-box">
-              <div class="box-header">
-                <i class="bi bi-geo-alt"></i>
-                <strong>Coordenadas Opcionais</strong>
-                <span class="badge-opcional">Opcional</span>
-              </div>
-              <p class="hint-text">
-                <i class="bi bi-info-circle"></i>
-                Se não informar, o sistema tentará localizar automaticamente pelo endereço.
-                Caso queira maior precisão, informe as coordenadas exatas.
-              </p>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Latitude</label>
-                  <input
-                    type="text"
-                    [(ngModel)]="form.endereco.latitude"
-                    [ngModelOptions]="{standalone: true}"
-                    (input)="onCoordenadasManuaisChange()"
-                    class="form-control"
-                    placeholder="Ex: 2.823500">
-                  <small class="form-hint">
-                    <i class="bi bi-compass"></i> Roraima: 0 a 5.5 (Norte)
-                  </small>
-                </div>
-
-                <div class="form-group">
-                  <label>Longitude</label>
-                  <input
-                    type="text"
-                    [(ngModel)]="form.endereco.longitude"
-                    [ngModelOptions]="{standalone: true}"
-                    (input)="onCoordenadasManuaisChange()"
-                    class="form-control"
-                    placeholder="Ex: -60.675800">
-                  <small class="form-hint">
-                    <i class="bi bi-compass"></i> Roraima: -59 a -64 (Oeste)
-                  </small>
+                  <label class="radio-option">
+                    <input
+                      type="radio"
+                      name="tipo_ocorrencia"
+                      [(ngModel)]="form.endereco.tipo"
+                      [ngModelOptions]="{standalone: true}"
+                      value="EXTERNA"
+                      (change)="onTipoOcorrenciaChange()">
+                    <span class="radio-label">
+                      <i class="bi bi-geo-alt-fill"></i> Externa (Cena de Crime)
+                    </span>
+                  </label>
                 </div>
               </div>
 
-              @if (form.endereco.coordenadas_manuais && form.endereco.latitude && form.endereco.longitude) {
-                <div class="alert-coordenadas-manuais">
-                  <i class="bi bi-shield-check"></i>
-                  Coordenadas inseridas manualmente (não serão alteradas pelo sistema)
-                </div>
-              }
-            </div>
-          }
+              @if (form.endereco.tipo === 'EXTERNA') {
+                <div class="endereco-section">
+                  <div class="section-divider"></div>
 
-          <!-- MODO: COORDENADAS GPS DIRETAS -->
-          @if (form.endereco.modo_entrada === 'COORDENADAS_DIRETAS') {
-            <div class="coordenadas-gps-box">
-              <div class="box-header-gps">
-                <i class="bi bi-pin-map-fill"></i>
-                <strong>Coordenadas GPS Precisas</strong>
-                <span class="badge-obrigatorio">Obrigatório</span>
-              </div>
+                  <h5 class="section-subtitle">
+                    <i class="bi bi-geo-alt"></i> Localização da Ocorrência
+                  </h5>
 
-              <p class="hint-text-gps">
-                <i class="bi bi-info-circle-fill"></i>
-                Use este modo quando tiver as coordenadas exatas do local (GPS, aplicativo, etc.).
-                Os campos de endereço ficam opcionais.
-              </p>
+                  <div class="modo-entrada-container">
+                    <label class="label-destaque">Como deseja informar a localização? *</label>
+                    <div class="modo-entrada-toggle">
+                      <label class="modo-option" [class.active]="form.endereco.modo_entrada === 'ENDERECO_CONVENCIONAL'">
+                        <input
+                          type="radio"
+                          name="modo_entrada"
+                          [(ngModel)]="form.endereco.modo_entrada"
+                          [ngModelOptions]="{standalone: true}"
+                          value="ENDERECO_CONVENCIONAL"
+                          (change)="onModoEntradaChange()">
+                        <div class="modo-content">
+                          <i class="bi bi-house-door"></i>
+                          <span>Endereço Convencional</span>
+                          <small>Rua, número, bairro...</small>
+                        </div>
+                      </label>
 
-              <div class="form-row">
-                <div class="form-group required">
-                  <label>Latitude *</label>
-                  <input
-                    type="text"
-                    [(ngModel)]="form.endereco.latitude"
-                    [ngModelOptions]="{standalone: true}"
-                    class="form-control form-control-destaque"
-                    placeholder="Ex: 2.823500"
-                    required>
-                  <small class="form-hint-gps">
-                    <i class="bi bi-compass"></i> Roraima: 0 a 5.5 (Norte do Equador)
-                  </small>
-                </div>
+                      <label class="modo-option" [class.active]="form.endereco.modo_entrada === 'COORDENADAS_DIRETAS'">
+                        <input
+                          type="radio"
+                          name="modo_entrada"
+                          [(ngModel)]="form.endereco.modo_entrada"
+                          [ngModelOptions]="{standalone: true}"
+                          value="COORDENADAS_DIRETAS"
+                          (change)="onModoEntradaChange()">
+                        <div class="modo-content">
+                          <i class="bi bi-pin-map-fill"></i>
+                          <span>Coordenadas GPS</span>
+                          <small>Latitude e Longitude</small>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
 
-                <div class="form-group required">
-                  <label>Longitude *</label>
-                  <input
-                    type="text"
-                    [(ngModel)]="form.endereco.longitude"
-                    [ngModelOptions]="{standalone: true}"
-                    class="form-control form-control-destaque"
-                    placeholder="Ex: -60.675800"
-                    required>
-                  <small class="form-hint-gps">
-                    <i class="bi bi-compass"></i> Roraima: -59 a -64 (Oeste de Greenwich)
-                  </small>
-                </div>
-              </div>
-
-              <!-- Endereço opcional no modo GPS -->
-              <div class="endereco-opcional-collapsible">
-                <button
-                  type="button"
-                  class="btn-toggle-endereco"
-                  (click)="mostrarEnderecoOpcional = !mostrarEnderecoOpcional">
-                  <i class="bi" [ngClass]="mostrarEnderecoOpcional ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
-                  Informar endereço (opcional)
-                </button>
-
-                @if (mostrarEnderecoOpcional) {
-                  <div class="endereco-opcional-content">
+                  @if (form.endereco.modo_entrada === 'ENDERECO_CONVENCIONAL') {
                     <div class="form-row">
-                      <div class="form-group" style="grid-column: span 2;">
+                      <div class="form-group required" style="grid-column: span 2;">
                         <label>Logradouro</label>
                         <input
                           type="text"
                           [(ngModel)]="form.endereco.logradouro"
                           [ngModelOptions]="{standalone: true}"
                           class="form-control"
-                          placeholder="Ex: Rua das Flores...">
+                          placeholder="Ex: Rua das Flores, Av. Brasil..."
+                          required>
                       </div>
 
-                      <div class="form-group">
+                      <div class="form-group required">
                         <label>Número</label>
                         <input
                           type="text"
                           [(ngModel)]="form.endereco.numero"
                           [ngModelOptions]="{standalone: true}"
                           class="form-control"
-                          placeholder="Ex: 123, S/N...">
+                          placeholder="Ex: 123, S/N..."
+                          required>
+                      </div>
+
+                      <div class="form-group">
+                        <label>Complemento</label>
+                        <input
+                          type="text"
+                          [(ngModel)]="form.endereco.complemento"
+                          [ngModelOptions]="{standalone: true}"
+                          class="form-control"
+                          placeholder="Ex: Apto 101, Bloco B...">
                       </div>
                     </div>
 
                     <div class="form-row">
-                      <!-- ========== BAIRRO AGORA É DROPDOWN (modo GPS) ========== -->
-                      <div class="form-group">
+                      <div class="form-group required" style="grid-column: span 2;">
                         <label>Bairro</label>
                         <select
                           [(ngModel)]="form.endereco.bairro_id"
                           [ngModelOptions]="{standalone: true}"
                           class="form-control"
-                          [disabled]="loadingBairros || !cidadeSelecionadaId">
-                          <option value="">{{ loadingBairros ? 'Carregando...' : (cidadeSelecionadaId ? 'Selecione' : 'Selecione a cidade primeiro') }}</option>
+                          [disabled]="loadingBairros || !cidadeSelecionadaId"
+                          required>
+                          <option value="">{{ loadingBairros ? 'Carregando...' : (cidadeSelecionadaId ? 'Selecione o bairro' : 'Selecione a cidade primeiro') }}</option>
                           @for (bairro of bairrosDisponiveis; track bairro.id) {
                             <option [value]="bairro.id">{{ bairro.nome }}</option>
                           }
                         </select>
-                      </div>
+                        </div>
 
                       <div class="form-group">
                         <label>CEP</label>
@@ -638,34 +456,188 @@
                           maxlength="9">
                       </div>
                     </div>
+
+                    <div class="coordenadas-opcionais-box">
+                      <div class="box-header">
+                        <i class="bi bi-geo-alt"></i>
+                        <strong>Coordenadas Opcionais</strong>
+                        <span class="badge-opcional">Opcional</span>
+                      </div>
+                      <p class="hint-text">
+                        <i class="bi bi-info-circle"></i>
+                        Se não informar, o sistema tentará localizar automaticamente pelo endereço.
+                        Caso queira maior precisão, informe as coordenadas exatas.
+                      </p>
+
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label>Latitude</label>
+                          <input
+                            type="text"
+                            [(ngModel)]="form.endereco.latitude"
+                            [ngModelOptions]="{standalone: true}"
+                            (input)="onCoordenadasManuaisChange()"
+                            class="form-control"
+                            placeholder="Ex: 2.823500">
+                          <small class="form-hint">
+                            <i class="bi bi-compass"></i> Roraima: 0 a 5.5 (Norte)
+                          </small>
+                        </div>
+
+                        <div class="form-group">
+                          <label>Longitude</label>
+                          <input
+                            type="text"
+                            [(ngModel)]="form.endereco.longitude"
+                            [ngModelOptions]="{standalone: true}"
+                            (input)="onCoordenadasManuaisChange()"
+                            class="form-control"
+                            placeholder="Ex: -60.675800">
+                          <small class="form-hint">
+                            <i class="bi bi-compass"></i> Roraima: -59 a -64 (Oeste)
+                          </small>
+                        </div>
+                      </div>
+
+                      @if (form.endereco.coordenadas_manuais && form.endereco.latitude && form.endereco.longitude) {
+                        <div class="alert-coordenadas-manuais">
+                          <i class="bi bi-shield-check"></i>
+                          Coordenadas inseridas manualmente (não serão alteradas pelo sistema)
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  @if (form.endereco.modo_entrada === 'COORDENADAS_DIRETAS') {
+                    <div class="coordenadas-gps-box">
+                      <div class="box-header-gps">
+                        <i class="bi bi-pin-map-fill"></i>
+                        <strong>Coordenadas GPS Precisas</strong>
+                        <span class="badge-obrigatorio">Obrigatório</span>
+                      </div>
+
+                      <p class="hint-text-gps">
+                        <i class="bi bi-info-circle-fill"></i>
+                        Use este modo quando tiver as coordenadas exatas do local (GPS, aplicativo, etc.).
+                        Os campos de endereço ficam opcionais.
+                      </p>
+
+                      <div class="form-row">
+                        <div class="form-group required">
+                          <label>Latitude *</label>
+                          <input
+                            type="text"
+                            [(ngModel)]="form.endereco.latitude"
+                            [ngModelOptions]="{standalone: true}"
+                            class="form-control form-control-destaque"
+                            placeholder="Ex: 2.823500"
+                            required>
+                          <small class="form-hint-gps">
+                            <i class="bi bi-compass"></i> Roraima: 0 a 5.5 (Norte do Equador)
+                          </small>
+                        </div>
+
+                        <div class="form-group required">
+                          <label>Longitude *</label>
+                          <input
+                            type="text"
+                            [(ngModel)]="form.endereco.longitude"
+                            [ngModelOptions]="{standalone: true}"
+                            class="form-control form-control-destaque"
+                            placeholder="Ex: -60.675800"
+                            required>
+                          <small class="form-hint-gps">
+                            <i class="bi bi-compass"></i> Roraima: -59 a -64 (Oeste de Greenwich)
+                          </small>
+                        </div>
+                      </div>
+
+                      <div class="endereco-opcional-collapsible">
+                        <button
+                          type="button"
+                          class="btn-toggle-endereco"
+                          (click)="mostrarEnderecoOpcional = !mostrarEnderecoOpcional">
+                          <i class="bi" [ngClass]="mostrarEnderecoOpcional ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                          Informar endereço (opcional)
+                        </button>
+
+                        @if (mostrarEnderecoOpcional) {
+                          <div class="endereco-opcional-content">
+                            <div class="form-row">
+                              <div class="form-group" style="grid-column: span 2;">
+                                <label>Logradouro</label>
+                                <input
+                                  type="text"
+                                  [(ngModel)]="form.endereco.logradouro"
+                                  [ngModelOptions]="{standalone: true}"
+                                  class="form-control"
+                                  placeholder="Ex: Rua das Flores...">
+                              </div>
+
+                              <div class="form-group">
+                                <label>Número</label>
+                                <input
+                                  type="text"
+                                  [(ngModel)]="form.endereco.numero"
+                                  [ngModelOptions]="{standalone: true}"
+                                  class="form-control"
+                                  placeholder="Ex: 123, S/N...">
+                              </div>
+                            </div>
+
+                            <div class="form-row">
+                              <div class="form-group">
+                                <label>Bairro</label>
+                                <select
+                                  [(ngModel)]="form.endereco.bairro_id"
+                                  [ngModelOptions]="{standalone: true}"
+                                  class="form-control"
+                                  [disabled]="loadingBairros || !cidadeSelecionadaId">
+                                  <option value="">{{ loadingBairros ? 'Carregando...' : (cidadeSelecionadaId ? 'Selecione' : 'Selecione a cidade primeiro') }}</option>
+                                  @for (bairro of bairrosDisponiveis; track bairro.id) {
+                                    <option [value]="bairro.id">{{ bairro.nome }}</option>
+                                  }
+                                </select>
+                              </div>
+
+                              <div class="form-group">
+                                <label>CEP</label>
+                                <input
+                                  type="text"
+                                  [(ngModel)]="form.endereco.cep"
+                                  [ngModelOptions]="{standalone: true}"
+                                  class="form-control"
+                                  placeholder="00000-000"
+                                  maxlength="9">
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <div class="form-row">
+                    <div class="form-group" style="grid-column: span 4;">
+                      <label>Ponto de Referência</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="form.endereco.ponto_referencia"
+                        [ngModelOptions]="{standalone: true}"
+                        class="form-control"
+                        placeholder="Ex: Próximo ao hospital, em frente à escola...">
+                      <small class="form-hint">
+                        <i class="bi bi-signpost"></i> Informe um local conhecido para facilitar a localização
+                      </small>
+                    </div>
                   </div>
-                }
-              </div>
+
+                </div>
+              }
             </div>
           }
-
-          <!-- PONTO DE REFERÊNCIA (COMUM PARA AMBOS OS MODOS) -->
-          <div class="form-row">
-            <div class="form-group" style="grid-column: span 4;">
-              <label>Ponto de Referência</label>
-              <input
-                type="text"
-                [(ngModel)]="form.endereco.ponto_referencia"
-                [ngModelOptions]="{standalone: true}"
-                class="form-control"
-                placeholder="Ex: Próximo ao hospital, em frente à escola...">
-              <small class="form-hint">
-                <i class="bi bi-signpost"></i> Informe um local conhecido para facilitar a localização
-              </small>
-            </div>
-          </div>
-
         </div>
-      }
-    </div>
-  }
-</div>
-        <!-- ========== SEÇÃO: DOCUMENTAÇÃO ========== -->
+
         <div class="form-section">
           <div class="section-header" (click)="toggleSecao('documentacao')">
             <div>
@@ -723,7 +695,6 @@
           }
         </div>
 
-        <!-- ========== SEÇÃO: ATRIBUIÇÃO DE PERITO ========== -->
         <div class="form-section">
           <div class="section-header" (click)="toggleSecao('atribuicao')">
             <div>
@@ -751,7 +722,6 @@
           }
         </div>
 
-        <!-- ========== SEÇÃO: EXAMES (CORRIGIDA) ========== -->
         <div class="form-section">
           <div class="section-header" (click)="toggleSecao('exames')">
             <div>
@@ -774,7 +744,6 @@
                     <div class="exame-tag">
                       <span>
                         <strong>{{ exame.codigo }}</strong> - {{ exame.nome }}
-                        <!-- ✅ CORREÇÃO: Mostra a quantidade se for maior que 1 -->
                         @if (exame.quantidade && exame.quantidade > 1) {
                           <span class="badge-quantidade">(Qtd: {{ exame.quantidade }})</span>
                         }
@@ -786,7 +755,6 @@
                   }
                 </div>
 
-                <!-- ✅ NOVO: Resumo total de exames -->
                 <div class="exames-resumo">
                   <small>
                     <i class="bi bi-info-circle"></i>
@@ -802,7 +770,6 @@
           }
         </div>
 
-        <!-- ========== SEÇÃO: OBSERVAÇÕES ========== -->
         <div class="form-section">
           <div class="section-header" (click)="toggleSecao('observacoes')">
             <div>
@@ -829,7 +796,6 @@
           }
         </div>
 
-        <!-- ========== BOTÕES DE AÇÃO ========== -->
         <div class="form-actions">
           <button type="button" class="btn-cancel-form" (click)="cancelar()">
             Cancelar
@@ -852,7 +818,6 @@
     }
   }
 
-  <!-- ========== MODAL DE SELEÇÃO DE EXAMES ========== -->
   <app-exame-selector-modal
     [isOpen]="modalExamesAberto"
     [examesDisponiveis]="examesDisponiveis"
