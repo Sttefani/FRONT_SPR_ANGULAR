@@ -1,0 +1,319 @@
+<div class="dashboard-container">
+
+  @if (isLoading) {
+    <div class="loading-overlay">
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <h3>Carregando Dados</h3>
+        <p>Processando estatísticas criminais em tempo real...</p>
+      </div>
+    </div>
+  }
+
+  <div class="dashboard-header">
+    <div class="header-info">
+      <a routerLink="/gabinete-virtual/operacional/analise-criminal" class="btn-voltar">
+        <i class="bi bi-arrow-left"></i>
+        Retornar ao Mapa Tático
+      </a>
+      <h1><i class="bi bi-graph-up-arrow"></i> Painel de Inteligência Criminal</h1>
+      <p class="subtitle">Análise Estatística e Operacional de Ocorrências</p>
+    </div>
+  </div>
+
+  <div class="card filtros-card">
+    <div class="filtros-row">
+      <div class="filtro-label">
+        <i class="bi bi-funnel-fill"></i>
+        Parâmetros:
+      </div>
+
+      <input
+        type="date"
+        [(ngModel)]="filtros.data_inicio"
+        class="filtro-input"
+        title="Data Inicial">
+
+      <input
+        type="date"
+        [(ngModel)]="filtros.data_fim"
+        class="filtro-input"
+        title="Data Final">
+
+      <select
+        [ngModel]="filtros.cidade_id ?? ''"
+        (ngModelChange)="filtros.cidade_id = $event === '' ? undefined : +$event"
+        class="filtro-select">
+        <option value="">Todas as Cidades</option>
+        @for (cidade of cidades; track cidade.id) {
+          <option [value]="cidade.id">{{ cidade.nome }}</option>
+        }
+      </select>
+
+      <select
+        [ngModel]="filtros.classificacao_id ?? ''"
+        (ngModelChange)="filtros.classificacao_id = $event === '' ? undefined : +$event"
+        class="filtro-select">
+        <option value="">Todas as Classificações</option>
+        @for (c of classificacoes; track c.id) {
+          <option [value]="c.id">{{ c.codigo }} - {{ c.nome }}</option>
+        }
+      </select>
+
+      <div class="actions-group">
+        <button class="btn-filtrar" (click)="aplicarFiltros()" title="Aplicar Filtros">
+          <i class="bi bi-search"></i>
+          Filtrar
+        </button>
+
+        <button class="btn-limpar" (click)="limparFiltros()" title="Limpar Filtros">
+          <i class="bi bi-eraser"></i>
+        </button>
+
+        <button class="btn-print" (click)="exportarPDF()" title="Exportar PDF">
+          <i class="bi bi-file-earmark-pdf"></i>
+          PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (!isLoading && dashboard) {
+
+    <!-- RESUMO GERAL -->
+    <div class="stats-cards resumo-cards">
+      <div class="stat-card total">
+        <div class="stat-icon"><i class="bi bi-layers-fill"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Total de Ocorrências</span>
+          <span class="stat-value">{{ dashboard.resumo.total_ocorrencias }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card info">
+        <div class="stat-icon"><i class="bi bi-building-fill"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Cidades Atendidas</span>
+          <span class="stat-value">{{ dashboard.resumo.total_cidades }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card secondary">
+        <div class="stat-icon"><i class="bi bi-folder-fill"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Categorias com Registros</span>
+          <span class="stat-value">{{ dashboard.resumo.total_categorias }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDS DINÂMICOS POR CATEGORIA (PAIs) -->
+    <div class="section-header">
+      <h2><i class="bi bi-grid-3x3-gap-fill"></i> Ocorrências por Categoria</h2>
+      <p class="section-subtitle">Clique em um card para ver o detalhamento (filhas)</p>
+    </div>
+
+    <div class="stats-cards categorias-cards">
+      @for (card of dashboard.cards; track card.id; let i = $index) {
+        <div
+          class="stat-card {{ getCorCard(i) }} card-clicavel"
+          [class.card-expandido]="isExpandido(card.id)"
+          (click)="toggleExpandir(card.id)">
+
+          <div class="stat-icon">
+            <i class="bi {{ getIconeCard(card.nome) }}"></i>
+          </div>
+
+          <div class="stat-info">
+            <span class="stat-label" title="{{ card.nome }}">{{ card.nome }}</span>
+            <span class="stat-value">{{ card.quantidade }}</span>
+            <span class="stat-percentual">{{ card.percentual }}% do total</span>
+          </div>
+
+          <div class="stat-expand-icon">
+            <i class="bi" [class.bi-chevron-down]="!isExpandido(card.id)" [class.bi-chevron-up]="isExpandido(card.id)"></i>
+          </div>
+
+          <!-- DRILL-DOWN: Filhas da categoria -->
+          @if (isExpandido(card.id) && card.filhas && card.filhas.length > 0) {
+            <div class="filhas-container" (click)="$event.stopPropagation()">
+              <div class="filhas-header">
+                <strong>Detalhamento - {{ card.nome }}</strong>
+              </div>
+              <ul class="filhas-lista">
+                @for (filha of card.filhas; track filha.id) {
+                  <li class="filha-item">
+                    <span class="filha-codigo">{{ filha.codigo }}</span>
+                    <span class="filha-nome" title="{{ filha.nome }}">{{ filha.nome }}</span>
+                    <span class="filha-quantidade">{{ filha.quantidade }}</span>
+                    <span class="filha-percentual">({{ filha.percentual }}%)</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="charts-row">
+      <div class="card chart-card chart-large">
+        <div class="card-header">
+          <h3><i class="bi bi-graph-up"></i> Evolução Temporal</h3>
+          <span class="header-subtitle">Tendência mensal</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartLinha"></canvas>
+        </div>
+      </div>
+
+      <div class="card chart-card chart-small">
+        <div class="card-header">
+          <h3><i class="bi bi-pie-chart-fill"></i> Top Naturezas</h3>
+        </div>
+        <div class="chart-container-donut">
+          <canvas id="chartDonut"></canvas>
+        </div>
+        <div class="legend-list">
+          @if (dashboard.graficos.por_classificacao) {
+            @for (item of dashboard.graficos.por_classificacao.slice(0, 5); track item.codigo; let i = $index) {
+              <div class="legend-item">
+                <span class="legend-color" [style.background]="['#ef4444', '#f97316', '#eab308', '#8b5cf6', '#6b7280'][i]"></span>
+                <span class="legend-label" title="{{ item.nome }}">{{ item.nome }}</span>
+                <span class="legend-value">{{ item.quantidade }}</span>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="card chart-card chart-half">
+        <div class="card-header">
+          <h3><i class="bi bi-geo-alt-fill"></i> Top 5 Bairros</h3>
+          <span class="header-subtitle">Maior incidência</span>
+        </div>
+        <div class="chart-container-bar">
+          <canvas id="chartBarrasBairros"></canvas>
+        </div>
+      </div>
+
+      <div class="card chart-card chart-half">
+        <div class="card-header">
+          <h3><i class="bi bi-building-fill"></i> Top 5 Cidades</h3>
+          <span class="header-subtitle">Volume por cidade</span>
+        </div>
+        <div class="chart-container-bar">
+          <canvas id="chartBarrasCidades"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATRIZ DIA x TURNO -->
+    <div class="card matriz-card">
+      <div class="card-header">
+        <h3><i class="bi bi-grid-3x3-gap-fill"></i> Análise Temporal (Dia x Hora)</h3>
+        <span class="header-subtitle">Identificação de padrões de turno</span>
+      </div>
+
+      <div class="matriz-container">
+        <table class="matriz-table">
+          <thead>
+            <tr>
+              <th class="col-dia">Dia</th>
+              @for (turno of turnos; track turno) {
+                <th class="col-turno">{{ turno }}</th>
+              }
+              <th class="col-total">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (dia of diasSemana; track dia) {
+              <tr>
+                <td class="col-dia">{{ dia }}</td>
+                @for (turno of turnos; track turno) {
+                  <td class="col-valor">
+                    <div
+                      class="celula-valor"
+                      [class]="getIntensidadeClasse(matrizProcessada[dia][turno])"
+                      title="{{ matrizProcessada[dia][turno] }} ocorrências">
+                      {{ matrizProcessada[dia][turno] }}
+                    </div>
+                  </td>
+                }
+                <td class="col-total">
+                  <strong>{{ getTotalDia(dia) }}</strong>
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="col-dia"><strong>Total</strong></td>
+              @for (turno of turnos; track turno) {
+                <td class="col-valor">
+                  <strong>{{ getTotalTurno(turno) }}</strong>
+                </td>
+              }
+              <td class="col-total">
+                <strong class="total-geral">{{ getTotalGeral() }}</strong>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="matriz-legenda">
+          <span class="legenda-label">Intensidade:</span>
+          <span class="legenda-item">
+            <span class="legenda-cor intensidade-zero"></span> 0
+          </span>
+          <span class="legenda-item">
+            <span class="legenda-cor intensidade-baixa"></span> 1-2
+          </span>
+          <span class="legenda-item">
+            <span class="legenda-cor intensidade-media"></span> 3-5
+          </span>
+          <span class="legenda-item">
+            <span class="legenda-cor intensidade-alta"></span> 6-10
+          </span>
+          <span class="legenda-item">
+            <span class="legenda-cor intensidade-critica"></span> 10+
+          </span>
+        </div>
+      </div>
+
+      <div class="insights-box">
+        <h4><i class="bi bi-lightbulb-fill"></i> Insights Automáticos</h4>
+        <ul>
+          @for (insight of getInsights(); track insight) {
+            <li [innerHTML]="insight"></li>
+          }
+        </ul>
+      </div>
+    </div>
+
+    <!-- LINK PARA MAPA -->
+    <div class="card link-mapa-card">
+      <div class="link-mapa-content">
+        <div class="link-mapa-info">
+          <h3><i class="bi bi-map-fill"></i> Georreferenciamento</h3>
+          <p>Acesse o mapa de calor interativo para análise espacial detalhada.</p>
+        </div>
+        <a routerLink="/gabinete-virtual/operacional/analise-criminal" class="btn-mapa">
+          <i class="bi bi-geo-alt-fill"></i>
+          Abrir Mapa Tático
+          <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+
+  } @else if (!isLoading) {
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <h3>Nenhum dado encontrado</h3>
+      <p>Tente ajustar os filtros de data ou localização.</p>
+    </div>
+  }
+</div>

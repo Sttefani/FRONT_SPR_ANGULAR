@@ -6,6 +6,7 @@ import { forkJoin } from 'rxjs';
 import { AnaliseCriminalService, EstatisticaCriminal, OcorrenciaGeo } from '../../services/analise-criminal.service';
 import { ClassificacaoOcorrenciaService } from '../../services/classificacao-ocorrencia.service';
 import { CidadeService } from '../../services/cidade.service';
+import { RouterModule } from '@angular/router';
 
 interface DropdownItem {
   id: number;
@@ -16,7 +17,7 @@ interface DropdownItem {
 @Component({
   selector: 'app-analise-criminal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './analise-criminal.component.html',
   styleUrls: ['./analise-criminal.component.scss']
 })
