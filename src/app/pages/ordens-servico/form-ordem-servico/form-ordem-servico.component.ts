@@ -109,7 +109,7 @@ export class FormOrdemServicoComponent implements OnInit {
     this.ocorrenciaEncontrada = null;
 
     this.http.get<any>(
-      `${environment.apiUrl}/ocorrencias/?search=${numeroBuscado}`  // ← LINHA MODIFICADA
+      `${environment.apiUrl}/ocorrencias/?numero_ocorrencia=${numeroBuscado}`  // ← LINHA MODIFICADA
     ).subscribe({
       next: (response) => {
         this.buscandoOcorrencia = false;
