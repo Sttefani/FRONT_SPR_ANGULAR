@@ -563,7 +563,7 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   }
 
   // =========================================================================
-  // ✅ NOVO: Calcula total de exames considerando quantidade
+  // Calcula total de exames considerando quantidade
   // =========================================================================
   getTotalExames(): number {
     if (!this.ocorrencia?.exames_solicitados) return 0;
@@ -571,6 +571,10 @@ export class OcorrenciasDetalhesComponent implements OnInit {
       return total + (exame.quantidade || 1);
     }, 0);
   }
+
+  // =========================================================================
+  // PERMISSÕES
+  // =========================================================================
 
   podeEditar(): boolean {
     if (!this.ocorrencia) return false;
@@ -637,6 +641,58 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     return jaFinalizada && this.isSuperAdmin;
   }
 
+  // =========================================================================
+  // NOVO: Permissão específica para vincular procedimento
+  // Administrativo pode vincular mesmo com perito atribuído
+  // =========================================================================
+  podeVincularProcedimento(): boolean {
+    if (!this.ocorrencia) return false;
+
+    // Não pode se estiver finalizada
+    if (this.ocorrencia.esta_finalizada) return false;
+
+    // Super admin sempre pode
+    if (this.isSuperAdmin) return true;
+
+    // Administrativo sempre pode vincular (mesmo com perito atribuído)
+    if (this.isAdministrativo) return true;
+
+    // Se tem perito atribuído, só o próprio perito pode
+    if (this.ocorrencia.perito_atribuido) {
+      const user = this.authService.getCurrentUser();
+      return Number(user?.id) === Number(this.ocorrencia.perito_atribuido.id);
+    }
+
+    // Sem perito atribuído, perito e operacional podem
+    return this.isPerito || this.isOperacional;
+  }
+
+  // =========================================================================
+  // ATUALIZADO: Permissão para gerenciar (desvincular) procedimento
+  // Administrativo pode desvincular mesmo com perito atribuído
+  // =========================================================================
+  podeGerenciarProcedimento(): boolean {
+    if (!this.ocorrencia) return false;
+
+    // Não pode se estiver finalizada
+    if (this.ocorrencia.esta_finalizada) return false;
+
+    // Super admin sempre pode
+    if (this.isSuperAdmin) return true;
+
+    // Administrativo sempre pode (mesmo com perito atribuído)
+    if (this.isAdministrativo) return true;
+
+    // Se tem perito atribuído, só o próprio perito pode
+    if (this.ocorrencia.perito_atribuido) {
+      const user = this.authService.getCurrentUser();
+      return Number(user?.id) === Number(this.ocorrencia.perito_atribuido.id);
+    }
+
+    // Sem perito, qualquer um pode
+    return true;
+  }
+
   getStatusLabel(status: string): string {
     const labels: any = {
       'AGUARDANDO_PERITO': 'Aguardando Atribuição de Perito',
@@ -653,22 +709,5 @@ export class OcorrenciasDetalhesComponent implements OnInit {
       'FINALIZADA': 'status-finalizada'
     };
     return classes[status] || '';
-  }
-
-  podeGerenciarProcedimento(): boolean {
-    if (!this.ocorrencia) return false;
-
-    if (this.ocorrencia.esta_finalizada) return false;
-
-    if (this.isSuperAdmin) return true;
-
-    if (this.ocorrencia.perito_atribuido) {
-      const user = this.authService.getCurrentUser();
-      const meuId = Number(user?.id);
-      const peritoId = Number(this.ocorrencia.perito_atribuido.id);
-      return meuId === peritoId;
-    }
-
-    return true;
   }
 }

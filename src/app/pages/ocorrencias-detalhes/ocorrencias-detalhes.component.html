@@ -150,8 +150,8 @@
         <div class="card-header-with-action">
           <h3><i class="bi bi-file-earmark-text"></i> Procedimento</h3>
 
-          <!-- Botão de vincular só aparece se NÃO tem procedimento e pode editar -->
-          @if (!ocorrencia.procedimento_cadastrado && podeEditar()) {
+          <!-- ALTERADO: Usa podeVincularProcedimento() ao invés de podeEditar() -->
+          @if (!ocorrencia.procedimento_cadastrado && podeVincularProcedimento()) {
             <button class="btn-link-procedimento" (click)="abrirModalVincularProcedimento()">
               <i class="bi bi-link"></i> Vincular
             </button>
@@ -264,7 +264,7 @@
     </div>
 
     <!-- ======================================================= -->
-    <!-- ✅ EXAMES SOLICITADOS (CORRIGIDO - MOSTRA QUANTIDADE) -->
+    <!-- EXAMES SOLICITADOS -->
     <!-- ======================================================= -->
     @if (ocorrencia.exames_solicitados && ocorrencia.exames_solicitados.length > 0) {
       <div class="info-card full-width">
@@ -274,7 +274,6 @@
             <div class="exame-chip">
               <span class="exame-codigo">{{ exame.codigo }}</span>
               <span class="exame-nome">{{ exame.nome }}</span>
-              <!-- ✅ CORREÇÃO: Mostra quantidade se maior que 1 -->
               @if (exame.quantidade && exame.quantidade > 1) {
                 <span class="exame-quantidade">x{{ exame.quantidade }}</span>
               }
@@ -282,7 +281,6 @@
           }
         </div>
 
-        <!-- ✅ NOVO: Resumo total -->
         <div class="exames-total">
           <small>
             <i class="bi bi-calculator"></i>
