@@ -39,7 +39,7 @@ export interface Endereco {
   numero?: string;
   complemento?: string;
   bairro?: string;
-  bairro_novo_id?: number;  // ✅ ID do bairro para edição
+  bairro_novo_id?: number;
   bairro_nome?: string;
   cep?: string;
   ponto_referencia?: string;
@@ -50,13 +50,12 @@ export interface Endereco {
   tem_coordenadas?: boolean;
 }
 
-// ✅ CORREÇÃO: Interface para exames COM quantidade
 export interface ExameSolicitado {
   id: number;
   codigo: string;
   nome: string;
   servico?: string;
-  quantidade?: number;  // ✅ CAMPO ADICIONADO
+  quantidade?: number;
 }
 
 /**
@@ -74,7 +73,7 @@ export interface Ocorrencia {
   procedimento_cadastrado?: any;
   tipo_documento_origem?: SimpleLookup;
   perito_atribuido?: UserNested;
-  exames_solicitados?: ExameSolicitado[];  // ✅ USA A INTERFACE COM QUANTIDADE
+  exames_solicitados?: ExameSolicitado[];
   data_fato: string;
   hora_fato?: string;
   historico?: string;
@@ -97,6 +96,10 @@ export interface Ocorrencia {
   data_reabertura?: string;
   motivo_reabertura?: string;
   endereco?: Endereco;
+
+  // ========== NOVO CAMPO ==========
+  tem_movimentacao_pendente?: boolean;
+  // ================================
 }
 
 export interface PaginatedResponse {
@@ -106,7 +109,6 @@ export interface PaginatedResponse {
   results: Ocorrencia[];
 }
 
-// Interface específica para o FullCalendar (ADD-ON)
 export interface EventoCalendario {
   id: number;
   title: string;

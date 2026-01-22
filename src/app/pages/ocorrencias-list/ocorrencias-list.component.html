@@ -111,6 +111,13 @@
                 <td data-label="Número" class="numero-cell">
                   <strong class="numero-ocorrencia-tooltip"
                           [attr.data-tooltip]="getTooltipContent(ocorrencia)">
+                    <!-- ========== NOVO: Ícone de movimentação pendente ========== -->
+                    @if (ocorrencia.tem_movimentacao_pendente) {
+                      <i class="bi bi-exclamation-triangle-fill"
+                         style="color: #ffc107; margin-right: 5px;"
+                         title="Nova movimentação - clique para visualizar"></i>
+                    }
+                    <!-- =========================================================== -->
                     {{ ocorrencia.numero_ocorrencia }}
                   </strong>
                 </td>
