@@ -940,7 +940,9 @@ export class OcorrenciasFormComponent implements OnInit {
         exames: examesComQuantidade,
         procedimento_cadastrado_id: this.procedimentoVinculado ? this.procedimentoVinculado.id : null
       };
+
     }
+
 
     const request = this.isEditMode && this.ocorrenciaId
       ? this.ocorrenciaService.update(this.ocorrenciaId, payload)
