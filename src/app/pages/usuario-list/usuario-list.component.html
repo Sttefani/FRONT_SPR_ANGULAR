@@ -5,14 +5,36 @@
       <p class="subtitle">Visualize, edite e gerencie os usuários do sistema.</p>
     </div>
 
-    <div class="filter-container">
-      <label for="statusFilter">Filtrar por status:</label>
-      <select id="statusFilter" [(ngModel)]="statusFilter" (change)="onStatusFilterChange()" class="filter-select">
-        <option value="todos">Todos</option>
-        <option value="ativo">Ativos</option>
-        <option value="pendente">Pendentes</option>
-        <option value="inativo">Inativos</option>
-      </select>
+    <div class="filters-row">
+      <div class="filter-container">
+        <label for="searchInput">Buscar:</label>
+        <div class="search-input-wrapper">
+          <i class="bi bi-search search-icon"></i>
+          <input
+            id="searchInput"
+            type="text"
+            [(ngModel)]="searchTerm"
+            (keyup.enter)="onSearch()"
+            placeholder="Nome, e-mail ou CPF..."
+            class="filter-input"
+          />
+          @if (searchTerm) {
+            <button class="clear-btn" (click)="onClearSearch()" title="Limpar busca">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="filter-container">
+        <label for="statusFilter">Status:</label>
+        <select id="statusFilter" [(ngModel)]="statusFilter" (change)="onStatusFilterChange()" class="filter-select">
+          <option value="todos">Todos</option>
+          <option value="ativo">Ativos</option>
+          <option value="pendente">Pendentes</option>
+          <option value="inativo">Inativos</option>
+        </select>
+      </div>
     </div>
   </div>
 

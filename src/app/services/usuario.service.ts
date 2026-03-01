@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { environment } from '../../environments/environment';  // ← LINHA ADICIONADA
+import { environment } from '../../environments/environment';
 
 export interface User {
   id: number;
@@ -28,9 +28,9 @@ export interface ServicoPericialNested {
   providedIn: 'root'
 })
 export class UsuarioService {
-  private baseUrl = environment.apiUrl;  // ← LINHA MODIFICADA
+  private baseUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getUsersByUrl(url: string): Observable<any> {
     return this.http.get<any>(url);
@@ -66,11 +66,15 @@ export class UsuarioService {
     return this.http.post(`${this.baseUrl}/usuarios/${userId}/reativar/`, {});
   }
 
-  getAllUsers(statusFilter: string = 'todos'): Observable<any> {
+  getAllUsers(statusFilter: string = 'todos', search: string = ''): Observable<any> {
     let params: any = {};
 
     if (statusFilter !== 'todos') {
       params.status = statusFilter.toUpperCase();
+    }
+
+    if (search.trim()) {
+      params.search = search.trim();
     }
 
     return this.http.get<any>(`${this.baseUrl}/usuarios/`, { params });

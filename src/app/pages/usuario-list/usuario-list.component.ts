@@ -8,7 +8,7 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-usuario-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],  // ← Adicione FormsModule
+  imports: [CommonModule, FormsModule],
   templateUrl: './usuario-list.component.html',
   styleUrls: ['./usuario-list.component.scss']
 })
@@ -26,13 +26,14 @@ export class UsuarioListComponent implements OnInit {
   nextUrl: string | null = null;
   previousUrl: string | null = null;
 
-  // Filtro de status
+  // Filtros
   statusFilter: string = 'todos';
+  searchTerm: string = '';
 
   constructor(
     private usuarioService: UsuarioService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadUsers();
@@ -43,7 +44,7 @@ export class UsuarioListComponent implements OnInit {
 
     const request = url
       ? this.usuarioService.getUsersByUrl(url)
-      : this.usuarioService.getAllUsers(this.statusFilter);
+      : this.usuarioService.getAllUsers(this.statusFilter, this.searchTerm);
 
     request.subscribe({
       next: (response: any) => {
@@ -67,6 +68,17 @@ export class UsuarioListComponent implements OnInit {
     this.loadUsers();
   }
 
+  onSearch(): void {
+    this.currentPage = 1;
+    this.loadUsers();
+  }
+
+  onClearSearch(): void {
+    this.searchTerm = '';
+    this.currentPage = 1;
+    this.loadUsers();
+  }
+
   nextPage(): void {
     if (this.nextUrl) {
       this.currentPage++;
@@ -86,57 +98,57 @@ export class UsuarioListComponent implements OnInit {
   }
 
   onDelete(user: User): void {
-  Swal.fire({
-    title: 'Confirmar exclusão',
-    text: `Tem certeza que deseja mover "${user.nome_completo}" para a lixeira?`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Sim, deletar',
-    cancelButtonText: 'Cancelar'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      this.usuarioService.softDeleteUser(user.id).subscribe({
-        next: () => {
-          this.message = `Usuário "${user.nome_completo}" movido para a lixeira com sucesso.`;
-          this.messageType = 'success';
-          this.userList = this.userList.filter(u => u.id !== user.id);
-          this.totalCount--;
-        },
-        error: (err) => {
-          console.error('Erro ao mover usuário para a lixeira', err);
-          this.message = 'Falha ao mover o usuário para a lixeira.';
-          this.messageType = 'error';
-        }
-      });
-    }
-  });
-}
+    Swal.fire({
+      title: 'Confirmar exclusão',
+      text: `Tem certeza que deseja mover "${user.nome_completo}" para a lixeira?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, deletar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.usuarioService.softDeleteUser(user.id).subscribe({
+          next: () => {
+            this.message = `Usuário "${user.nome_completo}" movido para a lixeira com sucesso.`;
+            this.messageType = 'success';
+            this.userList = this.userList.filter(u => u.id !== user.id);
+            this.totalCount--;
+          },
+          error: (err) => {
+            console.error('Erro ao mover usuário para a lixeira', err);
+            this.message = 'Falha ao mover o usuário para a lixeira.';
+            this.messageType = 'error';
+          }
+        });
+      }
+    });
+  }
 
   onReactivate(user: User): void {
-  Swal.fire({
-    title: 'Reativar usuário?',
-    text: `Deseja reativar "${user.nome_completo}" para aprovação?`,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Sim, reativar',
-    cancelButtonText: 'Cancelar'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      this.usuarioService.reactivateUser(user.id).subscribe({
-        next: () => {
-          this.message = `Usuário "${user.nome_completo}" Reativado. Segguiu para aprovação.`;
-          this.messageType = 'success';
-          this.loadUsers();
-        },
-        error: (err) => {
-          console.error('Erro ao reativar usuário:', err);
-          this.message = 'Falha ao reativar o usuário.';
-          this.messageType = 'error';
-        }
-      });
-    }
-  });
-}
+    Swal.fire({
+      title: 'Reativar usuário?',
+      text: `Deseja reativar "${user.nome_completo}" para aprovação?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, reativar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.usuarioService.reactivateUser(user.id).subscribe({
+          next: () => {
+            this.message = `Usuário "${user.nome_completo}" Reativado. Seguiu para aprovação.`;
+            this.messageType = 'success';
+            this.loadUsers();
+          },
+          error: (err) => {
+            console.error('Erro ao reativar usuário:', err);
+            this.message = 'Falha ao reativar o usuário.';
+            this.messageType = 'error';
+          }
+        });
+      }
+    });
+  }
 
   onEdit(userId: number): void {
     this.router.navigate(['/gabinete-virtual/gerencia/usuarios', userId, 'editar']);
@@ -145,24 +157,25 @@ export class UsuarioListComponent implements OnInit {
   onViewDetails(userId: number): void {
     this.router.navigate(['/gabinete-virtual/gerencia/usuarios', userId, 'detalhes']);
   }
-  onResetPassword(user: User): void {
-  const confirmation = confirm(
-    `Resetar a senha de "${user.nome_completo}" para o CPF?\n\n` +
-    `O usuário será forçado a alterar a senha no próximo login.`
-  );
 
-  if (confirmation) {
-    this.usuarioService.resetPasswordToCpf(user.id).subscribe({
-      next: () => {
-        this.message = `Senha de "${user.nome_completo}" resetada para o CPF com sucesso.`;
-        this.messageType = 'success';
-      },
-      error: (err) => {
-        console.error('Erro ao resetar senha:', err);
-        this.message = err.error?.error || 'Erro ao resetar a senha.';
-        this.messageType = 'error';
-      }
-    });
+  onResetPassword(user: User): void {
+    const confirmation = confirm(
+      `Resetar a senha de "${user.nome_completo}" para o CPF?\n\n` +
+      `O usuário será forçado a alterar a senha no próximo login.`
+    );
+
+    if (confirmation) {
+      this.usuarioService.resetPasswordToCpf(user.id).subscribe({
+        next: () => {
+          this.message = `Senha de "${user.nome_completo}" resetada para o CPF com sucesso.`;
+          this.messageType = 'success';
+        },
+        error: (err) => {
+          console.error('Erro ao resetar senha:', err);
+          this.message = err.error?.error || 'Erro ao resetar a senha.';
+          this.messageType = 'error';
+        }
+      });
+    }
   }
-}
 }
