@@ -28,12 +28,18 @@ export interface RelatorioServico {
   em_analise: number;
 }
 
-// ✅ NOVA INTERFACE
+export interface RelatorioExameFilho {
+  codigo: string;
+  nome: string;
+  quantidade: number;
+}
+
 export interface RelatorioExame {
   codigo: string;
   nome: string;
   servico_sigla: string;
-  quantidade: number;
+  quantidade_total: number;
+  filhos: RelatorioExameFilho[];
 }
 
 // A interface principal que agrupa todos os relatórios

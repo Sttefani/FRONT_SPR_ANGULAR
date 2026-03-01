@@ -30,8 +30,13 @@ interface TipoDocumento { id: number; nome: string; }
 interface TipoProcedimento { id: number; sigla: string; nome: string; }
 interface Cargo { id: number; nome: string; }
 interface Autoridade { id: number; nome: string; cargo: Cargo; }
-interface Exame { id: number; codigo: string; nome: string; quantidade?: number; }
-
+interface Exame {
+  id: number;
+  codigo: string;
+  nome: string;
+  quantidade?: number;
+  parent?: { id: number; codigo: string; nome: string } | null;
+}
 @Component({
   selector: 'app-ocorrencias-form',
   standalone: true,
@@ -413,8 +418,8 @@ export class OcorrenciasFormComponent implements OnInit {
 
   loadCargos(): void {
     this.loadingCargos = true;
-    this.cargoService.getAll().subscribe({
-      next: (response: any) => { this.cargos = response.results || []; this.loadingCargos = false; },
+    this.cargoService.getAllForDropdown().subscribe({
+      next: (data: Cargo[]) => { this.cargos = data; this.loadingCargos = false; },
       error: (err: any) => { console.error('Erro:', err); this.loadingCargos = false; }
     });
   }
@@ -785,7 +790,7 @@ export class OcorrenciasFormComponent implements OnInit {
     }
     this.exameService.getAll(servicoId).subscribe({
       next: (exames: Exame[]) => {
-        this.examesDisponiveis = exames;
+        this.examesDisponiveis = exames.filter(e => e.parent !== null && e.parent !== undefined);
         this.modalExamesAberto = true;
       },
       error: (err: any) => {

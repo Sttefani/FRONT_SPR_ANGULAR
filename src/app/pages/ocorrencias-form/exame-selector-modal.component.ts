@@ -132,7 +132,7 @@ interface Exame {
       border-radius: 20px;
       max-width: 693px !important;
       width: 90% !important;
-      max-height: 65vh;
+      height: 80vh;
       display: flex;
       flex-direction: column;
       box-shadow: 0 8px 32px rgba(0,0,0,0.3);
@@ -263,7 +263,7 @@ interface Exame {
       padding: 0.5rem;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.2rem;
       align-content: start;
 
       &::-webkit-scrollbar { width: 10px; }
@@ -282,7 +282,7 @@ interface Exame {
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      padding: 0.8rem 1rem;
+      padding: 0.2rem 1rem;
       border: 2px solid #e2e8f0;
       border-radius: 10px;
       background: white;

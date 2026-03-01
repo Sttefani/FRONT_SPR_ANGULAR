@@ -145,7 +145,7 @@
       </div>
     }
 
-    <!-- Tabela: Exames Solicitados -->
+    <!-- Tabela: Exames Solicitados (HIERÁRQUICA PAI/FILHO) -->
     <div class="data-section">
       <h2>Exames Solicitados</h2>
       @if (relatorios.por_exame && relatorios.por_exame.length > 0) {
@@ -159,13 +159,21 @@
             </tr>
           </thead>
           <tbody>
-            @for (item of relatorios.por_exame; track $index) {
-              <tr>
-                <td>{{ item.codigo }}</td>
-                <td>{{ item.nome }}</td>
-                <td>{{ item.servico_sigla }}</td>
-                <td class="text-right">{{ item.quantidade | number }}</td>
+            @for (pai of relatorios.por_exame; track $index) {
+              <tr style="background-color: #f0f4f8; font-weight: bold;">
+                <td>{{ pai.codigo }}</td>
+                <td>{{ pai.nome }}</td>
+                <td>{{ pai.servico_sigla }}</td>
+                <td class="text-right">{{ pai.quantidade_total | number }}</td>
               </tr>
+              @for (filho of pai.filhos; track $index) {
+                <tr>
+                  <td style="padding-left: 2rem;">{{ filho.codigo }}</td>
+                  <td style="padding-left: 2rem;">{{ filho.nome }}</td>
+                  <td></td>
+                  <td class="text-right">{{ filho.quantidade | number }}</td>
+                </tr>
+              }
             }
           </tbody>
         </table>
