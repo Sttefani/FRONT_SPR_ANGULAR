@@ -82,6 +82,11 @@ export const routes: Routes = [
       // GERÊNCIA (SUPER ADMIN)
       // =====================================================================
       {
+        path: 'gerencia/auditlog',
+        loadComponent: () => import('./pages/auditlog/auditlog.component').then(m => m.AuditlogComponent),
+        canActivate: [superAdminGuard]
+      },
+      {
         path: 'gerencia/usuarios',
         loadComponent: () => import('./pages/usuario-list/usuario-list.component').then(m => m.UsuarioListComponent),
         canActivate: [superAdminGuard]

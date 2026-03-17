@@ -107,6 +107,7 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
         this.isLoading = false;
         console.log('📊 Estatísticas de Ocorrências carregadas:', this.estatisticas);
         this.criarGraficoOcorrencias();
+        this.criarGraficoOS();
       },
       error: (err) => {
         console.error('Erro ao carregar estatísticas:', err);

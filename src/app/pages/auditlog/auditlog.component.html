@@ -1,0 +1,131 @@
+<div class="container">
+
+  <!-- Cabeçalho + Filtros -->
+  <div class="header-with-filters">
+    <div class="title-section">
+      <h1><i class="bi bi-shield-check me-2"></i>Log de Auditoria</h1>
+      <p class="subtitle">Registro de todas as ações realizadas no sistema.</p>
+    </div>
+
+    <div class="filters-compact">
+      <div class="filters-grid">
+
+        <select class="select-compact" [(ngModel)]="filtros.usuario_id">
+          <option value="">Usuário: Todos</option>
+          @for (u of usuarios; track u.id) {
+            <option [value]="u.id">{{ u.nome_completo }}</option>
+          }
+        </select>
+
+        <select class="select-compact" [(ngModel)]="filtros.acao">
+          <option value="">Ação: Todas</option>
+          <option value="criou">Criou</option>
+          <option value="editou">Editou</option>
+          <option value="deletou">Deletou</option>
+        </select>
+
+        <select class="select-compact" [(ngModel)]="filtros.modulo">
+          <option value="">Módulo: Todos</option>
+          @for (m of modulos; track m.value) {
+            <option [value]="m.value">{{ m.label }}</option>
+          }
+        </select>
+
+        <input
+          type="text"
+          class="input-compact"
+          placeholder="Buscar por descrição..."
+          [(ngModel)]="filtros.busca"
+          (keyup.enter)="buscar()"
+        >
+
+        <input type="date" class="input-compact" [(ngModel)]="filtros.data_inicio" placeholder="Data Início">
+        <input type="date" class="input-compact" [(ngModel)]="filtros.data_fim" placeholder="Data Fim">
+
+        <button class="btn-buscar" (click)="buscar()">
+          <i class="bi bi-search"></i> Buscar
+        </button>
+        <button class="btn-limpar" (click)="limparFiltros()">
+          <i class="bi bi-x-circle"></i> Limpar
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Erro -->
+  @if (erro) {
+    <div class="message error">{{ erro }}</div>
+  }
+
+  <!-- Carregando -->
+  @if (carregando) {
+    <div class="loading-indicator">
+      <i class="bi bi-shield-check"></i>
+      <p>Carregando logs...</p>
+    </div>
+  }
+
+  <!-- Vazio -->
+  @else if (!carregando && logs.length === 0) {
+    <div class="empty-state">
+      <i class="bi bi-journal-x"></i>
+      <p>Nenhum registro encontrado com os filtros aplicados.</p>
+    </div>
+  }
+
+  <!-- Tabela -->
+  @else {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Data / Hora</th>
+            <th>Usuário</th>
+            <th>Ação</th>
+            <th>Módulo</th>
+            <th>Registro</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (log of logs; track log.id) {
+            <tr>
+              <td data-label="Data/Hora">
+                <span class="data-hora">{{ log.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+              </td>
+              <td data-label="Usuário">
+                <span class="usuario-nome">{{ log.usuario_nome }}</span>
+              </td>
+              <td data-label="Ação">
+                <span class="badge-acao {{ badgeAcao(log.acao) }}">{{ labelAcao(log.acao) }}</span>
+              </td>
+              <td data-label="Módulo">{{ log.modelo }}</td>
+              <td data-label="Registro">{{ log.objeto_repr }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Paginação -->
+      @if (totalPaginas > 1) {
+        <div class="paginacao-container">
+          <span class="total-label">{{ total }} registro(s) — Página {{ pagina }} de {{ totalPaginas }}</span>
+          <ul class="pagination mb-0">
+            <li class="page-item" [class.disabled]="pagina === 1">
+              <button class="page-link" (click)="paginaAnterior()">
+                <i class="bi bi-chevron-left"></i> Anterior
+              </button>
+            </li>
+            <li class="page-item" [class.disabled]="pagina === totalPaginas">
+              <button class="page-link" (click)="proximaPagina()">
+                Próxima <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </div>
+      }
+
+    </div>
+  }
+
+</div>
