@@ -8,6 +8,8 @@ import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
 import { UsuarioService } from '../../services/usuario.service';
 import { Subscription } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+
 
 @Component({
   selector: 'app-ocorrencias-list',
@@ -57,14 +59,25 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     private servicoPericialService: ServicoPericialService,
     private authService: AuthService,
     private usuarioService: UsuarioService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
     this.setupUserPermissions();
     this.loadServicos();
     this.loadPeritos();
-    this.buscarOcorrencias(false);
+    this.route.queryParams.subscribe(params => {
+  this.searchTerm = params['search'] || '';
+  this.numeroOcorrenciaBusca = params['numero'] || '';
+  this.statusFiltro = params['status'] || '';
+  this.servicoPericialFiltro = params['servico'] ? Number(params['servico']) : null;
+  this.peritoFiltro = params['perito'] ? Number(params['perito']) : null;
+  this.dataInicio = params['dataInicio'] || '';
+  this.dataFim = params['dataFim'] || '';
+
+  this.buscarOcorrencias(false);
+});
   }
 
   ngOnDestroy(): void {
@@ -178,6 +191,20 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
 
     if (this.peritoFiltro) params.perito_atribuido = this.peritoFiltro;
 
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        search: this.searchTerm || null,
+        numero: this.numeroOcorrenciaBusca || null,
+        status: this.statusFiltro || null,
+        servico: this.servicoPericialFiltro || null,
+        perito: this.peritoFiltro || null,
+        dataInicio: this.dataInicio || null,
+        dataFim: this.dataFim || null
+      },
+      queryParamsHandling: 'merge'
+    });
+
     console.log('🔍 Buscando com params:', params);
 
     this.ocorrenciaService.getAll(params).subscribe({
@@ -209,6 +236,10 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     this.dataInicio = '';
     this.dataFim = '';
     this.buscarOcorrencias(true);
+    this.router.navigate([], {
+    relativeTo: this.route,
+    queryParams: {}
+    });
   }
 
   switchView(newView: 'todas' | 'pendentes' | 'finalizadas' | 'lixeira'): void {

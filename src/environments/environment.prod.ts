@@ -22,6 +22,6 @@ export const environment = {
   // Configurações padrão
   defaultPageSize: 10,
 
-  // Tempo para renovar token (50 minutos)
-  tokenRefreshInterval: 50 * 60 * 1000
+  // Tempo para renovar token (120 minutos)
+  tokenRefreshInterval: 120 * 60 * 1000
 };

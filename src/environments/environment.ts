@@ -5,7 +5,6 @@ export const environment = {
   // Indica se está em produção ou não
   production: false,
 
-  // URL da API Django em desenvolvimento (localhost)
   apiUrl: 'http://localhost:8000/api',
 
   // URL base para autenticação (sem /api no final)
@@ -21,6 +20,6 @@ export const environment = {
   // Configurações padrão
   defaultPageSize: 10,
 
-  // Tempo para renovar token (50 minutos em milissegundos)
-  tokenRefreshInterval: 50 * 60 * 1000
+  // Tempo para renovar token (120 minutos em milissegundos)
+  tokenRefreshInterval: 120 * 60 * 1000
 };

@@ -8,6 +8,7 @@ import { ProcedimentoService } from '../../services/procedimento.service';
 import { ProcedimentoCadastradoService } from '../../services/procedimento-cadastrado.service';
 import { MovimentacaoTimelineComponent } from '../movimentacoes/movimentacao-timeline/movimentacao-timeline.component';
 import Swal from 'sweetalert2';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-ocorrencias-detalhes',
@@ -43,7 +44,8 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private procedimentoService: ProcedimentoService,
-    private procedimentoCadastradoService: ProcedimentoCadastradoService
+    private procedimentoCadastradoService: ProcedimentoCadastradoService,
+    private location: Location
   ) { }
 
   ngOnInit(): void {
@@ -322,7 +324,7 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   }
 
   onVoltar(): void {
-    this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+      this.location.back();
   }
 
   onFinalizar(): void {
