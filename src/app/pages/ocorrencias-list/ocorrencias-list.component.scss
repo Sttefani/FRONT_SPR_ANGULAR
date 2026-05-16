@@ -90,11 +90,18 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 0.6rem;
 
-  // ✅ AJUSTE: Faz o select de ordenação ocupar uma coluna
-  >*:nth-child(7),
-  >*:nth-child(8),
-  >*:nth-child(9) {
-    grid-column: span 1;
+
+}
+
+.filtros-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+
+  // Botões crescem igualmente para preencher a célula do grid
+  .btn-buscar,
+  .btn-limpar {
+    flex: 1;
   }
 }
 

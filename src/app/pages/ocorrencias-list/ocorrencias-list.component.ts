@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OcorrenciaService, Ocorrencia } from '../../services/ocorrencia.service';
 import { ServicoPericialService, ServicoPericial } from '../../services/servico-pericial.service';
+import { ClassificacaoOcorrenciaService } from '../../services/classificacao-ocorrencia.service';
 import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
 import { UsuarioService } from '../../services/usuario.service';
@@ -34,7 +35,11 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
   searchTerm = '';
   statusFiltro: string = '';
   servicoPericialFiltro: number | null = null;
+  classificacaoFiltro: number | null = null;
+  classificacoes: any[] = [];
   viewMode: 'todas' | 'pendentes' | 'finalizadas' | 'lixeira' = 'todas';
+
+  private readonly SESSION_KEY = 'spr_filtros_ocorrencias';
 
   // --- Paginação Modificada ---
   count = 0;
@@ -55,6 +60,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
   constructor(
     private ocorrenciaService: OcorrenciaService,
     private servicoPericialService: ServicoPericialService,
+    private classificacaoService: ClassificacaoOcorrenciaService,
     private authService: AuthService,
     private usuarioService: UsuarioService,
     private router: Router
@@ -64,10 +70,15 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     this.setupUserPermissions();
     this.loadServicos();
     this.loadPeritos();
-    this.buscarOcorrencias(false);
+    this.loadClassificacoes();
+    this.restaurarFiltrosSession();   // ← restaura antes da primeira busca
+    this.buscarOcorrencias(false);    // ← false = usa a página restaurada
   }
 
   ngOnDestroy(): void {
+    // Salva o estado atual dos filtros antes de destruir o componente.
+    // Garante persistência mesmo que o usuário navegue sem clicar em "Buscar".
+    this.salvarFiltrosSession();
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
@@ -105,6 +116,58 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
       next: (data: any[]) => { this.peritos = data; },
       error: (err: any) => { console.error('Erro:', err); }
     });
+  }
+
+  loadClassificacoes(): void {
+    this.classificacaoService.getAll().subscribe({
+      next: (data: any) => {
+        // getAll() em classificações não é paginado (pagination_class = None no backend)
+        this.classificacoes = Array.isArray(data) ? data : (data.results || []);
+      },
+      error: (err: any) => { console.error('Erro ao carregar classificações:', err); }
+    });
+  }
+
+  // =========================================================================
+  // PERSISTÊNCIA DE FILTROS VIA sessionStorage
+  // Limpa automaticamente ao fechar a aba (comportamento adequado para sistema
+  // de segurança pública). Permite retornar da tela de detalhes sem perder filtros.
+  // =========================================================================
+  private salvarFiltrosSession(): void {
+    const estado = {
+      searchTerm: this.searchTerm,
+      numeroOcorrenciaBusca: this.numeroOcorrenciaBusca,
+      statusFiltro: this.statusFiltro,
+      servicoPericialFiltro: this.servicoPericialFiltro,
+      peritoFiltro: this.peritoFiltro,
+      dataInicio: this.dataInicio,
+      dataFim: this.dataFim,
+      classificacaoFiltro: this.classificacaoFiltro,
+      viewMode: this.viewMode,
+      currentPage: this.currentPage
+    };
+    sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(estado));
+  }
+
+  private restaurarFiltrosSession(): void {
+    try {
+      const salvo = sessionStorage.getItem(this.SESSION_KEY);
+      if (salvo) {
+        const estado = JSON.parse(salvo);
+        this.searchTerm = estado.searchTerm || '';
+        this.numeroOcorrenciaBusca = estado.numeroOcorrenciaBusca || '';
+        this.statusFiltro = estado.statusFiltro || '';
+        this.servicoPericialFiltro = estado.servicoPericialFiltro || null;
+        this.peritoFiltro = estado.peritoFiltro || null;
+        this.dataInicio = estado.dataInicio || '';
+        this.dataFim = estado.dataFim || '';
+        this.classificacaoFiltro = estado.classificacaoFiltro || null;
+        this.viewMode = estado.viewMode || 'todas';
+        this.currentPage = estado.currentPage || 1;
+      }
+    } catch (_) {
+      sessionStorage.removeItem(this.SESSION_KEY);
+    }
   }
 
   private formatDataISO(data: string): string {
@@ -177,6 +240,10 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     }
 
     if (this.peritoFiltro) params.perito_atribuido = this.peritoFiltro;
+    if (this.classificacaoFiltro) params.classificacao = this.classificacaoFiltro;
+
+    // Persiste o estado atual antes de buscar
+    this.salvarFiltrosSession();
 
     console.log('🔍 Buscando com params:', params);
 
@@ -208,6 +275,8 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     this.peritoFiltro = null;
     this.dataInicio = '';
     this.dataFim = '';
+    this.classificacaoFiltro = null;
+    sessionStorage.removeItem(this.SESSION_KEY);
     this.buscarOcorrencias(true);
   }
 
@@ -359,6 +428,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     }
     return this.isPerito || this.isOperacional;
   }
+
   getTooltipContent(ocorrencia: Ocorrencia): string {
     const perito = ocorrencia.perito_atribuido?.nome_completo || 'Não atribuído';
     const classificacao = ocorrencia.classificacao?.nome || 'N/D';

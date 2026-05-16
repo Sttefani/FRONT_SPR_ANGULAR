@@ -322,7 +322,13 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   }
 
   onVoltar(): void {
-    this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+    const returnUrl = sessionStorage.getItem('spr_return_url');
+    if (returnUrl) {
+      sessionStorage.removeItem('spr_return_url');
+      this.router.navigate([returnUrl]);
+    } else {
+      this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+    }
   }
 
   onFinalizar(): void {

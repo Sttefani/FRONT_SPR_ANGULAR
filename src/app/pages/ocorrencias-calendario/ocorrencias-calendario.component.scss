@@ -446,6 +446,81 @@
 }
 
 // ========================================
+// BOTÕES DE AÇÃO DOS FILTROS
+// ========================================
+.btn-filtrar,
+.btn-limpar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  height: 42px;
+  padding: 0 1.2rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  border-width: 2px;
+  border-style: solid;
+
+  i {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:active {
+    transform: translateY(0) !important;
+    box-shadow: none !important;
+  }
+}
+
+// Botão principal: fundo dourado sólido
+.btn-filtrar {
+  background: var(--primary-color);
+  border-color: var(--primary-color-dark);
+  color: #1a1a00;
+
+  &:hover {
+    background: var(--primary-color-dark);
+    border-color: var(--primary-color-dark);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(218, 165, 32, 0.4);
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.35);
+  }
+}
+
+// Botão secundário: outlined neutro com hover vermelho suave
+.btn-limpar {
+  background: #fff;
+  border-color: #dee2e6;
+  color: var(--text-color-light);
+
+  &:hover {
+    background: #fff5f5;
+    border-color: #fc8181;
+    color: #c53030;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.15);
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(252, 129, 129, 0.3);
+  }
+}
+
+// ========================================
 // ANIMAÇÕES
 // ========================================
 @keyframes slideIn {

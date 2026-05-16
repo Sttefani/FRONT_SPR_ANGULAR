@@ -601,6 +601,21 @@ export class OcorrenciasFormComponent implements OnInit {
     this.etapaAtual = 'busca-procedimento';
   }
 
+  // =========================================================
+  // Navega de volta respeitando a origem (lista ou calendário).
+  // Se o usuário veio do calendário, spr_return_url está gravado.
+  // Caso contrário, volta para a lista padrão.
+  // =========================================================
+  private navegarDeVolta(): void {
+    const returnUrl = sessionStorage.getItem('spr_return_url');
+    if (returnUrl) {
+      sessionStorage.removeItem('spr_return_url');
+      this.router.navigate([returnUrl]);
+    } else {
+      this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+    }
+  }
+
   toggleSecao(secao: keyof typeof this.secoesAbertas): void {
     (this.secoesAbertas as any)[secao] = !(this.secoesAbertas as any)[secao];
   }
@@ -669,7 +684,7 @@ export class OcorrenciasFormComponent implements OnInit {
           icon: 'error',
           confirmButtonText: 'Voltar'
         }).then(() => {
-          this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+          this.navegarDeVolta();
         });
       }
     });
@@ -691,7 +706,7 @@ export class OcorrenciasFormComponent implements OnInit {
         icon: 'warning',
         confirmButtonText: 'Voltar'
       }).then(() => {
-        this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+        this.navegarDeVolta();
       });
       return false;
     }
@@ -704,7 +719,7 @@ export class OcorrenciasFormComponent implements OnInit {
           icon: 'error',
           confirmButtonText: 'Voltar'
         }).then(() => {
-          this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+          this.navegarDeVolta();
         });
         return false;
       }
@@ -965,7 +980,7 @@ export class OcorrenciasFormComponent implements OnInit {
               icon: 'success',
               confirmButtonText: 'Ok'
             }).then(() => {
-              this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+              this.navegarDeVolta();
             });
           },
           error: (enderecoErr: any) => {
@@ -976,7 +991,7 @@ export class OcorrenciasFormComponent implements OnInit {
               icon: 'warning',
               confirmButtonText: 'Ok'
             }).then(() => {
-              this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+              this.navegarDeVolta();
             });
           }
         });
@@ -1022,7 +1037,7 @@ export class OcorrenciasFormComponent implements OnInit {
       cancelButtonText: 'Continuar editando'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.router.navigate(['/gabinete-virtual/operacional/ocorrencias']);
+        this.navegarDeVolta();
       }
     });
   }

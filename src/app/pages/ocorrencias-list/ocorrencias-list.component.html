@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container-fluid d-flex flex-column h-100" style="padding-bottom: 15px;">
   <div class="header-with-filters">
     <div class="title-section">
       <h1>Gerenciamento de Ocorrências</h1>
@@ -22,38 +22,50 @@
     @if (viewMode !== 'lixeira') {
       <div class="filters-compact">
         <div class="filters-grid">
-          <input type="text" [(ngModel)]="numeroOcorrenciaBusca" placeholder="Número Exato" class="input-compact">
+          <input type="text" [(ngModel)]="numeroOcorrenciaBusca" placeholder="Número Exato" class="input-compact w-100">
 
-          <select [(ngModel)]="peritoFiltro" class="select-compact">
+          <select [(ngModel)]="peritoFiltro" class="select-compact w-100">
             <option [value]="null">Perito: Todos</option>
             @for (perito of peritos; track perito.id) {
               <option [value]="perito.id">{{ perito.nome_completo }}</option>
             }
           </select>
 
-          <select [(ngModel)]="statusFiltro" class="select-compact">
+          <select [(ngModel)]="statusFiltro" class="select-compact w-100">
             <option value="">Status: Todos</option>
             <option value="AGUARDANDO_PERITO">Aguardando</option>
             <option value="EM_ANALISE">Em Análise</option>
             <option value="FINALIZADA">Finalizada</option>
           </select>
 
-          <select [(ngModel)]="servicoPericialFiltro" class="select-compact">
+          <select [(ngModel)]="classificacaoFiltro" class="select-compact w-100">
+            <option [value]="null">Classificação: Todas</option>
+            @for (c of classificacoes; track c.id) {
+              <option [value]="c.id">
+                {{ c.parent ? c.parent.codigo + ' › ' : '' }}{{ c.codigo }} – {{ c.nome }}
+              </option>
+            }
+          </select>
+
+          <select [(ngModel)]="servicoPericialFiltro" class="select-compact w-100">
             <option [value]="null">Serviço: Todos</option>
             @for (servico of servicosPericiais; track servico.id) {
               <option [value]="servico.id">{{ servico.sigla }}</option>
             }
           </select>
 
-          <input type="date" [(ngModel)]="dataInicio" class="input-compact" placeholder="Data Início">
-          <input type="date" [(ngModel)]="dataFim" class="input-compact" placeholder="Data Fim">
+          <input type="date" [(ngModel)]="dataInicio" class="input-compact w-100" placeholder="Data Início">
+          <input type="date" [(ngModel)]="dataFim" class="input-compact w-100" placeholder="Data Fim">
 
-          <button class="btn-buscar" (click)="buscarOcorrencias(true)">
-            <i class="bi bi-search"></i> Buscar
-          </button>
-          <button class="btn-limpar" (click)="limparFiltros()">
-            <i class="bi bi-x-circle"></i> Limpar
-          </button>
+          <!-- ADICIONADO D-FLEX PARA FORÇAR OS DOIS BOTÕES LADO A LADO -->
+          <div class="filtros-actions d-flex gap-2 w-100">
+            <button class="btn-buscar flex-grow-1" (click)="buscarOcorrencias(true)">
+              <i class="bi bi-search"></i> Buscar
+            </button>
+            <button class="btn-limpar flex-grow-1" (click)="limparFiltros()" style="background-color: #6c757d; color: white; border: none; border-radius: 4px;">
+              <i class="bi bi-x-circle"></i> Limpar
+            </button>
+          </div>
         </div>
       </div>
     }
@@ -91,7 +103,8 @@
     }
 
     @if (!isLoading && ocorrencias.length > 0) {
-      <div class="table-container">
+      <!-- ADICIONADO FLEX-GROW E OVERFLOW PARA TRAVAR A PAGINAÇÃO EMBAIXO E ROLAR SÓ A TABELA -->
+      <div class="table-container" style="flex-grow: 1; overflow-y: auto;">
         <table class="data-table">
           <thead>
             <tr>
@@ -162,8 +175,8 @@
         </table>
       </div>
 
-      <div class="paginacao-container" *ngIf="!isLoading && ocorrencias.length > 0 && totalPages > 1">
-        <ul class="pagination">
+      <div class="paginacao-container mt-2" *ngIf="!isLoading && ocorrencias.length > 0 && totalPages > 1">
+        <ul class="pagination mb-0">
           <li class="page-item" [class.disabled]="currentPage === 1">
             <a class="page-link" (click)="irParaPagina(1)" title="Primeira página">
               <i class="bi bi-chevron-double-left"></i>
@@ -191,7 +204,7 @@
           </li>
         </ul>
 
-        <div class="ir-para-pagina">
+        <div class="ir-para-pagina ml-auto">
           <div class="d-flex justify-content-center align-items-center gap-2">
             <label class="mb-0 small text-muted">Ir para página:</label>
             <input type="number"
@@ -225,7 +238,7 @@
     }
 
     @if (!isLoadingLixeira && ocorrenciasLixeira.length > 0) {
-      <div class="table-container">
+      <div class="table-container" style="flex-grow: 1; overflow-y: auto;">
         <table class="data-table">
           <thead>
             <tr>
@@ -245,7 +258,7 @@
                 <td data-label="Deletado em">{{ ocorrencia.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
                 <td class="actions-cell" data-label="Ações">
                   <button class="icon-btn restore" title="Restaurar" (click)="onRestore(ocorrencia)">
-                    <i class="bi bi-arrow-clockwise"></i>
+                   <i class="bi bi-arrow-clockwise"></i>
                   </button>
                 </td>
               </tr>

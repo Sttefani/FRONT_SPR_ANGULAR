@@ -8,6 +8,7 @@
 
     <div class="d-flex gap-3 align-items-end flex-wrap">
 
+      <!-- Seletor de mês -->
       <div class="seletor-rapido">
         <label for="mesAno" class="form-label fw-bold mb-1" style="color: var(--primary-color-dark); font-size: 0.85rem;">Ir para:</label>
         <div class="input-group">
@@ -18,6 +19,44 @@
                  (change)="irParaDataEscolhida()"
                  style="border: 2px solid var(--primary-color); max-width: 220px; cursor: pointer;">
         </div>
+      </div>
+
+      <!-- Filtro por Classificação -->
+      <div class="seletor-rapido">
+        <label class="form-label fw-bold mb-1" style="color: var(--primary-color-dark); font-size: 0.85rem;">Classificação:</label>
+        <select [(ngModel)]="classificacaoFiltro" class="form-control fw-bold"
+                style="border: 2px solid var(--primary-color); max-width: 260px;">
+          <option [value]="null">Todas</option>
+          @for (c of classificacoes; track c.id) {
+            <option [value]="c.id">
+              {{ c.parent ? c.parent.codigo + ' › ' : '' }}{{ c.codigo }} – {{ c.nome }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <!-- Filtro por Status -->
+      <div class="seletor-rapido">
+        <label class="form-label fw-bold mb-1" style="color: var(--primary-color-dark); font-size: 0.85rem;">Status:</label>
+        <select [(ngModel)]="statusFiltro" class="form-control fw-bold"
+                style="border: 2px solid var(--primary-color); max-width: 180px;">
+          <option value="">Todos</option>
+          <option value="AGUARDANDO_PERITO">Aguardando Perito</option>
+          <option value="EM_ANALISE">Em Análise</option>
+          <option value="FINALIZADA">Finalizada</option>
+        </select>
+      </div>
+
+      <!-- Botões de ação dos filtros -->
+      <div class="d-flex gap-2 align-items-end">
+        <button type="button" class="btn-filtrar" (click)="aplicarFiltros()"
+                title="Aplicar filtros selecionados ao calendário">
+          <i class="bi bi-funnel-fill"></i> Filtrar
+        </button>
+        <button type="button" class="btn-limpar" (click)="limparFiltrosCalendario()"
+                title="Remover todos os filtros">
+          <i class="bi bi-x-circle"></i> Limpar
+        </button>
       </div>
 
       <button type="button"

@@ -280,10 +280,19 @@ export class OcorrenciaService {
     });
   }
 
-  getOcorrenciasCalendario(start: string, end: string): Observable<EventoCalendario[]> {
-    const params = new HttpParams()
+  getOcorrenciasCalendario(start: string, end: string, filtros?: { [key: string]: any }): Observable<EventoCalendario[]> {
+    let params = new HttpParams()
       .set('start', start)
       .set('end', end);
+
+    if (filtros) {
+      Object.keys(filtros).forEach(key => {
+        const val = filtros[key];
+        if (val !== null && val !== undefined && val !== '') {
+          params = params.set(key, String(val));
+        }
+      });
+    }
 
     return this.http.get<EventoCalendario[]>(`${this.baseUrl}/ocorrencias/dados-calendario/`, { params });
   }
