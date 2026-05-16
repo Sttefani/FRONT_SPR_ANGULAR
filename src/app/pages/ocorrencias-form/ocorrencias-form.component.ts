@@ -159,7 +159,21 @@ export class OcorrenciasFormComponent implements OnInit {
       if (!this.isEditMode) {
         this.onCidadeChange(cidadeId);
       }
+    })
+    this.ocorrenciaForm.get('servico_pericial_id')?.valueChanges.subscribe((servicoId) => {
+
+    this.ocorrenciaForm.patchValue({
+      perito_atribuido_id: ''
     });
+
+    if (servicoId) {
+      this.loadPeritos(servicoId);
+    } else {
+      this.peritos = [];
+    }
+
+});
+    ;
   }
 
   initForms(): void {
@@ -356,7 +370,7 @@ export class OcorrenciasFormComponent implements OnInit {
     this.loadServicos();
     this.loadTiposProcedimento();
     this.loadTiposDocumento();
-    this.loadPeritos();
+    //this.loadPeritos();
   }
 
   loadServicos(): void {
@@ -488,12 +502,18 @@ export class OcorrenciasFormComponent implements OnInit {
     });
   }
 
-  loadPeritos(): void {
-    this.usuarioService.getPeritosList().subscribe({
-      next: (data: any) => { this.peritos = data; },
-      error: (err: any) => console.error('Erro ao carregar peritos:', err)
-    });
-  }
+loadPeritos(servicoId?: number): void {
+  this.usuarioService.getPeritosList(servicoId).subscribe({
+    next: (data: any) => { 
+      this.peritos = data;
+    },
+    error: (err: any) => {
+      console.error('Erro ao carregar peritos:', err);
+      this.peritos = [];
+    }
+  });
+
+}
 
   onTemProcedimentoSim(): void {
     this.temProcedimento = true;

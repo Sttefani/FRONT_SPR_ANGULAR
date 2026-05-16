@@ -88,7 +88,17 @@ export class UsuarioService {
     return this.http.get<User[]>(`${this.baseUrl}/usuarios/dropdown/`);
   }
 
-  getPeritosList(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/usuarios/peritos_dropdown/`);
+  getPeritosList(servicoId?: number): Observable<any[]> {
+
+    let params: any = {};
+
+    if (servicoId) {
+      params.servico_pericial_id = servicoId;
+    }
+
+    return this.http.get<any[]>(
+      `${this.baseUrl}/usuarios/peritos_dropdown/`,
+      { params }
+    );
   }
 }
