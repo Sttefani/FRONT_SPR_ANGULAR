@@ -64,7 +64,7 @@ export interface ExameSolicitado {
 export interface Ocorrencia {
   id: number;
   numero_ocorrencia: string;
-  status: 'AGUARDANDO_PERITO' | 'EM_ANALISE' | 'FINALIZADA';
+  status: 'AGUARDANDO_PERITO' | 'EM_ANALISE' | 'LAUDO_ENTREGUE' | 'FINALIZADA';
   servico_pericial: SimpleLookup;
   unidade_demandante: SimpleLookup;
   autoridade: Autoridade;
@@ -97,9 +97,9 @@ export interface Ocorrencia {
   motivo_reabertura?: string;
   endereco?: Endereco;
 
-  // ========== NOVO CAMPO ==========
   tem_movimentacao_pendente?: boolean;
-  // ================================
+  data_laudo_entregue?: string;
+  laudo_entregue_por?: UserNested;
 }
 
 export interface PaginatedResponse {
@@ -180,6 +180,18 @@ export class OcorrenciaService {
     });
   }
 
+  entregarLaudo(id: number, senha: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/ocorrencias/${id}/entregar_laudo/`, { password: senha });
+  }
+
+  reverterLaudo(id: number): Observable<any> {
+    return this.http.post(`${this.baseUrl}/ocorrencias/${id}/reverter_laudo/`, {});
+  }
+
+  getAguardandoFinalizacaoCount(): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(`${this.baseUrl}/ocorrencias/aguardando-finalizacao-count/`);
+  }
+
   adicionarExames(id: number, examesIds: number[]): Observable<any> {
     return this.http.post(`${this.baseUrl}/ocorrencias/${id}/adicionar_exames/`, { exames_ids: examesIds });
   }
@@ -243,6 +255,19 @@ export class OcorrenciaService {
   vincularProcedimento(ocorrenciaId: number, procedimentoId: number | null): Observable<any> {
     return this.http.post(`${this.baseUrl}/ocorrencias/${ocorrenciaId}/vincular_procedimento/`, {
       procedimento_cadastrado_id: procedimentoId
+    });
+  }
+
+  exportarCSV(params: any): Observable<Blob> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
+      }
+    });
+    return this.http.get(`${this.baseUrl}/ocorrencias/exportar-csv/`, {
+      params: httpParams,
+      responseType: 'blob'
     });
   }
 

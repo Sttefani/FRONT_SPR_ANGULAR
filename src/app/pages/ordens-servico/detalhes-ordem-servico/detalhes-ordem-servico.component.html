@@ -238,6 +238,27 @@
       </div>
     }
 
+    @if (isAdministrativo() && ordemServico.status === 'AGUARDANDO_CIENCIA' && prazoExcedidoSemCiencia()) {
+      <div class="alert alert-warning">
+        <h5 class="alert-heading">
+          <i class="bi bi-exclamation-triangle-fill"></i> Prazo excedido sem ciência do perito
+        </h5>
+        <p class="mb-3">
+          O perito <strong>não tomou ciência</strong> desta OS e o prazo de
+          <strong>{{ ordemServico.prazo_dias }} dia(s)</strong> já foi excedido.
+          Você pode reiterar a OS emitindo uma nova com prazo menor.
+        </p>
+        <button class="btn btn-warning" (click)="abrirModalReiterar()">
+          <i class="bi bi-arrow-repeat"></i> Reiterar OS
+        </button>
+        <hr class="my-3">
+        <small class="text-muted">
+          <i class="bi bi-info-circle"></i>
+          <strong>Reiteração:</strong> Cria uma nova OS mantendo o histórico. O perito precisará tomar ciência da nova OS.
+        </small>
+      </div>
+    }
+
     @if (isAdministrativo() && (ordemServico.status === 'EM_ANDAMENTO' || ordemServico.status === 'ABERTA' || ordemServico.status === 'VENCIDA')) {
       <div class="alert alert-info">
         <h5 class="alert-heading">

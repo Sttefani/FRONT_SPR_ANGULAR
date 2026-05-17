@@ -624,15 +624,98 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   podeFinalizar(): boolean {
     if (!this.ocorrencia) return false;
 
-    if (this.ocorrencia.reaberta_por) {
-      return this.isAdministrativo || this.isSuperAdmin;
-    }
-
     const jaFinalizada = this.ocorrencia.esta_finalizada === true ||
       !!this.ocorrencia.finalizada_por ||
       !!this.ocorrencia.data_finalizacao;
 
-    return !jaFinalizada && (this.isAdministrativo || this.isSuperAdmin);
+    if (jaFinalizada) return false;
+
+    // Pode finalizar quando EM_ANALISE ou LAUDO_ENTREGUE
+    const statusFinalizavel = this.ocorrencia.status === 'EM_ANALISE' ||
+      this.ocorrencia.status === 'LAUDO_ENTREGUE';
+
+    return statusFinalizavel && (this.isAdministrativo || this.isSuperAdmin);
+  }
+
+  podeEntregarLaudo(): boolean {
+    if (!this.ocorrencia) return false;
+    if (this.ocorrencia.status !== 'EM_ANALISE') return false;
+    if (!this.ocorrencia.perito_atribuido) return false;
+    if (this.isSuperAdmin) return true;
+    return this.isPerito &&
+      Number(this.currentUserId) === Number(this.ocorrencia.perito_atribuido.id);
+  }
+
+  podeReverterLaudo(): boolean {
+    if (!this.ocorrencia) return false;
+    return this.ocorrencia.status === 'LAUDO_ENTREGUE' &&
+      (this.isAdministrativo || this.isSuperAdmin);
+  }
+
+  onEntregarLaudo(): void {
+    if (!this.ocorrencia) return;
+
+    Swal.fire({
+      title: 'Registrar Entrega do Laudo',
+      html: `
+        <p>Confirme que o laudo da ocorrência <strong>${this.ocorrencia.numero_ocorrencia}</strong> foi entregue ao setor Administrativo.</p>
+        <p style="color:#6d28d9; font-size:13px;">O setor Administrativo será notificado para dar a baixa final.</p>
+        <input type="password" id="senha-entrega" class="swal2-input" placeholder="Confirme sua senha">
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Confirmar Entrega',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#8B5CF6',
+      preConfirm: () => {
+        const senha = (document.getElementById('senha-entrega') as HTMLInputElement).value;
+        if (!senha) { Swal.showValidationMessage('A senha é obrigatória'); return false; }
+        return senha;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        this.ocorrenciaService.entregarLaudo(this.ocorrencia!.id, result.value).subscribe({
+          next: () => {
+            Swal.fire('Laudo Entregue!', 'O Administrativo foi notificado para finalizar a ocorrência.', 'success');
+            this.loadOcorrencia(this.ocorrencia!.id);
+          },
+          error: (err: any) => {
+            const errorMsg = err.error?.password?.[0] || err.error?.error || 'Erro ao registrar entrega do laudo.';
+            Swal.fire('Erro', errorMsg, 'error');
+          }
+        });
+      }
+    });
+  }
+
+  onReverterLaudo(): void {
+    if (!this.ocorrencia) return;
+
+    Swal.fire({
+      title: 'Reverter para Em Análise',
+      html: `
+        <p>Tem certeza que deseja reverter a ocorrência <strong>${this.ocorrencia.numero_ocorrencia}</strong> de <em>Laudo Entregue</em> para <em>Em Análise</em>?</p>
+        <p style="color:#dc3545; font-size:13px;">O registro de entrega do laudo será removido.</p>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, reverter',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#dc3545',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.ocorrenciaService.reverterLaudo(this.ocorrencia!.id).subscribe({
+          next: () => {
+            Swal.fire('Revertido!', 'Ocorrência voltou para Em Análise.', 'success');
+            this.loadOcorrencia(this.ocorrencia!.id);
+          },
+          error: (err: any) => {
+            const errorMsg = err.error?.error || 'Erro ao reverter.';
+            Swal.fire('Erro', errorMsg, 'error');
+          }
+        });
+      }
+    });
   }
 
   podeReabrir(): boolean {
@@ -705,6 +788,7 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     const labels: any = {
       'AGUARDANDO_PERITO': 'Aguardando Atribuição de Perito',
       'EM_ANALISE': 'Em Análise',
+      'LAUDO_ENTREGUE': 'Laudo Entregue',
       'FINALIZADA': 'Finalizada'
     };
     return labels[status] || status;
@@ -714,6 +798,7 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     const classes: any = {
       'AGUARDANDO_PERITO': 'status-aguardando',
       'EM_ANALISE': 'status-analise',
+      'LAUDO_ENTREGUE': 'status-laudo-entregue',
       'FINALIZADA': 'status-finalizada'
     };
     return classes[status] || '';

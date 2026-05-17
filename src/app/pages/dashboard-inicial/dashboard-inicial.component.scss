@@ -324,6 +324,12 @@
     &:hover { border-color: #6c757d; }
   }
 
+  &.laudo-entregue {
+    &::before { background: #8B5CF6; }
+    .stat-number { color: #8B5CF6; }
+    &:hover { border-color: #8B5CF6; }
+  }
+
   &.highlight {
     border-color: var(--primary-color);
     background: rgba(218, 165, 32, 0.05);

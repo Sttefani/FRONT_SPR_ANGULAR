@@ -42,6 +42,18 @@
           }
         }
 
+        @if (podeEntregarLaudo()) {
+          <button class="btn-laudo-entregue" (click)="onEntregarLaudo()" title="Registrar que o laudo foi entregue ao Administrativo">
+            <i class="bi bi-file-earmark-check"></i> Entregar Laudo
+          </button>
+        }
+
+        @if (podeReverterLaudo()) {
+          <button class="btn-warning" (click)="onReverterLaudo()" title="Reverter para Em Análise">
+            <i class="bi bi-arrow-counterclockwise"></i> Reverter Laudo
+          </button>
+        }
+
         @if (podeFinalizar()) {
           <button class="btn-success" (click)="onFinalizar()">
             <i class="bi bi-check-circle"></i> Finalizar
@@ -238,6 +250,29 @@
           </div>
         }
       </div>
+
+      <!-- Card Laudo Entregue -->
+      @if (ocorrencia.data_laudo_entregue) {
+        <div class="info-card laudo-entregue">
+          <h3><i class="bi bi-file-earmark-check"></i> Laudo Entregue</h3>
+          <div class="info-row">
+            <span class="label">Entregue por:</span>
+            <span class="value">{{ ocorrencia.laudo_entregue_por?.nome_completo || 'N/D' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Data:</span>
+            <span class="value">{{ ocorrencia.data_laudo_entregue | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          @if (!ocorrencia.esta_finalizada) {
+            <div class="info-row">
+              <span class="label">Situação:</span>
+              <span class="value" style="color:#8B5CF6; font-weight:600;">
+                <i class="bi bi-hourglass-split"></i> Aguardando finalização pelo Administrativo
+              </span>
+            </div>
+          }
+        </div>
+      }
 
       <!-- Card Finalização -->
       @if (ocorrencia.esta_finalizada) {

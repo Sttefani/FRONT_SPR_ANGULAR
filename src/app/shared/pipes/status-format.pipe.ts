@@ -12,8 +12,9 @@ export class StatusFormatPipe implements PipeTransform {
   private statusMap: { [key: string]: string } = {
     'AGUARDANDO_PERITO': 'Aguardando Perito',
     'EM_ANALISE': 'Em Análise',
-    'FINALIZADA': 'Finalizada'
-    // Se tiver outros status, adicione-os aqui.
+    'LAUDO_ENTREGUE': 'Laudo Entregue',
+    'FINALIZADA': 'Finalizada',
+    'AGUARDANDO_ADMIN': 'Aguardando Finalização',
   };
 
   transform(value: string): string {

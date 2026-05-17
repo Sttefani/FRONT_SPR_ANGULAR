@@ -38,7 +38,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
   servicoPericialFiltro: number | null = null;
   classificacaoFiltro: number | null = null;
   classificacoes: any[] = [];
-  viewMode: 'todas' | 'pendentes' | 'finalizadas' | 'lixeira' = 'todas';
+  viewMode: 'todas' | 'pendentes' | 'laudo_entregue' | 'finalizadas' | 'lixeira' = 'todas';
 
   private readonly SESSION_KEY = 'spr_filtros_ocorrencias';
 
@@ -73,6 +73,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     this.loadServicos();
     this.loadPeritos();
     this.loadClassificacoes();
+    this.carregarFiltrosSalvos();
 
     // Tenta pegar os filtros da URL primeiro (se veio de um link)
     const params = this.route.snapshot.queryParams;
@@ -84,6 +85,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
       this.peritoFiltro = params['perito'] ? Number(params['perito']) : null;
       this.dataInicio = params['dataInicio'] || '';
       this.dataFim = params['dataFim'] || '';
+      this.currentPage = params['page'] ? Number(params['page']) : 1;
     } else {
       // Se a URL estiver limpa, restaura a sessão anterior
       this.restaurarFiltrosSession();
@@ -216,6 +218,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
 
     if (resetPage) {
       this.currentPage = 1;
+      this.paginaInput = 1;
     }
 
     this.isLoading = true;
@@ -226,9 +229,10 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
 
     // Filtros de Abas
     if (this.viewMode === 'pendentes') {
-      params.status__in = 'AGUARDANDO_PERITO,EM_ANALISE';
+      params.status__in = 'AGUARDANDO_PERITO,EM_ANALISE,LAUDO_ENTREGUE';
       params.esta_finalizada = 'false';
     }
+    if (this.viewMode === 'laudo_entregue') params.status = 'LAUDO_ENTREGUE';
     if (this.viewMode === 'finalizadas') params.status = 'FINALIZADA';
 
     // === CORREÇÃO DOS FILTROS ===
@@ -271,7 +275,8 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
         servico: this.servicoPericialFiltro || null,
         perito: this.peritoFiltro || null,
         dataInicio: this.dataInicio || null,
-        dataFim: this.dataFim || null
+        dataFim: this.dataFim || null,
+        page: this.currentPage > 1 ? this.currentPage : null
       },
       queryParamsHandling: 'merge'
     });
@@ -317,7 +322,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     this.buscarOcorrencias(true);
   }
 
-  switchView(newView: 'todas' | 'pendentes' | 'finalizadas' | 'lixeira'): void {
+  switchView(newView: 'todas' | 'pendentes' | 'laudo_entregue' | 'finalizadas' | 'lixeira'): void {
     if (this.viewMode === newView) return;
     this.viewMode = newView;
     this.limparFiltros();
@@ -424,20 +429,145 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
 
   getStatusLabel(status: string | undefined): string {
     if (!status) return 'N/D';
-    const labels: any = { 'AGUARDANDO_PERITO': 'Aguardando Perito', 'EM_ANALISE': 'Em Análise', 'FINALIZADA': 'Finalizada' };
+    const labels: any = {
+      'AGUARDANDO_PERITO': 'Aguardando Perito',
+      'EM_ANALISE': 'Em Análise',
+      'LAUDO_ENTREGUE': 'Laudo Entregue',
+      'FINALIZADA': 'Finalizada'
+    };
     return labels[status] || status;
   }
 
   getStatusClass(status: string | undefined): string {
     if (!status) return '';
-    const classes: any = { 'AGUARDANDO_PERITO': 'status-aguardando', 'EM_ANALISE': 'status-analise', 'FINALIZADA': 'status-finalizada' };
+    const classes: any = {
+      'AGUARDANDO_PERITO': 'status-aguardando',
+      'EM_ANALISE': 'status-analise',
+      'LAUDO_ENTREGUE': 'status-laudo-entregue',
+      'FINALIZADA': 'status-finalizada'
+    };
     return classes[status] || '';
   }
 
   getPrazoClass(statusPrazo: string | undefined): string {
     if (!statusPrazo) return '';
-    const classes: any = { 'NO_PRAZO': 'prazo-ok', 'PRORROGADO': 'prorrogado', 'ATRASADO': 'atrasado', 'CONCLUIDO': 'concluido' };
+    const classes: any = {
+      'NO_PRAZO': 'prazo-ok',
+      'PRORROGADO': 'prorrogado',
+      'IMINENTE': 'iminente',
+      'ATRASADO': 'atrasado',
+      'CONCLUIDO': 'concluido',
+      'AGUARDANDO_ADMIN': 'aguardando-admin'
+    };
     return classes[statusPrazo] || '';
+  }
+
+  isIminente(ocorrencia: Ocorrencia): boolean {
+    return ocorrencia.status_prazo === 'IMINENTE';
+  }
+
+  // ===== FILTROS SALVOS =====
+  private readonly FILTROS_SALVOS_KEY = 'spr_filtros_favoritos';
+  filtrosSalvos: { nome: string; dados: any }[] = [];
+  nomeFiltroSalvar = '';
+  mostrarFiltrosSalvos = false;
+
+  carregarFiltrosSalvos(): void {
+    try {
+      const raw = localStorage.getItem(this.FILTROS_SALVOS_KEY);
+      this.filtrosSalvos = raw ? JSON.parse(raw) : [];
+    } catch {
+      this.filtrosSalvos = [];
+    }
+  }
+
+  salvarFiltroAtual(): void {
+    const nome = this.nomeFiltroSalvar.trim();
+    if (!nome) return;
+    const dados = {
+      searchTerm: this.searchTerm,
+      numeroOcorrenciaBusca: this.numeroOcorrenciaBusca,
+      statusFiltro: this.statusFiltro,
+      servicoPericialFiltro: this.servicoPericialFiltro,
+      peritoFiltro: this.peritoFiltro,
+      dataInicio: this.dataInicio,
+      dataFim: this.dataFim,
+      classificacaoFiltro: this.classificacaoFiltro,
+      viewMode: this.viewMode
+    };
+    const existente = this.filtrosSalvos.findIndex(f => f.nome === nome);
+    if (existente >= 0) {
+      this.filtrosSalvos[existente].dados = dados;
+    } else {
+      this.filtrosSalvos.push({ nome, dados });
+    }
+    localStorage.setItem(this.FILTROS_SALVOS_KEY, JSON.stringify(this.filtrosSalvos));
+    this.nomeFiltroSalvar = '';
+  }
+
+  aplicarFiltroSalvo(filtro: { nome: string; dados: any }): void {
+    const d = filtro.dados;
+    this.searchTerm = d.searchTerm || '';
+    this.numeroOcorrenciaBusca = d.numeroOcorrenciaBusca || '';
+    this.statusFiltro = d.statusFiltro || '';
+    this.servicoPericialFiltro = d.servicoPericialFiltro || null;
+    this.peritoFiltro = d.peritoFiltro || null;
+    this.dataInicio = d.dataInicio || '';
+    this.dataFim = d.dataFim || '';
+    this.classificacaoFiltro = d.classificacaoFiltro || null;
+    this.viewMode = d.viewMode || 'todas';
+    this.buscarOcorrencias(true);
+  }
+
+  deletarFiltroSalvo(nome: string): void {
+    this.filtrosSalvos = this.filtrosSalvos.filter(f => f.nome !== nome);
+    localStorage.setItem(this.FILTROS_SALVOS_KEY, JSON.stringify(this.filtrosSalvos));
+  }
+
+  isExportando = false;
+
+  exportarCSV(): void {
+    this.isExportando = true;
+    const params: any = {};
+
+    if (this.viewMode === 'pendentes') {
+      params.status__in = 'AGUARDANDO_PERITO,EM_ANALISE,LAUDO_ENTREGUE';
+      params.esta_finalizada = 'false';
+    }
+    if (this.viewMode === 'laudo_entregue') params.status = 'LAUDO_ENTREGUE';
+    if (this.viewMode === 'finalizadas') params.status = 'FINALIZADA';
+
+    if (this.numeroOcorrenciaBusca.trim()) params.numero_ocorrencia = this.numeroOcorrenciaBusca.trim();
+    if (this.searchTerm.trim()) params.busca_geral = this.searchTerm.trim();
+    if (this.statusFiltro) params.status = this.statusFiltro;
+    if (this.servicoPericialFiltro) params.servico_pericial = this.servicoPericialFiltro;
+    if (this.peritoFiltro) params.perito_atribuido = this.peritoFiltro;
+    if (this.classificacaoFiltro) params.classificacao = this.classificacaoFiltro;
+    if (this.dataInicio) params.created_at_de = this.dataInicio;
+    if (this.dataFim) params.created_at_ate = this.dataFim;
+
+    this.ocorrenciaService.exportarCSV(params).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `ocorrencias_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        this.isExportando = false;
+      },
+      error: () => {
+        this.message = 'Erro ao exportar. Tente novamente.';
+        this.messageType = 'error';
+        this.isExportando = false;
+      }
+    });
+  }
+
+  isLaudoEntregue(ocorrencia: Ocorrencia): boolean {
+    return ocorrencia.status === 'LAUDO_ENTREGUE';
   }
 
   getFirstName(fullName: string | undefined): string {

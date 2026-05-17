@@ -42,11 +42,26 @@ export interface RelatorioExame {
   filhos: RelatorioExameFilho[];
 }
 
+export interface TempoMedioPeritoFase {
+  nome_completo: string;
+  total_laudos: number;
+  media_criacao_laudo_dias: number;
+}
+
+export interface TempoMedioFases {
+  media_criacao_laudo_dias: number | null;
+  media_laudo_finalizacao_dias: number | null;
+  media_total_dias: number | null;
+  total_com_laudo: number;
+  por_perito: TempoMedioPeritoFase[];
+}
+
 // A interface principal que agrupa todos os relatórios
 export interface RelatoriosGerenciais {
   por_grupo_principal: RelatorioGrupoPrincipal[];
   por_classificacao_especifica: RelatorioClassificacaoEspecifica[];
   producao_por_perito: RelatorioPerito[];
   por_servico: RelatorioServico[];
-  por_exame: RelatorioExame[];  // ✅ NOVO CAMPO
+  por_exame: RelatorioExame[];
+  tempo_medio_fases: TempoMedioFases;
 }

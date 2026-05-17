@@ -202,6 +202,21 @@
   flex: 1;
 }
 
+/* Badge de laudos aguardando finalização */
+.badge-laudo-pendente {
+  background: #dc3545;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 10px;
+  margin-left: auto;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
 /* Badge "Novo" */
 .badge-novo {
   background: linear-gradient(135deg, #DAA520, #B8860B);

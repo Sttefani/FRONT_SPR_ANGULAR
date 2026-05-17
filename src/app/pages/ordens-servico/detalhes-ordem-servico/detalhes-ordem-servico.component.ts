@@ -397,6 +397,14 @@ export class DetalhesOrdemServicoComponent implements OnInit {
     return this.authService.isSuperAdmin() || user?.perfil === 'ADMINISTRATIVO';
   }
 
+  prazoExcedidoSemCiencia(): boolean {
+    if (!this.ordemServico || this.ordemServico.status !== 'AGUARDANDO_CIENCIA') return false;
+    const created = new Date(this.ordemServico.created_at);
+    const hoje = new Date();
+    const diasDecorridos = Math.floor((hoje.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+    return diasDecorridos > this.ordemServico.prazo_dias;
+  }
+
   // ===========================================================================
   // HELPERS
   // ===========================================================================

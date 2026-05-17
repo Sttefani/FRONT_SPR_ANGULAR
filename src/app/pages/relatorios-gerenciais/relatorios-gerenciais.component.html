@@ -184,6 +184,97 @@
       }
     </div>
 
+    <!-- Seção: Tempo Médio por Fase -->
+    @if (relatorios.tempo_medio_fases) {
+      <div class="data-section">
+        <h2><i class="bi bi-stopwatch"></i> Tempo Médio por Fase</h2>
+        <p class="section-subtitle">
+          Baseado em {{ relatorios.tempo_medio_fases.total_com_laudo }} ocorrência(s) com laudo entregue registrado.
+        </p>
+
+        <div class="tempo-cards">
+          <div class="tempo-card perito">
+            <div class="tempo-icon"><i class="bi bi-person-badge"></i></div>
+            <div class="tempo-info">
+              <span class="tempo-label">Perito → Laudo</span>
+              <span class="tempo-valor">
+                @if (relatorios.tempo_medio_fases.media_criacao_laudo_dias !== null) {
+                  {{ relatorios.tempo_medio_fases.media_criacao_laudo_dias | number:'1.1-1' }} dias
+                } @else {
+                  N/D
+                }
+              </span>
+              <span class="tempo-desc">Do registro até entrega do laudo</span>
+            </div>
+          </div>
+
+          <div class="tempo-card admin">
+            <div class="tempo-icon"><i class="bi bi-building-check"></i></div>
+            <div class="tempo-info">
+              <span class="tempo-label">Administrativo → Finalização</span>
+              <span class="tempo-valor">
+                @if (relatorios.tempo_medio_fases.media_laudo_finalizacao_dias !== null) {
+                  {{ relatorios.tempo_medio_fases.media_laudo_finalizacao_dias | number:'1.1-1' }} dias
+                } @else {
+                  N/D
+                }
+              </span>
+              <span class="tempo-desc">Do laudo entregue até finalização</span>
+            </div>
+          </div>
+
+          <div class="tempo-card total">
+            <div class="tempo-icon"><i class="bi bi-clock-history"></i></div>
+            <div class="tempo-info">
+              <span class="tempo-label">Ciclo Total</span>
+              <span class="tempo-valor">
+                @if (relatorios.tempo_medio_fases.media_total_dias !== null) {
+                  {{ relatorios.tempo_medio_fases.media_total_dias | number:'1.1-1' }} dias
+                } @else {
+                  N/D
+                }
+              </span>
+              <span class="tempo-desc">Do registro até finalização</span>
+            </div>
+          </div>
+        </div>
+
+        @if (relatorios.tempo_medio_fases.por_perito && relatorios.tempo_medio_fases.por_perito.length > 0) {
+          <h3 class="subtable-title"><i class="bi bi-bar-chart-steps"></i> Tempo Médio por Perito (registro → laudo entregue)</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Perito</th>
+                <th class="text-right">Laudos Entregues</th>
+                <th class="text-right">Média (dias)</th>
+                <th>Desempenho</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of relatorios.tempo_medio_fases.por_perito; track $index) {
+                <tr>
+                  <td>{{ item.nome_completo }}</td>
+                  <td class="text-right">{{ item.total_laudos }}</td>
+                  <td class="text-right">
+                    <strong [class]="getTempoClass(item.media_criacao_laudo_dias)">
+                      {{ item.media_criacao_laudo_dias | number:'1.1-1' }}d
+                    </strong>
+                  </td>
+                  <td>
+                    <div class="tempo-barra-container">
+                      <div class="tempo-barra" [class]="getTempoClass(item.media_criacao_laudo_dias)"
+                           [style.width.%]="getBarraLargura(item.media_criacao_laudo_dias)">
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    }
+
   } @else if (!isLoading) {
     <div class="empty-state">
       <i class="bi bi-info-circle"></i>

@@ -95,6 +95,19 @@ export class RelatoriosGerenciaisComponent implements OnInit {
     return 'total_' + header.toLowerCase().replace(/ /g, '_');
   }
 
+  getTempoClass(dias: number): string {
+    if (dias <= 10) return 'tempo-rapido';
+    if (dias <= 20) return 'tempo-medio';
+    return 'tempo-lento';
+  }
+
+  getBarraLargura(dias: number): number {
+    const max = this.relatorios?.tempo_medio_fases?.por_perito?.length
+      ? Math.max(...this.relatorios.tempo_medio_fases.por_perito.map(p => p.media_criacao_laudo_dias))
+      : 60;
+    return Math.min(Math.round((dias / (max || 60)) * 100), 100);
+  }
+
   gerarPDF(): void {
     this.isGerandoPDF = true;
 

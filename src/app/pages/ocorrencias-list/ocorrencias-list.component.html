@@ -33,7 +33,10 @@
 
           <select [(ngModel)]="statusFiltro" class="select-compact w-100">
             <option value="">Status: Todos</option>
-            <option value="AGUARDANDO_PERITO">Aguardando</option>
+            <option value="AGUARDANDO_PERITO">Aguardando Perito</option>
+            <option value="EM_ANALISE">Em Análise</option>
+            <option value="LAUDO_ENTREGUE">Laudo Entregue</option>
+            <option value="FINALIZADA">Finalizada</option>
             <option value="EM_ANALISE">Em Análise</option>
             <option value="FINALIZADA">Finalizada</option>
           </select>
@@ -57,7 +60,6 @@
           <input type="date" [(ngModel)]="dataInicio" class="input-compact w-100" placeholder="Data Início">
           <input type="date" [(ngModel)]="dataFim" class="input-compact w-100" placeholder="Data Fim">
 
-          <!-- ADICIONADO D-FLEX PARA FORÇAR OS DOIS BOTÕES LADO A LADO -->
           <div class="filtros-actions d-flex gap-2 w-100">
             <button class="btn-buscar flex-grow-1" (click)="buscarOcorrencias(true)">
               <i class="bi bi-search"></i> Buscar
@@ -66,10 +68,65 @@
               <i class="bi bi-x-circle"></i> Limpar
             </button>
           </div>
+          @if (isSuperAdmin || isAdministrativo) {
+            <div class="w-100">
+              <button class="btn-exportar w-100" (click)="exportarCSV()" [disabled]="isExportando" title="Exportar resultado atual para CSV (abre no Excel)">
+                @if (isExportando) {
+                  <i class="bi bi-hourglass-split"></i> Exportando...
+                } @else {
+                  <i class="bi bi-file-earmark-spreadsheet"></i> Exportar CSV
+                }
+              </button>
+            </div>
+          }
         </div>
       </div>
     }
   </div>
+
+  <!-- ===== FILTROS SALVOS ===== -->
+  @if (isSuperAdmin || isAdministrativo || isPerito || isOperacional) {
+    <div class="filtros-salvos-bar">
+      <button class="btn-toggle-salvos" (click)="mostrarFiltrosSalvos = !mostrarFiltrosSalvos">
+        <i class="bi bi-bookmark-star"></i>
+        Filtros Favoritos
+        @if (filtrosSalvos.length > 0) {
+          <span class="badge-count">{{ filtrosSalvos.length }}</span>
+        }
+        <i class="bi" [class.bi-chevron-down]="!mostrarFiltrosSalvos" [class.bi-chevron-up]="mostrarFiltrosSalvos"></i>
+      </button>
+
+      @if (mostrarFiltrosSalvos) {
+        <div class="filtros-salvos-painel">
+          <div class="salvar-filtro-row">
+            <input type="text" [(ngModel)]="nomeFiltroSalvar" placeholder="Nome do favorito..." class="input-nome-filtro"
+                   (keyup.enter)="salvarFiltroAtual()">
+            <button class="btn-salvar-filtro" (click)="salvarFiltroAtual()" [disabled]="!nomeFiltroSalvar.trim()"
+                    title="Salvar filtros atuais como favorito">
+              <i class="bi bi-bookmark-plus"></i> Salvar atual
+            </button>
+          </div>
+
+          @if (filtrosSalvos.length > 0) {
+            <div class="lista-filtros-salvos">
+              @for (filtro of filtrosSalvos; track filtro.nome) {
+                <div class="filtro-salvo-item">
+                  <button class="btn-aplicar-filtro" (click)="aplicarFiltroSalvo(filtro)" title="Aplicar este filtro">
+                    <i class="bi bi-bookmark-fill"></i> {{ filtro.nome }}
+                  </button>
+                  <button class="btn-deletar-filtro" (click)="deletarFiltroSalvo(filtro.nome)" title="Excluir favorito">
+                    <i class="bi bi-x"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="sem-filtros-salvos">Nenhum favorito salvo. Configure os filtros e clique em "Salvar atual".</p>
+          }
+        </div>
+      }
+    </div>
+  }
 
   <div class="tabs">
     <button class="tab" [class.active]="viewMode === 'todas'" (click)="switchView('todas')">
@@ -77,6 +134,10 @@
     </button>
     <button class="tab" [class.active]="viewMode === 'pendentes'" (click)="switchView('pendentes')">
       <i class="bi bi-hourglass-split"></i> Pendentes
+    </button>
+    <button class="tab" [class.active]="viewMode === 'laudo_entregue'" (click)="switchView('laudo_entregue')"
+            [title]="'Laudos entregues ao Administrativo aguardando finalização'">
+      <i class="bi bi-file-earmark-check"></i> Laudo Entregue
     </button>
     <button class="tab" [class.active]="viewMode === 'finalizadas'" (click)="switchView('finalizadas')">
       <i class="bi bi-check-circle"></i> Finalizadas
@@ -120,17 +181,21 @@
           </thead>
           <tbody>
             @for (ocorrencia of ocorrencias; track ocorrencia.id) {
-              <tr>
+              <tr [class.linha-laudo-entregue]="isLaudoEntregue(ocorrencia)"
+                  [class.linha-iminente]="isIminente(ocorrencia)">
                 <td data-label="Número" class="numero-cell">
                   <strong class="numero-ocorrencia-tooltip"
                           [attr.data-tooltip]="getTooltipContent(ocorrencia)">
-                    <!-- ========== NOVO: Ícone de movimentação pendente ========== -->
                     @if (ocorrencia.tem_movimentacao_pendente) {
                       <i class="bi bi-exclamation-triangle-fill"
                          style="color: #ffc107; margin-right: 5px;"
                          title="Nova movimentação - clique para visualizar"></i>
                     }
-                    <!-- =========================================================== -->
+                    @if (isLaudoEntregue(ocorrencia)) {
+                      <i class="bi bi-bell-fill"
+                         style="color: #8B5CF6; margin-right: 5px;"
+                         title="Laudo entregue — aguardando finalização pelo Administrativo"></i>
+                    }
                     {{ ocorrencia.numero_ocorrencia }}
                   </strong>
                 </td>

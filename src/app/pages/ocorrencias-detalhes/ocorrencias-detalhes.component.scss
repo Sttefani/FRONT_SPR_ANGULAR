@@ -152,6 +152,13 @@
       box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
     }
 
+    &.status-laudo-entregue {
+      background: linear-gradient(135deg, #8B5CF6, #6d28d9);
+      color: #fff;
+      border-color: #6d28d9;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
+    }
+
     &.status-finalizada {
       background: linear-gradient(135deg, #28a745, #1e7e34);
       color: #fff;
@@ -235,6 +242,17 @@
 
       &:hover {
         box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+      }
+    }
+
+    .btn-laudo-entregue {
+      background: linear-gradient(135deg, #8B5CF6, #6d28d9);
+      border-color: #6d28d9;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
+
+      &:hover {
+        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
       }
     }
   }
@@ -382,6 +400,11 @@
 
   &.full-width {
     grid-column: 1 / -1;
+  }
+
+  &.laudo-entregue {
+    border-left-color: #8B5CF6;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.04), var(--card-background-color));
   }
 
   &.finalizado {
