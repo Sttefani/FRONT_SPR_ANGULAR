@@ -25,9 +25,9 @@
           <input type="text" [(ngModel)]="numeroOcorrenciaBusca" placeholder="Número Exato" class="input-compact w-100">
 
           <select [(ngModel)]="peritoFiltro" class="select-compact w-100">
-            <option [value]="null">Perito: Todos</option>
+            <option [ngValue]="null">Perito: Todos</option>
             @for (perito of peritos; track perito.id) {
-              <option [value]="perito.id">{{ perito.nome_completo }}</option>
+              <option [ngValue]="perito.id">{{ perito.nome_completo }}</option>
             }
           </select>
 
@@ -42,18 +42,18 @@
           </select>
 
           <select [(ngModel)]="classificacaoFiltro" class="select-compact w-100">
-            <option [value]="null">Classificação: Todas</option>
+            <option [ngValue]="null">Classificação: Todas</option>
             @for (c of classificacoes; track c.id) {
-              <option [value]="c.id">
+              <option [ngValue]="c.id">
                 {{ c.parent ? c.parent.codigo + ' › ' : '' }}{{ c.codigo }} – {{ c.nome }}
               </option>
             }
           </select>
 
           <select [(ngModel)]="servicoPericialFiltro" class="select-compact w-100">
-            <option [value]="null">Serviço: Todos</option>
+            <option [ngValue]="null">Serviço: Todos</option>
             @for (servico of servicosPericiais; track servico.id) {
-              <option [value]="servico.id">{{ servico.sigla }}</option>
+              <option [ngValue]="servico.id">{{ servico.sigla }}</option>
             }
           </select>
 
