@@ -297,7 +297,25 @@
         <p class="mb-2">
           <strong>Data de conclusão:</strong> {{ formatarData(ordemServico.data_conclusao) }}
         </p>
-        <p class="mb-0">
+        @if (ordemServico.concluida_com_atraso === false) {
+          <p class="mb-2 text-success">
+            <i class="bi bi-check-circle"></i> <strong>Concluída dentro do prazo.</strong>
+          </p>
+        }
+        @if (ordemServico.concluida_com_atraso === true) {
+          <p class="mb-2 text-danger">
+            <i class="bi bi-exclamation-triangle"></i> <strong>Concluída com atraso.</strong>
+          </p>
+        }
+        @if (ordemServico.dias_desconto_admin > 0) {
+          <div class="mt-2 p-2 bg-white rounded border border-warning-subtle">
+            <small class="text-muted d-block mb-1"><i class="bi bi-info-circle"></i> <strong>Desconto de prazo aplicado</strong></small>
+            <small class="d-block">Prazo original: <strong>{{ formatarData(ordemServico.data_prazo) }}</strong></small>
+            <small class="d-block">Desconto administrativo: <strong>{{ ordemServico.dias_desconto_admin }} dia(s)</strong> (tempo entre entrega do laudo e finalização)</small>
+            <small class="d-block text-success">Prazo efetivo considerado: <strong>{{ formatarData(ordemServico.data_prazo_efetivo) }}</strong></small>
+          </div>
+        }
+        <p class="mb-0 mt-2">
           <i class="bi bi-clipboard-check"></i>
           Esta OS foi finalizada com sucesso e não requer mais ações.
         </p>
@@ -486,8 +504,20 @@
             <div class="row g-4">
               <div class="col-md-6">
                 <h6 class="text-muted mb-3">⏱️ Informações de Prazo</h6>
-                <p><strong>Prazo:</strong> {{ ordemServico.prazo_dias }} dia(s)</p>
-                @if (ordemServico.data_vencimento) {
+                <p><strong>Prazo concedido:</strong> {{ ordemServico.prazo_dias }} dia(s)</p>
+                @if (ordemServico.data_prazo) {
+                  <p><strong>Data limite original:</strong> {{ formatarData(ordemServico.data_prazo) }}</p>
+                }
+                @if (ordemServico.dias_desconto_admin > 0) {
+                  <p class="text-warning">
+                    <i class="bi bi-clock-history"></i>
+                    <strong>Desconto administrativo:</strong> {{ ordemServico.dias_desconto_admin }} dia(s)
+                  </p>
+                  <p class="text-success">
+                    <i class="bi bi-calendar-check"></i>
+                    <strong>Data limite efetiva:</strong> {{ formatarData(ordemServico.data_prazo_efetivo) }}
+                  </p>
+                } @else if (ordemServico.data_vencimento) {
                   <p><strong>Vencimento:</strong> {{ formatarData(ordemServico.data_vencimento) }}</p>
                 }
                 @if (ordemServico.dias_restantes !== null) {

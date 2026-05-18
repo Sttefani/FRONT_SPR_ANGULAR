@@ -97,9 +97,7 @@
         box-shadow: 0 0 0 2px rgba(218, 165, 32, 0.1);
       }
 
-      &:hover {
-        border-color: var(--primary-color-dark);
-      }
+      &:hover { border-color: var(--primary-color-dark); }
     }
   }
 }
@@ -109,8 +107,8 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin: 2.5rem 0 1.5rem 0;
-  padding: 1rem 1.5rem;
+  margin: 2rem 0 1rem 0;
+  padding: 0.85rem 1.5rem;
   background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
   border-radius: 8px;
   box-shadow: var(--shadow-md);
@@ -120,16 +118,14 @@
   &::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
     animation: shine 3s infinite;
   }
 
   .divider-icon {
-    font-size: 2rem;
+    font-size: 1.6rem;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
     z-index: 1;
   }
@@ -137,7 +133,7 @@
   h2 {
     flex: 1;
     margin: 0;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: white;
     text-transform: uppercase;
@@ -154,12 +150,7 @@
     z-index: 1;
   }
 
-  &.ocorrencias {
-    background: linear-gradient(135deg, #b8860b 0%, #8b6914 100%);
-    border-left: 5px solid var(--primary-color);
-  }
-
-  &.ordens-servico {
+  &.ocorrencias, &.ordens-servico, &.producao {
     background: linear-gradient(135deg, #b8860b 0%, #8b6914 100%);
     border-left: 5px solid var(--primary-color);
   }
@@ -199,7 +190,7 @@
   50% { opacity: 0.3; }
 }
 
-// ========== LAYOUT: CARDS + GRÁFICO ==========
+// ========== LAYOUT: CARDS + GRÁFICO (LEGADO / PERITO) ==========
 .dashboard-layout {
   display: grid;
   grid-template-columns: 1fr 380px;
@@ -207,13 +198,22 @@
   margin-bottom: 1rem;
 }
 
-// ========== STATS GRID (COMPACTO) ==========
+// ========== STATS GRID (2 colunas — perito) ==========
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
 }
 
+// ========== KPI GRID (4 colunas — admin) ==========
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+// ========== STAT / KPI CARD ==========
 .stat-card {
   background: var(--card-background-color);
   border: 2px solid var(--border-color);
@@ -224,15 +224,13 @@
   transition: all 0.2s ease;
   box-shadow: var(--shadow-sm);
   min-height: 100px;
-  max-height: 120px;
+  max-height: 140px;
 
   &::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
+    top: 0; left: 0;
+    width: 100%; height: 3px;
     transition: height 0.2s ease;
   }
 
@@ -241,15 +239,12 @@
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 
-    &::before {
-      height: 5px;
-    }
+    &::before { height: 5px; }
   }
 
   .stat-icon {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    top: 0.5rem; right: 0.5rem;
     font-size: 2rem;
     opacity: 0.12;
   }
@@ -287,61 +282,47 @@
     }
   }
 
-  // ===== CORES DOS CARDS =====
+  // Cores
   &.primary {
     &::before { background: var(--primary-color); }
     .stat-number { color: var(--primary-color); }
     &:hover { border-color: var(--primary-color-dark); }
   }
-
   &.success {
     &::before { background: var(--success-color); }
     .stat-number { color: var(--success-color); }
     &:hover { border-color: var(--success-color); }
   }
-
   &.warning {
     &::before { background: var(--warning-color); }
     .stat-number { color: var(--warning-color); }
     &:hover { border-color: var(--warning-color); }
   }
-
   &.danger {
     &::before { background: var(--danger-color); }
     .stat-number { color: var(--danger-color); }
     &:hover { border-color: var(--danger-color); }
   }
-
   &.info {
     &::before { background: var(--info-color); }
     .stat-number { color: var(--info-color); }
     &:hover { border-color: var(--info-color); }
   }
-
   &.secondary {
     &::before { background: #6c757d; }
     .stat-number { color: #6c757d; }
     &:hover { border-color: #6c757d; }
   }
-
   &.laudo-entregue {
     &::before { background: #8B5CF6; }
     .stat-number { color: #8B5CF6; }
     &:hover { border-color: #8B5CF6; }
   }
-
   &.highlight {
     border-color: var(--primary-color);
     background: rgba(218, 165, 32, 0.05);
-
-    &::before {
-      background: var(--primary-color);
-    }
-
-    .stat-number {
-      color: var(--primary-color-dark);
-    }
-
+    &::before { background: var(--primary-color); }
+    .stat-number { color: var(--primary-color-dark); }
     &:hover {
       border-color: var(--primary-color-dark);
       background: rgba(218, 165, 32, 0.08);
@@ -350,7 +331,7 @@
   }
 }
 
-// ========== GRÁFICO SECTION ==========
+// ========== GRÁFICO SECTION (PERITO) ==========
 .grafico-section {
   display: flex;
   flex-direction: column;
@@ -412,7 +393,6 @@
   }
 }
 
-// ========== RECENT LIST ==========
 .recent-list {
   display: flex;
   flex-direction: column;
@@ -457,30 +437,12 @@
     border: 2px solid;
     white-space: nowrap;
 
-    &.badge-aguardando_perito {
-      background: #e3f2fd;
-      color: #1565c0;
-      border-color: var(--info-color);
-    }
-
-    &.badge-em_analise {
-      background: #fff3e0;
-      color: #e65100;
-      border-color: var(--warning-color);
-    }
-
-    &.badge-finalizada {
-      background: #e8f5e9;
-      color: #2e7d32;
-      border-color: var(--success-color);
-    }
+    &.badge-aguardando_perito { background: #e3f2fd; color: #1565c0; border-color: var(--info-color); }
+    &.badge-em_analise { background: #fff3e0; color: #e65100; border-color: var(--warning-color); }
+    &.badge-finalizada { background: #e8f5e9; color: #2e7d32; border-color: var(--success-color); }
   }
 
-  small {
-    color: var(--text-color-light);
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
+  small { color: var(--text-color-light); font-size: 0.75rem; font-weight: 600; }
 }
 
 // ========== SERVICO LIST ==========
@@ -523,16 +485,13 @@
     border: 2px solid var(--primary-color);
   }
 
-  .servico-nome {
-    font-weight: 600;
-    color: var(--text-color-dark);
-  }
+  .servico-nome { font-weight: 600; color: var(--text-color-dark); }
 
   .servico-total {
     font-weight: 700;
     color: var(--text-color-light);
     font-size: 0.75rem;
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(0,0,0,0.05);
     padding: 0.3rem 0.6rem;
     border-radius: 4px;
     border: 2px solid var(--border-color);
@@ -540,25 +499,455 @@
   }
 }
 
-// ========== RESPONSIVO ==========
-@media (max-width: 1200px) {
-  .dashboard-layout {
-    grid-template-columns: 1fr;
+// ===========================================================================
+// NOVOS COMPONENTES
+// ===========================================================================
+
+// ========== ALERT ZONE ==========
+.alert-zone {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.alert-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: var(--card-background-color);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
   }
 
-  .grafico-section {
-    order: -1;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .alert-icon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+  }
+
+  .alert-body {
+    flex: 1;
+    min-width: 0;
+
+    .alert-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .alert-number {
+      font-size: 2.2rem;
+      font-weight: 700;
+      line-height: 1;
+      display: block;
+      font-family: 'Roboto', 'Segoe UI', sans-serif;
+    }
+
+    .alert-action {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      display: block;
+      margin-top: 0.3rem;
+      opacity: 0.9;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  }
+
+  &.alert-danger {
+    &::before { background: var(--danger-color); }
+    border-left-color: var(--danger-color);
+    .alert-label { color: #b91c1c; }
+    .alert-number { color: var(--danger-color); }
+    .alert-action { color: #b91c1c; }
+    &:hover { border-color: var(--danger-color); background: #fff5f5; }
+  }
+
+  &.alert-warning {
+    &::before { background: var(--warning-color); }
+    border-left-color: var(--warning-color);
+    .alert-label { color: #c05621; }
+    .alert-number { color: var(--warning-color); }
+    .alert-action { color: #c05621; }
+    &:hover { border-color: var(--warning-color); background: #fffaf0; }
+  }
+
+  &.alert-info {
+    &::before { background: var(--info-color); }
+    border-left-color: var(--info-color);
+    .alert-label { color: #1e40af; }
+    .alert-number { color: var(--info-color); }
+    .alert-action { color: #1e40af; }
+    &:hover { border-color: var(--info-color); background: #eff6ff; }
+  }
+
+  &.alert-ok {
+    &::before { background: var(--success-color); }
+    .alert-label { color: #166534; }
+    .alert-number { color: var(--success-color); }
+    .alert-action { color: #166534; }
+    cursor: default;
+    opacity: 0.75;
+    &:hover { transform: none; box-shadow: var(--shadow-sm); }
+  }
+
+  &.alert-pulsing {
+    animation: alertPulse 2.5s ease-in-out infinite;
   }
 }
 
-@media (max-width: 768px) {
-  .dashboard-container {
-    padding: 0.75rem;
+@keyframes alertPulse {
+  0%, 100% { box-shadow: var(--shadow-sm); }
+  50% { box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.15), var(--shadow-md); }
+}
+
+.alert-card.alert-warning.alert-pulsing {
+  animation: alertPulseWarning 2.5s ease-in-out infinite;
+}
+.alert-card.alert-info.alert-pulsing {
+  animation: alertPulseInfo 2.5s ease-in-out infinite;
+}
+
+@keyframes alertPulseWarning {
+  0%, 100% { box-shadow: var(--shadow-sm); }
+  50% { box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.2), var(--shadow-md); }
+}
+@keyframes alertPulseInfo {
+  0%, 100% { box-shadow: var(--shadow-sm); }
+  50% { box-shadow: 0 0 0 4px rgba(49, 130, 206, 0.2), var(--shadow-md); }
+}
+
+// ========== CHARTS ROW (2 gráficos lado a lado) ==========
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  &.charts-row-3 {
+    grid-template-columns: repeat(3, 1fr);
   }
+}
+
+.chart-panel {
+  background: var(--card-background-color);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--primary-color);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(218, 165, 32, 0.2);
+  }
+
+  .chart-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+
+    h3 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-color-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0;
+    }
+
+    .chart-subtitle {
+      font-size: 0.65rem;
+      color: var(--text-color-light);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+  }
+
+  canvas {
+    flex: 1;
+    min-height: 240px;
+    max-height: 300px;
+  }
+}
+
+// ========== PRODUCAO GRID (ranking + serviços) ==========
+.producao-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.producao-card {
+  background: var(--card-background-color);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--primary-color);
+  transition: all 0.2s ease;
+
+  &:hover { box-shadow: var(--shadow-md); }
+
+  h3 {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-color-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 0.85rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+  }
+}
+
+// ========== RANKING PERITO ==========
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.ranking-item {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--background-color);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: white;
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:first-child .ranking-pos { color: #DAA520; font-size: 1rem; }
+  &:nth-child(2) .ranking-pos { color: #9ca3af; }
+  &:nth-child(3) .ranking-pos { color: #b45309; }
+
+  .ranking-pos {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-color-light);
+    text-align: center;
+  }
+
+  .ranking-info {
+    min-width: 0;
+
+    .ranking-nome {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-color-dark);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .ranking-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+
+      .bar-track {
+        flex: 1;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
+
+        .bar-fill {
+          height: 100%;
+          border-radius: 3px;
+          transition: width 0.6s ease;
+
+          &.fill-success { background: var(--success-color); }
+          &.fill-danger { background: var(--danger-color); }
+          &.fill-warning { background: var(--warning-color); }
+        }
+      }
+
+      .bar-label {
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: var(--text-color-light);
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .ranking-stats {
+    text-align: right;
+    flex-shrink: 0;
+
+    .ranking-total {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-color-dark);
+      display: block;
+      line-height: 1;
+    }
+
+    .ranking-taxa {
+      font-size: 0.62rem;
+      font-weight: 700;
+      display: block;
+      margin-top: 0.15rem;
+
+      &.taxa-ok { color: var(--success-color); }
+      &.taxa-risco { color: var(--danger-color); }
+    }
+  }
+}
+
+// ========== TAXA CARD (strip de métricas) ==========
+.taxa-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.taxa-item {
+  background: var(--card-background-color);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  border-top: 3px solid transparent;
+  transition: all 0.2s ease;
+
+  &:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+  &.taxa-cumprimento { border-top-color: var(--success-color); }
+  &.taxa-atraso { border-top-color: var(--danger-color); }
+  &.taxa-tempo { border-top-color: var(--info-color); }
+
+  .taxa-valor {
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: block;
+    line-height: 1;
+    margin-bottom: 0.2rem;
+
+    &.ok { color: var(--success-color); }
+    &.risco { color: var(--danger-color); }
+    &.info { color: var(--info-color); }
+  }
+
+  .taxa-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-color-light);
+  }
+}
+
+// ========== TREND BADGE ==========
+.trend-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 10px;
+  margin-top: 0.25rem;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+
+  .trend-arrow { font-size: 0.7rem; }
+
+  &.trend-up {
+    background: rgba(40, 167, 69, 0.12);
+    color: #166534;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+  }
+
+  &.trend-down {
+    background: rgba(220, 53, 69, 0.1);
+    color: #991b1b;
+    border: 1px solid rgba(220, 53, 69, 0.25);
+  }
+
+  &.trend-neutral {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+    border: 1px solid rgba(107, 114, 128, 0.2);
+  }
+}
+
+// ========== EMPTY STATE ==========
+.empty-state {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--text-color-light);
+  font-size: 0.8rem;
+  font-weight: 600;
+
+  i { font-size: 1.5rem; display: block; margin-bottom: 0.4rem; opacity: 0.4; }
+}
+
+// ===========================================================================
+// RESPONSIVO
+// ===========================================================================
+
+@media (max-width: 1400px) {
+  .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 1200px) {
+  .dashboard-layout { grid-template-columns: 1fr; }
+  .grafico-section { order: -1; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+  .charts-row.charts-row-3 { grid-template-columns: 1fr; }
+  .producao-grid { grid-template-columns: 1fr; }
+  .alert-zone { grid-template-columns: repeat(3, 1fr); }
+  .taxa-strip { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container { padding: 0.75rem; }
 
   .header-section {
     flex-direction: column;
@@ -566,72 +955,35 @@
     gap: 0.75rem;
     padding: 0.75rem;
 
-    .welcome-content {
-      h1 {
-        font-size: 1.3rem;
-      }
-
-      .user-role {
-        font-size: 0.7rem;
-      }
-    }
-
-    .filtro-servico {
-      width: 100%;
-
-      select {
-        min-width: auto;
-        width: 100%;
-      }
-    }
+    .welcome-content h1 { font-size: 1.3rem; }
+    .filtro-servico { width: 100%; select { min-width: auto; width: 100%; } }
   }
 
   .section-divider {
     flex-direction: column;
     text-align: center;
     padding: 0.75rem;
-
-    .divider-line {
-      width: 100%;
-      height: 2px;
-    }
-
-    h2 {
-      font-size: 0.85rem;
-    }
-
-    .divider-icon {
-      font-size: 1.5rem;
-    }
+    .divider-line { width: 100%; height: 2px; }
+    h2 { font-size: 0.8rem; }
+    .divider-icon { font-size: 1.3rem; }
   }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .recent-item,
-  .servico-item {
-    grid-template-columns: 1fr;
-    gap: 0.4rem;
-    text-align: left;
-  }
+  .alert-zone { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .taxa-strip { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .recent-item, .servico-item { grid-template-columns: 1fr; gap: 0.4rem; text-align: left; }
 }
 
 @media (max-width: 480px) {
-  .header-section {
-    .filtro-servico {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.4rem;
-
-      label {
-        font-size: 0.7rem;
-      }
-
-      select {
-        font-size: 0.75rem;
-        padding: 0.5rem 0.6rem;
-      }
-    }
+  .header-section .filtro-servico {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    label { font-size: 0.7rem; }
+    select { font-size: 0.75rem; padding: 0.5rem 0.6rem; }
   }
+
+  .kpi-grid { grid-template-columns: 1fr; }
+  .alert-zone { grid-template-columns: 1fr; }
 }

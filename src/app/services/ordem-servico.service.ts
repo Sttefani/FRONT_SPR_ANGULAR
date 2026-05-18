@@ -85,6 +85,11 @@ export interface OrdemServico {
 
   os_original: number | null;
 
+  // Desconto administrativo
+  data_prazo: string | null;
+  data_prazo_efetivo: string | null;
+  dias_desconto_admin: number;
+
   // Campos calculados
   data_vencimento: string | null;
   dias_desde_emissao: number;
