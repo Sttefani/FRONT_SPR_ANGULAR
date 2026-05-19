@@ -650,6 +650,15 @@
   &.charts-row-3 {
     grid-template-columns: repeat(3, 1fr);
   }
+
+  &.charts-row-4 {
+    grid-template-columns: repeat(2, 1fr);
+
+    .chart-panel canvas {
+      min-height: 280px;
+      max-height: 340px;
+    }
+  }
 }
 
 .chart-panel {
@@ -926,6 +935,208 @@
   i { font-size: 1.5rem; display: block; margin-bottom: 0.4rem; opacity: 0.4; }
 }
 
+// ========== LIVE INDICATOR (auto-refresh) ==========
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success-color);
+    animation: livePulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+
+    &.live-dot-refreshing {
+      background: var(--warning-color);
+      animation: livePulse 0.6s ease-in-out infinite;
+    }
+  }
+
+  .live-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-color-light);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+// ========== DELTA BADGE (variação em tempo real) ==========
+.delta-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.1rem 0.35rem;
+  border-radius: 8px;
+  margin-top: 0.2rem;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+
+  &.delta-up {
+    background: rgba(40, 167, 69, 0.12);
+    color: #166534;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+  }
+
+  &.delta-down {
+    background: rgba(220, 53, 69, 0.1);
+    color: #991b1b;
+    border: 1px solid rgba(220, 53, 69, 0.25);
+  }
+}
+
+// ========== CHART PANEL FULL WIDTH ==========
+.chart-panel-full {
+  margin-bottom: 1rem;
+
+  canvas {
+    min-height: 200px;
+    max-height: 260px;
+  }
+}
+
+// ========== PERITO PERFORMANCE SECTION ==========
+.perito-performance-section {
+  background: var(--card-background-color);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--primary-color);
+}
+
+.perito-performance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--primary-color);
+
+  .pp-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-color-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .pp-subtitle {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-color-light);
+    text-transform: uppercase;
+  }
+}
+
+.perito-performance-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.5rem;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+
+  &::-webkit-scrollbar { width: 5px; }
+  &::-webkit-scrollbar-track { background: var(--background-color); border-radius: 3px; }
+  &::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px;
+    &:hover { background: var(--primary-color); }
+  }
+}
+
+.perito-performance-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 0.25rem 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--background-color);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: white;
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .pp-nome {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-color-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .pp-stats {
+    display: flex;
+    gap: 0.5rem;
+    grid-column: 2;
+    grid-row: 1;
+    flex-shrink: 0;
+
+    .pp-stat {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-color-light);
+      white-space: nowrap;
+
+      &.pp-alert { color: var(--danger-color); }
+    }
+  }
+
+  .pp-bar-wrap {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .pp-bar-track {
+      flex: 1;
+      height: 5px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      overflow: hidden;
+
+      .pp-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.6s ease;
+        min-width: 2px;
+
+        &.fill-green { background: var(--success-color); }
+        &.fill-lilas { background: #8B5CF6; }
+        &.fill-red   { background: var(--danger-color); }
+      }
+    }
+
+    .pp-total {
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--text-color-light);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+  }
+}
+
 // ===========================================================================
 // RESPONSIVO
 // ===========================================================================
@@ -941,6 +1152,7 @@
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .charts-row { grid-template-columns: 1fr; }
   .charts-row.charts-row-3 { grid-template-columns: 1fr; }
+  .charts-row.charts-row-4 { grid-template-columns: 1fr; }
   .producao-grid { grid-template-columns: 1fr; }
   .alert-zone { grid-template-columns: repeat(3, 1fr); }
   .taxa-strip { grid-template-columns: repeat(3, 1fr); }
@@ -972,6 +1184,7 @@
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .taxa-strip { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr; }
+  .charts-row.charts-row-4 { grid-template-columns: 1fr; }
   .recent-item, .servico-item { grid-template-columns: 1fr; gap: 0.4rem; text-align: left; }
 }
 

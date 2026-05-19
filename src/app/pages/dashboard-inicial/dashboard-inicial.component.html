@@ -20,6 +20,16 @@
         </select>
       </div>
     }
+    @if (isAdminOrOperacional()) {
+      <div class="live-indicator">
+        <span class="live-dot" [class.live-dot-refreshing]="isRefreshing"></span>
+        <span class="live-label">
+          @if (isRefreshing) { Atualizando... }
+          @else if (ultimaAtualizacao) { Atualizado às {{ getUltimaAtualizacaoLabel() }} }
+          @else { Ao vivo · atualiza a cada 60s }
+        </span>
+      </div>
+    }
   </div>
 
   <!-- ============================== LOADING ============================== -->
@@ -366,6 +376,13 @@
                 {{ t.valor }}% vs mês anterior
               </span>
             }
+            @if (getDeltaAtual('os', 'geral_os', 'total'); as d) {
+              @if (d.direcao !== 'neutral') {
+                <span class="delta-badge" [class.delta-up]="d.direcao==='up'" [class.delta-down]="d.direcao==='down'">
+                  {{ d.direcao === 'up' ? '+' : '-' }}{{ d.valor }} agora
+                </span>
+              }
+            }
           </div>
         </div>
 
@@ -374,6 +391,13 @@
           <div class="stat-content">
             <h3>Ag. Ciência</h3>
             <p class="stat-number">{{ estatisticasOS.geral_os.aguardando_ciencia }}</p>
+            @if (getDeltaAtual('os', 'geral_os', 'aguardando_ciencia'); as d) {
+              @if (d.direcao !== 'neutral') {
+                <span class="delta-badge" [class.delta-up]="d.direcao==='up'" [class.delta-down]="d.direcao==='down'">
+                  {{ d.direcao === 'up' ? '+' : '-' }}{{ d.valor }} agora
+                </span>
+              }
+            }
             <small>Peritos ainda não cientes</small>
           </div>
         </div>
@@ -383,6 +407,13 @@
           <div class="stat-content">
             <h3>Em Andamento</h3>
             <p class="stat-number">{{ estatisticasOS.geral_os.em_andamento }}</p>
+            @if (getDeltaAtual('os', 'geral_os', 'em_andamento'); as d) {
+              @if (d.direcao !== 'neutral') {
+                <span class="delta-badge" [class.delta-up]="d.direcao==='up'" [class.delta-down]="d.direcao==='down'">
+                  {{ d.direcao === 'up' ? '+' : '-' }}{{ d.valor }} agora
+                </span>
+              }
+            }
             <small>Trabalho em execução</small>
           </div>
         </div>
@@ -400,6 +431,13 @@
                 <span class="trend-arrow">{{ t.direcao === 'up' ? '↑' : t.direcao === 'down' ? '↓' : '→' }}</span>
                 {{ t.valor }}% vs mês anterior
               </span>
+            }
+            @if (getDeltaAtual('os', 'geral_os', 'concluidas'); as d) {
+              @if (d.direcao !== 'neutral') {
+                <span class="delta-badge" [class.delta-up]="d.direcao==='up'" [class.delta-down]="d.direcao==='down'">
+                  {{ d.direcao === 'up' ? '+' : '-' }}{{ d.valor }} agora
+                </span>
+              }
             }
           </div>
         </div>
@@ -430,15 +468,63 @@
         </div>
       }
 
-      <!-- Gráficos: 3 painéis -->
-      <div class="charts-row charts-row-3">
+      <!-- Desempenho por Perito -->
+      @if (getAllPeritos().length > 0) {
+        <div class="perito-performance-section">
+          <div class="perito-performance-header">
+            <span class="pp-title">👤 Cumprimento de Ordem de Serviço por Perito</span>
+            <span class="pp-subtitle">Ordens de Serviço: Concluídas · Em andamento · Vencidas</span>
+          </div>
+          <div class="perito-performance-list">
+            @for (p of getAllPeritos(); track p.perito_id || $index) {
+              <div class="perito-performance-item">
+                <span class="pp-nome">{{ getPrimeiroNome(p.perito) }}</span>
+                <div class="pp-stats">
+                  <span class="pp-stat pp-concluidas" title="Concluídas">✅ {{ p.concluidas }}</span>
+                  <span class="pp-stat pp-andamento" title="Em andamento">⚙️ {{ p.em_andamento }}</span>
+                  <span class="pp-stat pp-vencidas" [class.pp-alert]="p.vencidas > 0" title="Vencidas">⏰ {{ p.vencidas }}</span>
+                </div>
+                <div class="pp-bar-wrap">
+                  <div class="pp-bar-track">
+                    <div class="pp-bar-fill" [ngClass]="getBarPerito(p.concluidas, p.total_emitidas)" [style.width.%]="calcularPorcentagem(p.concluidas, p.total_emitidas)"></div>
+                  </div>
+                  <span class="pp-total">{{ p.total_emitidas }} total</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Gráficos: 4 painéis (2 donuts + 2 histogramas) -->
+      <div class="charts-row charts-row-4">
 
         <div class="chart-panel">
           <div class="chart-panel-header">
-            <h3>📊 Ocorrências por Status</h3>
+            <h3>🍩 Ocorrências por Status</h3>
             <span class="chart-subtitle">Distribuição atual</span>
           </div>
-          <canvas id="chartOcorrenciasAdmin"></canvas>
+          <canvas id="chartOcorrenciasDonutAdmin"></canvas>
+        </div>
+
+        <div class="chart-panel">
+          <div class="chart-panel-header">
+            <h3>📈 Evolução de Ocorrências</h3>
+            <span class="chart-subtitle">Últimos 6 meses</span>
+          </div>
+          @if (!estatisticas.evolucao_mensal?.length) {
+            <div class="empty-state"><i class="bi bi-bar-chart"></i> Sem dados temporais</div>
+          } @else {
+            <canvas id="chartOcorrenciasEvolucaoAdmin"></canvas>
+          }
+        </div>
+
+        <div class="chart-panel">
+          <div class="chart-panel-header">
+            <h3>🍩 OS por Status</h3>
+            <span class="chart-subtitle">Distribuição atual</span>
+          </div>
+          <canvas id="chartOSDonutAdmin"></canvas>
         </div>
 
         <div class="chart-panel">
@@ -453,14 +539,6 @@
           } @else {
             <canvas id="chartEvolucaoAdmin"></canvas>
           }
-        </div>
-
-        <div class="chart-panel">
-          <div class="chart-panel-header">
-            <h3>🍩 OS por Status</h3>
-            <span class="chart-subtitle">Distribuição atual</span>
-          </div>
-          <canvas id="chartOSDonutAdmin"></canvas>
         </div>
 
       </div>

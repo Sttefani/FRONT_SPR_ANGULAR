@@ -12,10 +12,11 @@ import { Chart, registerables, ChartConfiguration } from 'chart.js';
 
 Chart.register(...registerables);
 
-// Plugin inline: exibe o valor em cima de cada barra
+// Plugin inline: exibe o valor em cima de cada barra (apenas bar charts)
 const barValuePlugin = {
   id: 'barValueLabels',
   afterDatasetsDraw(chart: Chart) {
+    if ((chart.config as any).type !== 'bar') return; // ignora donut/doughnut
     const ctx = chart.ctx;
     chart.data.datasets.forEach((_dataset, i) => {
       const meta = chart.getDatasetMeta(i);
@@ -27,7 +28,10 @@ const barValuePlugin = {
         ctx.fillStyle = '#4a5568';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
-        ctx.fillText(String(value), bar.x, bar.y - 2);
+        const label = value >= 1_000_000 ? (value/1_000_000).toFixed(1).replace('.0','') + 'M'
+                    : value >= 1_000 ? (value/1_000).toFixed(1).replace('.0','') + 'k'
+                    : String(value);
+        ctx.fillText(label, bar.x, bar.y - 2);
         ctx.restore();
       });
     });
@@ -57,9 +61,16 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
   private chartOSPerito: Chart | null = null;
 
   // Gráficos admin
-  private chartOcorrenciasAdmin: Chart | null = null;
+  private chartOcorrenciasDonutAdmin: Chart | null = null;
   private chartEvolucaoAdmin: Chart | null = null;
   private chartOSDonutAdmin: Chart | null = null;
+  private chartOcorrenciasEvolucaoAdmin: Chart | null = null;
+
+  // Auto-refresh (bolsa de valores)
+  private refreshInterval: any = null;
+  isRefreshing = false;
+  ultimaAtualizacao: Date | null = null;
+  private snapshotAnterior: { estat: any; os: any } | null = null;
 
   constructor(
     private authService: AuthService,
@@ -78,6 +89,7 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
 
     if (this.isAdminOrOperacional()) {
       this.loadRelatoriosGerenciais();
+      this.iniciarAutoRefresh();
     }
   }
 
@@ -85,15 +97,20 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
 
   ngOnDestroy(): void {
     this.destruirTodosGraficos();
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
   }
 
   private destruirTodosGraficos(): void {
     [
       'chartOcorrenciasPerito',
       'chartOSPerito',
-      'chartOcorrenciasAdmin',
+      'chartOcorrenciasDonutAdmin',
       'chartEvolucaoAdmin',
-      'chartOSDonutAdmin'
+      'chartOSDonutAdmin',
+      'chartOcorrenciasEvolucaoAdmin'
     ].forEach(key => {
       const chart = (this as any)[key] as Chart | null;
       if (chart) {
@@ -201,6 +218,7 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
     if (this.isLoading || !this.estatisticas) return; // @if principal ainda fechado
     this.cdr.detectChanges(); // garante que os canvas existam no DOM
     this.criarGraficoOcorrenciasAdmin();
+    if (this.estatisticas?.evolucao_mensal?.length) this.criarGraficoOcorrenciasEvolucaoAdmin();
     if (this.estatisticasOS?.geral_os) this.criarGraficoOSDonutAdmin();
     if (!this.isLoadingRelatorios && this.relatoriosGerenciais?.evolucao_temporal?.length) {
       this.criarGraficoEvolucaoAdmin();
@@ -264,20 +282,50 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
 
   private criarGraficoOcorrenciasAdmin(): void {
     setTimeout(() => {
-      const canvas = document.getElementById('chartOcorrenciasAdmin') as HTMLCanvasElement;
+      const canvas = document.getElementById('chartOcorrenciasDonutAdmin') as HTMLCanvasElement;
       if (!canvas || !this.estatisticas) return;
-      if (this.chartOcorrenciasAdmin) { this.chartOcorrenciasAdmin.destroy(); this.chartOcorrenciasAdmin = null; }
+      if (this.chartOcorrenciasDonutAdmin) { this.chartOcorrenciasDonutAdmin.destroy(); this.chartOcorrenciasDonutAdmin = null; }
 
       const d = this.estatisticas.geral;
-      const labels = ['Ag. Perito', 'Em Análise', 'Laudo Entregue', 'Finalizadas', 'Atrasadas'];
-      const valores = [d.aguardando || 0, d.em_analise || 0, d.laudo_entregue || 0, d.finalizadas || 0, d.atrasadas || 0];
+      const labels = ['Ag. Perito', 'Em Análise', 'Laudo Entregue', 'Finalizada'];
+      const valores = [d.aguardando || 0, d.em_analise || 0, d.laudo_entregue || 0, d.finalizadas || 0];
       if (valores.every(v => v === 0)) return;
 
-      this.chartOcorrenciasAdmin = new Chart(canvas, this.buildBarConfig(
-        labels, valores,
-        ['rgba(49,130,206,0.75)', 'rgba(255,152,0,0.75)', 'rgba(139,92,246,0.75)', 'rgba(40,167,69,0.75)', 'rgba(220,53,69,0.75)'],
-        'Ocorrências'
-      ));
+      const config: ChartConfiguration<'doughnut'> = {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data: valores,
+            backgroundColor: ['#3182ce', '#ff9800', '#8B5CF6', '#28a745'],
+            borderColor: '#fff',
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '62%',
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: { font: { size: 10, weight: 600 }, padding: 8, boxWidth: 10 }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              bodyFont: { size: 11 },
+              padding: 10
+            }
+          }
+        }
+      };
+
+      try {
+        this.chartOcorrenciasDonutAdmin = new Chart(canvas, config);
+      } catch (e) {
+        console.error('Erro ao criar gráfico ocorrências donut:', e);
+      }
     }, 100);
   }
 
@@ -322,6 +370,7 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: { padding: { top: 22 } }, // espaço para os rótulos acima das barras
           plugins: {
             legend: {
               display: true,
@@ -340,7 +389,9 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
             y: {
               beginAtZero: true,
               grid: { color: 'rgba(0,0,0,0.05)' },
-              ticks: { font: { size: 11, weight: 600 }, color: '#4a5568', precision: 0 }
+              ticks: { font: { size: 11, weight: 600 }, color: '#4a5568', precision: 0,
+                callback: (v: any) => v >= 1_000_000 ? (v/1_000_000).toFixed(1).replace('.0','') + 'M'
+                                    : v >= 1_000 ? (v/1_000).toFixed(1).replace('.0','') + 'k' : v }
             }
           }
         }
@@ -385,8 +436,8 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
           plugins: {
             legend: {
               display: true,
-              position: 'right',
-              labels: { font: { size: 11, weight: 600 }, padding: 12, boxWidth: 12 }
+              position: 'bottom',
+              labels: { font: { size: 10, weight: 600 }, padding: 8, boxWidth: 10 }
             },
             tooltip: {
               backgroundColor: 'rgba(0,0,0,0.8)',
@@ -401,6 +452,80 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
         this.chartOSDonutAdmin = new Chart(canvas, config);
       } catch (e) {
         console.error('Erro ao criar gráfico OS donut:', e);
+      }
+    }, 50);
+  }
+
+  private criarGraficoOcorrenciasEvolucaoAdmin(): void {
+    setTimeout(() => {
+      const canvas = document.getElementById('chartOcorrenciasEvolucaoAdmin') as HTMLCanvasElement;
+      if (!canvas || !this.estatisticas?.evolucao_mensal?.length) return;
+
+      if (this.chartOcorrenciasEvolucaoAdmin) { this.chartOcorrenciasEvolucaoAdmin.destroy(); this.chartOcorrenciasEvolucaoAdmin = null; }
+
+      const evolucao = this.estatisticas.evolucao_mensal.slice(-6);
+      const labels = evolucao.map((e: any) => {
+        const d = new Date(e.mes + 'T00:00:00');
+        return d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+      });
+
+      const config: ChartConfiguration = {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Total',
+              data: evolucao.map((e: any) => e.total),
+              backgroundColor: 'rgba(255,152,0,0.75)',
+              borderColor: 'rgba(255,152,0,1)',
+              borderWidth: 2,
+              borderRadius: 4
+            } as any,
+            {
+              label: 'Finalizadas',
+              data: evolucao.map((e: any) => e.finalizadas),
+              backgroundColor: 'rgba(40,167,69,0.75)',
+              borderColor: 'rgba(40,167,69,1)',
+              borderWidth: 2,
+              borderRadius: 4
+            } as any
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: { top: 22 } },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: { font: { size: 11, weight: 'bold' }, padding: 16 }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              titleFont: { size: 12, weight: 'bold' },
+              bodyFont: { size: 11 },
+              padding: 10
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 10, weight: 600 }, color: '#4a5568' } },
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(0,0,0,0.05)' },
+              ticks: { font: { size: 11, weight: 600 }, color: '#4a5568', precision: 0,
+                callback: (v: any) => v >= 1_000_000 ? (v/1_000_000).toFixed(1).replace('.0','') + 'M'
+                                    : v >= 1_000 ? (v/1_000).toFixed(1).replace('.0','') + 'k' : v }
+            }
+          }
+        }
+      };
+
+      try {
+        this.chartOcorrenciasEvolucaoAdmin = new Chart(canvas, config);
+      } catch (e) {
+        console.error('Erro ao criar gráfico evolução ocorrências:', e);
       }
     }, 50);
   }
@@ -426,6 +551,7 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 22 } }, // espaço para os rótulos acima das barras
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -568,5 +694,80 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
     const ultimo = evol[evol.length - 1];
     const d = new Date(ultimo.mes + 'T00:00:00');
     return d.toLocaleDateString('pt-BR', { month: 'long' });
+  }
+
+  // ===========================================================================
+  // AUTO-REFRESH (bolsa de valores — 60s)
+  // ===========================================================================
+
+  private iniciarAutoRefresh(): void {
+    this.refreshInterval = setInterval(() => this.fazerRefresh(), 60000);
+  }
+
+  private fazerRefresh(): void {
+    if (this.isRefreshing || this.isLoading) return;
+    this.isRefreshing = true;
+    this.snapshotAnterior = {
+      estat: JSON.parse(JSON.stringify(this.estatisticas || {})),
+      os: JSON.parse(JSON.stringify(this.estatisticasOS || {}))
+    };
+
+    const params: any = {};
+    if (this.servicoSelecionado) params.servico_id = this.servicoSelecionado;
+
+    let ocorrDone = false;
+    let osDone = false;
+    const verificar = () => { if (ocorrDone && osDone) this.finalizarRefresh(); };
+
+    this.ocorrenciaService.getEstatisticas(params).subscribe({
+      next: (data) => { this.estatisticas = data; ocorrDone = true; verificar(); },
+      error: () => { ocorrDone = true; verificar(); }
+    });
+
+    this.ordemServicoService.getEstatisticas(params).subscribe({
+      next: (data) => { this.estatisticasOS = data; osDone = true; verificar(); },
+      error: () => { osDone = true; verificar(); }
+    });
+  }
+
+  private finalizarRefresh(): void {
+    this.isRefreshing = false;
+    this.ultimaAtualizacao = new Date();
+    this.destruirTodosGraficos();
+    this.tentarCriarGraficosAdmin();
+    this.cdr.detectChanges();
+  }
+
+  getDeltaAtual(fonte: 'estat' | 'os', ...caminho: string[]): { valor: number; direcao: 'up' | 'down' | 'neutral' } {
+    if (!this.snapshotAnterior) return { valor: 0, direcao: 'neutral' };
+    let anteriorVal: any = this.snapshotAnterior[fonte];
+    let atualVal: any = fonte === 'estat' ? this.estatisticas : this.estatisticasOS;
+    for (const p of caminho) {
+      anteriorVal = anteriorVal?.[p];
+      atualVal = atualVal?.[p];
+    }
+    const diff = (atualVal ?? 0) - (anteriorVal ?? 0);
+    return {
+      valor: Math.abs(diff),
+      direcao: diff > 0 ? 'up' : diff < 0 ? 'down' : 'neutral'
+    };
+  }
+
+  getBarPerito(concluidas: number, total: number): string {
+    const pct = this.calcularPorcentagem(concluidas, total);
+    if (pct >= 60) return 'fill-green';
+    if (pct >= 30) return 'fill-lilas';
+    return 'fill-red';
+  }
+
+  getAllPeritos(): any[] {
+    if (!this.relatoriosGerenciais?.producao_por_perito) return [];
+    return this.relatoriosGerenciais.producao_por_perito
+      .filter((p: any) => p.perito && p.perito !== 'Sem perito');
+  }
+
+  getUltimaAtualizacaoLabel(): string {
+    if (!this.ultimaAtualizacao) return '';
+    return this.ultimaAtualizacao.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   }
 }
