@@ -28,9 +28,9 @@ const barValuePlugin = {
         ctx.fillStyle = '#4a5568';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
-        const label = value >= 1_000_000 ? (value/1_000_000).toFixed(1).replace('.0','') + 'M'
-                    : value >= 1_000 ? (value/1_000).toFixed(1).replace('.0','') + 'k'
-                    : String(value);
+        const label = value >= 1_000_000 ? (value / 1_000_000).toFixed(1).replace('.0', '') + 'M'
+          : value >= 1_000 ? (value / 1_000).toFixed(1).replace('.0', '') + 'k'
+            : String(value);
         ctx.fillText(label, bar.x, bar.y - 2);
         ctx.restore();
       });
@@ -79,7 +79,7 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
     private servicoPericialService: ServicoPericialService,
     private router: Router,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
@@ -93,7 +93,7 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
     }
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
 
   ngOnDestroy(): void {
     this.destruirTodosGraficos();
@@ -149,11 +149,13 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
       next: (data) => {
         this.estatisticas = data;
         this.isLoading = false;
-        // isLoading=false libera o @if principal — agora os canvas existem
+
         if (this.isPerito()) {
           this.cdr.detectChanges();
           this.criarGraficoOcorrenciasPerito();
-          if (this.estatisticasOS?.minhas_os) this.criarGraficoOSPerito();
+          if (this.estatisticasOS?.minhas_os) {
+            this.criarGraficoOSPerito();
+          }
         } else {
           this.tentarCriarGraficosAdmin();
         }
@@ -174,7 +176,6 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
       next: (data) => {
         this.estatisticasOS = data;
         if (this.isPerito()) {
-          // Só cria se o @if principal já foi liberado (isLoading=false)
           if (!this.isLoading && this.estatisticas) {
             this.cdr.detectChanges();
             this.criarGraficoOSPerito();
@@ -209,14 +210,9 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
     });
   }
 
-  /**
-   * Cria gráficos admin só quando o @if principal já liberou os canvas.
-   * Chamado por cada um dos três loads — o que completar por último
-   * vai encontrar todos os dados prontos e renderizar tudo.
-   */
   private tentarCriarGraficosAdmin(): void {
-    if (this.isLoading || !this.estatisticas) return; // @if principal ainda fechado
-    this.cdr.detectChanges(); // garante que os canvas existam no DOM
+    if (this.isLoading || !this.estatisticas) return;
+    this.cdr.detectChanges();
     this.criarGraficoOcorrenciasAdmin();
     if (this.estatisticas?.evolucao_mensal?.length) this.criarGraficoOcorrenciasEvolucaoAdmin();
     if (this.estatisticasOS?.geral_os) this.criarGraficoOSDonutAdmin();
@@ -240,7 +236,6 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
     setTimeout(() => {
       const canvas = document.getElementById('chartOcorrenciasPerito') as HTMLCanvasElement;
       if (!canvas || !this.estatisticas) return;
-
       if (this.chartOcorrenciasPerito) { this.chartOcorrenciasPerito.destroy(); this.chartOcorrenciasPerito = null; }
 
       const d = this.estatisticas.minhas_ocorrencias;
@@ -248,32 +243,72 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
       const valores = [d.em_analise || 0, d.finalizadas || 0, d.atrasadas || 0];
       if (valores.every(v => v === 0)) return;
 
-      this.chartOcorrenciasPerito = new Chart(canvas, this.buildBarConfig(
-        labels, valores,
-        ['rgba(255,152,0,0.7)', 'rgba(40,167,69,0.7)', 'rgba(220,53,69,0.7)'],
-        'Ocorrências'
-      ));
-    }, 50);
+      const config: ChartConfiguration<'doughnut'> = {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data: valores,
+            backgroundColor: ['#ff9800', '#28a745', '#dc3545'],
+            borderColor: '#fff',
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '65%',
+          plugins: {
+            legend: { display: true, position: 'bottom', labels: { font: { size: 11, weight: 600 }, padding: 8 } },
+            tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', bodyFont: { size: 12 }, padding: 10 }
+          }
+        }
+      };
+      try { this.chartOcorrenciasPerito = new Chart(canvas, config); } catch (e) { }
+    }, 100);
   }
 
   private criarGraficoOSPerito(): void {
     setTimeout(() => {
       const canvas = document.getElementById('chartOSPerito') as HTMLCanvasElement;
       if (!canvas || !this.estatisticasOS?.minhas_os) return;
-
       if (this.chartOSPerito) { this.chartOSPerito.destroy(); this.chartOSPerito = null; }
 
       const d = this.estatisticasOS.minhas_os;
-      const labels = ['Ag. Ciência', 'Abertas', 'Em Andamento', 'Concluídas', 'Vencidas'];
-      const valores = [d.aguardando_ciencia || 0, d.abertas || 0, d.em_andamento || 0, d.concluidas || 0, d.vencidas || 0];
+      const labels = ['Ag. Ciência', 'Abertas/Andamento', 'Concluídas', 'Vencidas'];
+      const valores = [
+        d.aguardando_ciencia || 0,
+        (d.abertas || 0) + (d.em_andamento || 0),
+        d.concluidas || 0,
+        d.vencidas || 0
+      ];
       if (valores.every(v => v === 0)) return;
 
-      this.chartOSPerito = new Chart(canvas, this.buildBarConfig(
-        labels, valores,
-        ['rgba(108,117,125,0.7)', 'rgba(49,130,206,0.7)', 'rgba(255,152,0,0.7)', 'rgba(40,167,69,0.7)', 'rgba(220,53,69,0.7)'],
-        'Ordens de Serviço'
-      ));
-    }, 50);
+      const config: ChartConfiguration<'doughnut'> = {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data: valores,
+            backgroundColor: ['#6c757d', '#3182ce', '#28a745', '#dc3545'],
+            borderColor: '#fff',
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: { font: { size: 11, weight: 600 }, padding: 8 }
+            },
+            tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', bodyFont: { size: 12 }, padding: 10 }
+          }
+        }
+      };
+      try { this.chartOSPerito = new Chart(canvas, config); } catch (e) { console.error('Erro ao gerar gráfico OS Perito:', e); }
+    }, 100);
   }
 
   // ===========================================================================
@@ -370,7 +405,7 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          layout: { padding: { top: 22 } }, // espaço para os rótulos acima das barras
+          layout: { padding: { top: 22 } },
           plugins: {
             legend: {
               display: true,
@@ -389,9 +424,11 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
             y: {
               beginAtZero: true,
               grid: { color: 'rgba(0,0,0,0.05)' },
-              ticks: { font: { size: 11, weight: 600 }, color: '#4a5568', precision: 0,
-                callback: (v: any) => v >= 1_000_000 ? (v/1_000_000).toFixed(1).replace('.0','') + 'M'
-                                    : v >= 1_000 ? (v/1_000).toFixed(1).replace('.0','') + 'k' : v }
+              ticks: {
+                font: { size: 11, weight: 600 }, color: '#4a5568', precision: 0,
+                callback: (v: any) => v >= 1_000_000 ? (v / 1_000_000).toFixed(1).replace('.0', '') + 'M'
+                  : v >= 1_000 ? (v / 1_000).toFixed(1).replace('.0', '') + 'k' : v
+              }
             }
           }
         }
@@ -417,7 +454,6 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
       const valores = [d.aguardando_ciencia || 0, d.abertas || 0, d.em_andamento || 0, d.concluidas || 0, d.vencidas || 0];
       if (valores.every(v => v === 0)) return;
 
-      // ChartConfiguration<'doughnut'> habilita 'cutout' sem cast
       const config: ChartConfiguration<'doughnut'> = {
         type: 'doughnut',
         data: {
@@ -514,9 +550,11 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
             y: {
               beginAtZero: true,
               grid: { color: 'rgba(0,0,0,0.05)' },
-              ticks: { font: { size: 11, weight: 600 }, color: '#4a5568', precision: 0,
-                callback: (v: any) => v >= 1_000_000 ? (v/1_000_000).toFixed(1).replace('.0','') + 'M'
-                                    : v >= 1_000 ? (v/1_000).toFixed(1).replace('.0','') + 'k' : v }
+              ticks: {
+                font: { size: 11, weight: 600 }, color: '#4a5568', precision: 0,
+                callback: (v: any) => v >= 1_000_000 ? (v / 1_000_000).toFixed(1).replace('.0', '') + 'M'
+                  : v >= 1_000 ? (v / 1_000).toFixed(1).replace('.0', '') + 'k' : v
+              }
             }
           }
         }
@@ -551,7 +589,7 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 22 } }, // espaço para os rótulos acima das barras
+        layout: { padding: { top: 22 } },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -638,7 +676,6 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
   // ===========================================================================
 
   irParaOSVencidas(): void {
-    // 'VENCIDA' não é status armazenado — o filtro correto é vencida=true
     this.router.navigate(['/gabinete-virtual/operacional/ordens-servico'], {
       queryParams: { vencida: true }
     });
@@ -663,7 +700,7 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   // ===========================================================================
-  // TENDÊNCIAS (compara mês atual vs mês anterior via evolucao_temporal)
+  // TENDÊNCIAS
   // ===========================================================================
 
   private getUltimosDoisMeses(): { atual: any; anterior: any } | null {
@@ -697,7 +734,7 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   // ===========================================================================
-  // AUTO-REFRESH (bolsa de valores — 60s)
+  // AUTO-REFRESH
   // ===========================================================================
 
   private iniciarAutoRefresh(): void {
@@ -769,5 +806,22 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
   getUltimaAtualizacaoLabel(): string {
     if (!this.ultimaAtualizacao) return '';
     return this.ultimaAtualizacao.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // ===========================================================================
+  // MÉTODOS AUXILIARES PERITO
+  // ===========================================================================
+
+  getTaxaConclusaoOSPerito(): number {
+    if (!this.estatisticasOS?.minhas_os?.total) return 0;
+    const concluidas = this.estatisticasOS.minhas_os.concluidas || 0;
+    const total = this.estatisticasOS.minhas_os.total;
+    return Math.round((concluidas / total) * 100);
+  }
+
+  irParaMinhasOcorrenciasAtrasadas(): void {
+    this.router.navigate(['/gabinete-virtual/operacional/ocorrencias'], {
+      queryParams: { status: 'EM_ANALISE' }
+    });
   }
 }

@@ -263,17 +263,24 @@
             <span class="label">Data:</span>
             <span class="value">{{ ocorrencia.data_laudo_entregue | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
-          @if (!ocorrencia.esta_finalizada) {
+
+          @if (!ocorrencia.esta_finalizada && ocorrencia.status !== 'FINALIZADA') {
             <div class="info-row">
               <span class="label">Situação:</span>
               <span class="value" style="color:#8B5CF6; font-weight:600;">
                 <i class="bi bi-hourglass-split"></i> Aguardando finalização pelo Administrativo
               </span>
             </div>
+          } @else {
+            <div class="info-row">
+              <span class="label">Situação:</span>
+              <span class="value" style="color:#10B981; font-weight:600;">
+                <i class="bi bi-check-circle"></i> Ocorrência Finalizada.
+              </span>
+            </div>
           }
         </div>
       }
-
       <!-- Card Finalização -->
       @if (ocorrencia.esta_finalizada) {
         <div class="info-card finalizado">

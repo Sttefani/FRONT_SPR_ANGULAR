@@ -227,9 +227,11 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
       page_size: this.pageSize
     };
 
-    // Filtros de Abas
+    // =======================================================
+    // AQUI ESTÁ A CORREÇÃO DA TELA (Removido LAUDO_ENTREGUE)
+    // =======================================================
     if (this.viewMode === 'pendentes') {
-      params.status__in = 'AGUARDANDO_PERITO,EM_ANALISE,LAUDO_ENTREGUE';
+      params.status__in = 'AGUARDANDO_PERITO,EM_ANALISE';
       params.esta_finalizada = 'false';
     }
     if (this.viewMode === 'laudo_entregue') params.status = 'LAUDO_ENTREGUE';
@@ -239,7 +241,6 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
 
     if (this.numeroOcorrenciaBusca.trim()) params.numero_ocorrencia = this.numeroOcorrenciaBusca.trim();
 
-    // CORREÇÃO CRÍTICA: O backend espera 'busca_geral', não 'search'
     if (this.searchTerm.trim()) params.busca_geral = this.searchTerm.trim();
 
     if (this.statusFiltro) params.status = this.statusFiltro;
@@ -531,7 +532,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
     const params: any = {};
 
     if (this.viewMode === 'pendentes') {
-      params.status__in = 'AGUARDANDO_PERITO,EM_ANALISE,LAUDO_ENTREGUE';
+      params.status__in = 'AGUARDANDO_PERITO,EM_ANALISE';
       params.esta_finalizada = 'false';
     }
     if (this.viewMode === 'laudo_entregue') params.status = 'LAUDO_ENTREGUE';
@@ -551,7 +552,7 @@ export class OcorrenciasListComponent implements OnInit, OnDestroy {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `ocorrencias_${new Date().toISOString().slice(0,10)}.csv`;
+        link.download = `ocorrencias_${new Date().toISOString().slice(0, 10)}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
