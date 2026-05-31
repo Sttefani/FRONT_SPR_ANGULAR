@@ -56,4 +56,8 @@ export class GabineteVirtualComponent implements OnInit, OnDestroy {
     const user = this.authService.getCurrentUser();
     return this.authService.isSuperAdmin() || user?.perfil === 'ADMINISTRATIVO';
   }
+
+  isCustodia(): boolean {
+    return this.authService.isLoggedIn();
+  }
 }

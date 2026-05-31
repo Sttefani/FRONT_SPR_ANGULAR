@@ -43,14 +43,6 @@ export const routes: Routes = [
         path: '',
         loadComponent: () => import('./pages/dashboard-inicial/dashboard-inicial.component').then(m => m.DashboardInicialComponent)
       },
-      // =====================================================================
-      // 🤖 ASSISTENTE IA (ADICIONE AQUI)
-      // =====================================================================
-      {
-        path: 'assistente-ia',
-        loadComponent: () => import('./pages/IA/ia-chat.component').then(m => m.IaChatComponent),
-        canActivate: [AuthGuard]
-      },
       // ✅ CORREÇÃO APLICADA AQUI
       // ✅ ROTA PRINCIPAL: Agora aponta para a LISTA.
       // Corresponde ao link do menu: /gabinete-virtual/gerar-laudo-thc
@@ -213,6 +205,53 @@ export const routes: Routes = [
       {
         path: 'operacional/ordens-servico/:id',
         loadComponent: () => import('./pages/ordens-servico/detalhes-ordem-servico/detalhes-ordem-servico.component').then(m => m.DetalhesOrdemServicoComponent),
+        canActivate: [AuthGuard]
+      },
+
+      // =====================================================================
+      // CUSTÓDIA DE VESTÍGIOS
+      // =====================================================================
+      {
+        path: 'custodia/vestigios',
+        loadComponent: () => import('./pages/custodia-vestigios-list/custodia-vestigios-list.component').then(m => m.CustodiaVestigiosListComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'custodia/vestigios/novo',
+        loadComponent: () => import('./pages/custodia-vestigios-form/custodia-vestigios-form.component').then(m => m.CustodiaVestigiosFormComponent),
+        canActivate: [perfilGuard],
+        data: { requiredPerfis: ['PERITO', 'OPERACIONAL', 'ADMINISTRATIVO', 'CUSTODIANTE'] }
+      },
+      {
+        path: 'custodia/vestigios/:id',
+        loadComponent: () => import('./pages/custodia-vestigios-detalhes/custodia-vestigios-detalhes.component').then(m => m.CustodiaVestigiosDetalhesComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'custodia/vestigios/:id/editar',
+        loadComponent: () => import('./pages/custodia-vestigios-form/custodia-vestigios-form.component').then(m => m.CustodiaVestigiosFormComponent),
+        canActivate: [perfilGuard],
+        data: { requiredPerfis: ['PERITO', 'OPERACIONAL', 'ADMINISTRATIVO', 'CUSTODIANTE'] }
+      },
+      {
+        path: 'custodia/dnas',
+        loadComponent: () => import('./pages/custodia-dna-list/custodia-dna-list.component').then(m => m.CustodiaDnaListComponent),
+        canActivate: [AuthGuard]
+      },
+      // ⚠️ Rotas estáticas ANTES das com parâmetro dinâmico (:id)
+      {
+        path: 'custodia/dna/novo',
+        loadComponent: () => import('./pages/custodia-dna-form/custodia-dna-form.component').then(m => m.CustodiaDnaFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'custodia/dna/:id/editar',
+        loadComponent: () => import('./pages/custodia-dna-form/custodia-dna-form.component').then(m => m.CustodiaDnaFormComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'custodia/dna/:id',
+        loadComponent: () => import('./pages/custodia-dna-detalhes/custodia-dna-detalhes.component').then(m => m.CustodiaDnaDetalhesComponent),
         canActivate: [AuthGuard]
       },
 

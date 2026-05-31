@@ -109,15 +109,29 @@
                 <span class="badge-novo">Inteligência</span>
               </a>
             </li>
-            <li class="nav-item">
-              <a routerLink="/gabinete-virtual/assistente-ia" routerLinkActive="active" class="nav-link">
-                <span class="nav-icon">🤖</span>
-                <span class="nav-text">Assistente IA</span>
-                <span class="badge-novo">Em Desenvolvimento</span>
-              </a>
-            </li>
           </ul>
         </div>
+
+        <!-- Custódia de Vestígios -->
+        @if (isCustodia()) {
+          <div class="nav-section">
+            <h4 class="nav-section-title">🔒 Custódia de Vestígios</h4>
+            <ul class="nav-list">
+              <li class="nav-item">
+                <a routerLink="/gabinete-virtual/custodia/vestigios" routerLinkActive="active" class="nav-link">
+                  <span class="nav-icon">🔬</span>
+                  <span class="nav-text">Vestígios</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a routerLink="/gabinete-virtual/custodia/dnas" routerLinkActive="active" class="nav-link">
+                  <span class="nav-icon">🧬</span>
+                  <span class="nav-text">Perfis Genéticos (DNA)</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        }
 
         <!-- Cadastros Administrativos -->
         <div class="nav-section">

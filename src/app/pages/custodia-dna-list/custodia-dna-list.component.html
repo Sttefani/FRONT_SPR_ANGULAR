@@ -1,0 +1,189 @@
+<div class="container">
+
+  <!-- Cabeçalho -->
+  <div class="header-row">
+    <div>
+      <h1>🧬 Perfis Genéticos — DNA</h1>
+      <p class="subtitle">
+        Registros de coleta para o Banco Nacional de Perfis Genéticos
+        — Lei 12.654/2012 e Decreto 7.950/2013
+      </p>
+    </div>
+    <div class="actions-header">
+      <button class="btn-primary" (click)="novoDna()">
+        <i class="bi bi-plus-circle"></i> Nova Coleta
+      </button>
+    </div>
+  </div>
+
+  @if (isExterno) {
+    <div class="aviso-externo">
+      <i class="bi bi-info-circle"></i>
+      <span>
+        Perfil <strong>Externo</strong>: você visualiza apenas as coletas vinculadas
+        à sua unidade demandante. Novos registros são automaticamente marcados como
+        <em>Não Apenado</em> e identificados como registro externo.
+      </span>
+    </div>
+  }
+
+  <!-- Filtros de pesquisa -->
+  <div class="filtros-card">
+    <h4 class="filtros-titulo"><i class="bi bi-search"></i> Pesquisar Perfis Genéticos</h4>
+    <div class="filtros-grid">
+      <div class="filtro-group">
+        <label>Nome</label>
+        <input type="text" [(ngModel)]="filtroNome" placeholder="Nome do coletado..."
+               (keyup.enter)="buscarDnas()" class="filtro-input">
+      </div>
+      <div class="filtro-group">
+        <label>CPF</label>
+        <input type="text" [(ngModel)]="filtroCpf" placeholder="CPF..."
+               (keyup.enter)="buscarDnas()" class="filtro-input">
+      </div>
+      <div class="filtro-group">
+        <label>Situação</label>
+        <select [(ngModel)]="filtroSituacao" class="filtro-input">
+          <option value="">Todas</option>
+          <option value="NAO_APENADO">Não Apenado</option>
+          <option value="APENADO">Apenado</option>
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Finalidade da Coleta</label>
+        <select [(ngModel)]="filtroFinalidade" class="filtro-input">
+          <option value="">Todas</option>
+          <option value="LEI">Lei 12.654/2012</option>
+          <option value="DJ">Decisão Judicial</option>
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>UF</label>
+        <select [(ngModel)]="filtroUf" class="filtro-input">
+          <option value="">Todas</option>
+          @for (uf of UFS; track uf) {
+            <option [value]="uf">{{ uf }}</option>
+          }
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Data da Coleta — De</label>
+        <input type="date" [(ngModel)]="filtroDataDe" class="filtro-input">
+      </div>
+      <div class="filtro-group">
+        <label>Data da Coleta — Até</label>
+        <input type="date" [(ngModel)]="filtroDataAte" class="filtro-input">
+      </div>
+    </div>
+    <div class="filtros-actions">
+      <button class="btn-search" (click)="buscarDnas()">
+        <i class="bi bi-search"></i> Pesquisar
+      </button>
+      <button class="btn-limpar" (click)="limparFiltros()">
+        <i class="bi bi-x-circle"></i> Limpar
+      </button>
+    </div>
+  </div>
+
+  <!-- Feedback -->
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType==='success','error': messageType==='error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="loading-indicator">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando registros...</p>
+    </div>
+  }
+
+  <!-- Tabela -->
+  @if (!isLoading && dnas.length > 0) {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nome / CPF</th>
+            <th>Situação</th>
+            <th>Finalidade</th>
+            <th>Data Coleta</th>
+            <th>UF</th>
+            <th>Cód. Barras</th>
+            <th>Vestígio</th>
+            <th>Perito</th>
+            <th class="actions-header">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (d of dnas; track d.id) {
+            <tr>
+              <td data-label="Nome / CPF" class="nome-cell">
+                {{ d.nome }}
+                <span class="cpf-sub">{{ d.cpf }}</span>
+              </td>
+              <td data-label="Situação">
+                <span class="badge-status" [ngClass]="badgeSituacao(d.situacao)">
+                  {{ d.situacao_display }}
+                </span>
+              </td>
+              <td data-label="Finalidade">
+                <span class="badge-status" [ngClass]="badgeFinalidade(d.finalidade_coleta)">
+                  {{ d.finalidade_coleta }}
+                </span>
+              </td>
+              <td data-label="Data Coleta">{{ d.data_da_coleta | date:'dd/MM/yyyy' }}</td>
+              <td data-label="UF">{{ d.uf || '—' }}</td>
+              <td data-label="Cód. Barras">{{ d.codigo_barras || '—' }}</td>
+              <td data-label="Vestígio">
+                @if (d.vestigio_lacre) {
+                  <button class="btn-link" (click)="irParaVestigio(null)"
+                          title="Ver vestígio">
+                    <i class="bi bi-link-45deg"></i> {{ d.vestigio_lacre }}
+                  </button>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              <td data-label="Perito">{{ d.perito_nome || '—' }}</td>
+              <td class="actions-cell" data-label="Ações">
+                <button class="icon-btn view" title="Ver ficha completa" (click)="verDna(d.id)">
+                  <i class="bi bi-eye"></i>
+                </button>
+                @if (podeEditar) {
+                  <button class="icon-btn edit" title="Editar" (click)="editarDna(d.id)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Paginação -->
+      <div class="pagination">
+        <div class="page-info">
+          Página {{ currentPage }} de {{ totalPages }} | Total: {{ totalCount }} registros
+        </div>
+        <div class="pagination-controls">
+          <button (click)="previousPage()" [disabled]="!previousUrl">
+            <i class="bi bi-chevron-left"></i> Anterior
+          </button>
+          <button (click)="nextPage()" [disabled]="!nextUrl">
+            Próxima <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading && dnas.length === 0) {
+    <div class="empty-state">
+      <i class="bi bi-dna"></i>
+      <p>Nenhum registro de DNA encontrado com os filtros aplicados</p>
+    </div>
+  }
+
+</div>

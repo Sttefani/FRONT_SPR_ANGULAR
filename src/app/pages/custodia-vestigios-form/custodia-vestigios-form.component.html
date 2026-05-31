@@ -1,0 +1,134 @@
+<div class="container">
+
+  <div class="header-row">
+    <div>
+      <h1>{{ isEditMode ? '✏️ Editar Vestígio' : '➕ Novo Vestígio' }}</h1>
+      <p class="subtitle">Preencha os dados do vestígio em custódia.</p>
+    </div>
+  </div>
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="loading-indicator">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando...</p>
+    </div>
+  }
+
+  @if (!isLoading) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card">
+
+      <div class="form-section">
+        <h3 class="section-title">📋 Identificação</h3>
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label for="lacre">Lacre</label>
+            <input id="lacre" type="text" formControlName="lacre" placeholder="Número do lacre...">
+          </div>
+
+          <div class="form-group">
+            <label for="sei">Nº Processo SEI</label>
+            <input id="sei" type="text" formControlName="num_processo_sei" placeholder="Nº SEI...">
+          </div>
+
+          <div class="form-group">
+            <label for="ocorrencia">Ocorrência</label>
+            <input id="ocorrencia" type="text" formControlName="ocorrencia" placeholder="Nº da ocorrência...">
+          </div>
+
+          <div class="form-group">
+            <label for="ano">Ano da Ocorrência</label>
+            <input id="ano" type="number" formControlName="ano_ocorrencia" placeholder="2025" min="2000" max="2099">
+          </div>
+
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">🏛️ Origem</h3>
+        <div class="form-grid">
+
+          <div class="form-group required">
+            <label for="unidade">Unidade Demandante</label>
+            <select id="unidade" formControlName="unidade_demandante_id"
+                    [class.is-invalid]="form.get('unidade_demandante_id')?.invalid && form.get('unidade_demandante_id')?.touched">
+              <option [ngValue]="null">Selecione...</option>
+              @for (u of unidades; track u.id) {
+                <option [ngValue]="u.id">{{ u.sigla }} — {{ u.nome }}</option>
+              }
+            </select>
+            @if (form.get('unidade_demandante_id')?.invalid && form.get('unidade_demandante_id')?.touched) {
+              <span class="field-error">Campo obrigatório</span>
+            }
+          </div>
+
+          <div class="form-group required">
+            <label for="servico">Serviço Pericial</label>
+            <select id="servico" formControlName="servico_pericial_id"
+                    [class.is-invalid]="form.get('servico_pericial_id')?.invalid && form.get('servico_pericial_id')?.touched">
+              <option [ngValue]="null">Selecione...</option>
+              @for (s of servicos; track s.id) {
+                <option [ngValue]="s.id">{{ s.sigla }} — {{ s.nome }}</option>
+              }
+            </select>
+            @if (form.get('servico_pericial_id')?.invalid && form.get('servico_pericial_id')?.touched) {
+              <span class="field-error">Campo obrigatório</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="autoridade">Autoridade</label>
+            <select id="autoridade" formControlName="autoridade_id">
+              <option [ngValue]="null">Nenhuma</option>
+              @for (a of autoridades; track a.id) {
+                <option [ngValue]="a.id">{{ a.nome }}</option>
+              }
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">🔬 Características</h3>
+        <div class="checkbox-row">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="biologico">
+            <span>Material Biológico</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="conformidade">
+            <span>Em Conformidade</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">📝 Descrição</h3>
+        <div class="form-group full-width">
+          <label for="descricao">Descrição do Vestígio</label>
+          <textarea id="descricao" formControlName="descricao" rows="5"
+                    placeholder="Descreva o vestígio, condições de armazenamento, observações..."></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-cancelar" (click)="cancelar()">
+          <i class="bi bi-x-circle"></i> Cancelar
+        </button>
+        <button type="submit" class="btn-salvar" [disabled]="isSaving">
+          <i class="bi bi-check-circle"></i>
+          {{ isSaving ? 'Salvando...' : (isEditMode ? 'Salvar Alterações' : 'Cadastrar Vestígio') }}
+        </button>
+      </div>
+
+    </form>
+  }
+
+</div>

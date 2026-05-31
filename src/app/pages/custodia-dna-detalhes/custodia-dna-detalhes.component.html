@@ -1,0 +1,243 @@
+<div class="container">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <button class="btn-back" (click)="voltar()">
+      <i class="bi bi-arrow-left"></i> Perfis Genéticos
+    </button>
+    @if (dna) {
+      <span class="separator">/</span>
+      <span class="current">{{ dna.nome }}</span>
+    }
+  </div>
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType==='success','error': messageType==='error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="loading-indicator">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando ficha...</p>
+    </div>
+  }
+
+  @if (!isLoading && dna) {
+
+    <!-- Cabeçalho da ficha -->
+    <div class="ficha-header">
+      <div class="ficha-title">
+        <h1>🧬 Ficha de Perfil Genético</h1>
+        <span class="badge-status" [ngClass]="badgeSituacao(dna.situacao)">
+          {{ dna.situacao_display }}
+        </span>
+        <span class="badge-finalidade"
+              [ngClass]="dna.finalidade_coleta === 'LEI' ? 'badge-lei' : 'badge-dj'">
+          {{ dna.finalidade_coleta_display }}
+        </span>
+        @if (dna.registrado_por_usuario_externo) {
+          <span class="badge-externo">
+            <i class="bi bi-person-badge"></i> Registro Externo
+          </span>
+        }
+      </div>
+      <div class="ficha-actions">
+        <button class="btn-pdf" (click)="imprimirFicha()">
+          <i class="bi bi-file-earmark-pdf"></i> Ficha PDF
+        </button>
+        @if (podeEditar) {
+          <button class="btn-outline" (click)="editar()">
+            <i class="bi bi-pencil"></i> Editar
+          </button>
+        }
+        @if (dna.vestigio?.id) {
+          <button class="btn-vestigio" (click)="irParaVestigio()">
+            <i class="bi bi-link-45deg"></i> Ver Vestígio
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Foto + dados pessoais -->
+    <div class="ficha-grid-principal">
+
+      <!-- Coluna da foto -->
+      <div class="foto-col">
+        @if (dna.foto_url) {
+          <img [src]="dna.foto_url" [alt]="'Foto de ' + dna.nome" class="foto-apenado">
+        } @else {
+          <div class="foto-placeholder-view">
+            <i class="bi bi-person-bounding-box"></i>
+            <span>Sem foto</span>
+          </div>
+        }
+        <p class="foto-legenda">{{ dna.nome }}</p>
+      </div>
+
+      <!-- Cards de dados -->
+      <div class="cards-col">
+
+        <!-- 1. Identificação -->
+        <div class="info-card">
+          <h4>👤 Identificação Pessoal</h4>
+          <dl>
+            <dt>Nome completo</dt>
+            <dd>{{ dna.nome }}</dd>
+            <dt>CPF</dt>
+            <dd>{{ dna.cpf }}</dd>
+            <dt>RG</dt>
+            <dd>{{ dna.rg }}</dd>
+            <dt>Data de nascimento</dt>
+            <dd>{{ dna.nascimento | date:'dd/MM/yyyy' }}</dd>
+            <dt>Naturalidade</dt>
+            <dd>{{ dna.naturalidade }}</dd>
+            <dt>UF</dt>
+            <dd>{{ dna.uf || '—' }}</dd>
+            <dt>País</dt>
+            <dd>{{ dna.pais || 'BRASIL' }}</dd>
+            <dt>Estrangeiro</dt>
+            <dd>{{ dna.estrangeiro ? 'Sim' : 'Não' }}</dd>
+          </dl>
+        </div>
+
+        <!-- 2. Filiação -->
+        <div class="info-card">
+          <h4>👨‍👩‍👦 Filiação</h4>
+          <dl>
+            <dt>Mãe</dt>
+            <dd>{{ dna.mae }}</dd>
+            <dt>Pai</dt>
+            <dd>{{ dna.pai || '—' }}</dd>
+          </dl>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. Dados clínicos e situação -->
+    <div class="section-title-bar">⚕️ Dados Clínicos e Situação Legal</div>
+    <div class="info-grid">
+      <div class="info-card">
+        <h4>Histórico Clínico</h4>
+        <dl>
+          <dt>Gêmeo</dt>
+          <dd>{{ simNao(dna.gemeo) }}</dd>
+          <dt>Transfusão de sangue</dt>
+          <dd>{{ simNao(dna.transfusao) }}</dd>
+          <dt>Transplantado</dt>
+          <dd>{{ simNao(dna.transplante) }}</dd>
+          <dt>Processado no RNBG</dt>
+          <dd>{{ simNao(dna.processado_banco_perfis_genetico) }}</dd>
+        </dl>
+      </div>
+      <div class="info-card">
+        <h4>Situação Legal</h4>
+        <dl>
+          <dt>Situação</dt>
+          <dd>
+            <span class="badge-status" [ngClass]="badgeSituacao(dna.situacao)">
+              {{ dna.situacao_display }}
+            </span>
+          </dd>
+          @if (dna.situacao === 'APENADO') {
+            <dt>Unidade Prisional</dt>
+            <dd>{{ dna.unidade_prisional || '—' }}</dd>
+            <dt>Tipo Penal</dt>
+            <dd>{{ dna.tipo_penal || '—' }}</dd>
+          }
+        </dl>
+      </div>
+    </div>
+
+    <!-- 4. Dados da coleta -->
+    <div class="section-title-bar">🧪 Dados da Coleta</div>
+    <div class="info-grid">
+      <div class="info-card">
+        <h4>Coleta</h4>
+        <dl>
+          <dt>Finalidade</dt>
+          <dd>{{ dna.finalidade_coleta_display }}</dd>
+          <dt>Data da coleta</dt>
+          <dd>{{ dna.data_da_coleta | date:'dd/MM/yyyy' }}</dd>
+          <dt>Código de barras</dt>
+          <dd>{{ dna.codigo_barras || '—' }}</dd>
+          <dt>Lacres</dt>
+          <dd>{{ dna.lacres || '—' }}</dd>
+          <dt>Responsável pela coleta</dt>
+          <dd>{{ dna.responsavel_coleta || '—' }}</dd>
+          <dt>Perito responsável</dt>
+          <dd>{{ dna.perito?.nome_completo || '—' }}</dd>
+        </dl>
+      </div>
+      <div class="info-card">
+        <h4>Testemunhas</h4>
+        <dl>
+          <dt>Testemunha 1</dt>
+          <dd>{{ dna.testemunha || '—' }}</dd>
+          <dt>Testemunha 2</dt>
+          <dd>{{ dna.testemunha2 || '—' }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    <!-- 5. Referências processuais -->
+    <div class="section-title-bar">📋 Referências Processuais</div>
+    <div class="info-grid">
+      <div class="info-card">
+        <h4>Processos</h4>
+        <dl>
+          <dt>Nº Processo SEI</dt>
+          <dd>{{ dna.num_processo_sei || '—' }}</dd>
+          <dt>Ocorrência Policial</dt>
+          <dd>{{ dna.ocorrencia || '—' }}</dd>
+          <dt>Processo Judicial</dt>
+          <dd>{{ dna.processo_judicial || '—' }}</dd>
+        </dl>
+      </div>
+      @if (dna.vestigio) {
+        <div class="info-card vestigio-card" (click)="irParaVestigio()" title="Clique para ver o vestígio">
+          <h4>🔬 Vestígio Vinculado</h4>
+          <dl>
+            <dt>Lacre</dt>
+            <dd>{{ dna.vestigio.lacre || '—' }}</dd>
+            <dt>Status</dt>
+            <dd>{{ dna.vestigio.status_display }}</dd>
+            <dt>Serviço</dt>
+            <dd>{{ dna.vestigio.servico_pericial?.nome || '—' }}</dd>
+          </dl>
+          <p class="ver-vestigio">
+            <i class="bi bi-box-arrow-up-right"></i> Ver vestígio completo
+          </p>
+        </div>
+      }
+    </div>
+
+    <!-- 6. Observações -->
+    @if (dna.notas) {
+      <div class="section-title-bar">📝 Observações</div>
+      <div class="notas-card">
+        <p>{{ dna.notas }}</p>
+      </div>
+    }
+
+    <!-- 7. Auditoria -->
+    <div class="section-title-bar">📅 Auditoria</div>
+    <div class="info-grid">
+      <div class="info-card">
+        <h4>Registro</h4>
+        <dl>
+          <dt>Registrado por</dt>
+          <dd>{{ dna.created_by?.nome_completo || '—' }}</dd>
+          <dt>Registrado em</dt>
+          <dd>{{ dna.created_at | date:'dd/MM/yyyy HH:mm' }}</dd>
+          <dt>Registro externo</dt>
+          <dd>{{ dna.registrado_por_usuario_externo ? 'Sim' : 'Não' }}</dd>
+        </dl>
+      </div>
+    </div>
+
+  }
+
+</div>

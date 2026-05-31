@@ -1,0 +1,338 @@
+<div class="container">
+
+  <div class="header-row">
+    <div>
+      <h1>{{ isEditMode ? '✏️ Editar Coleta de DNA' : '🧬 Nova Coleta de DNA' }}</h1>
+      <p class="subtitle">Registro de coleta para o Banco de Perfis Genéticos — Lei 12.654/2012 e Decreto 7.950/2013</p>
+    </div>
+  </div>
+
+  @if (isExterno) {
+    <div class="aviso-externo">
+      <i class="bi bi-shield-check"></i>
+      <span>
+        Perfil <strong>Externo</strong>: o registro será identificado como coleta externa
+        e a situação do coletado é automaticamente definida como <strong>Não Apenado</strong>
+        (Lei 12.654/2012, art. 3º — coleta por solicitação de autoridade judicial).
+      </span>
+    </div>
+  }
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType==='success','error': messageType==='error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="loading-indicator"><i class="bi bi-hourglass-split"></i><p>Carregando...</p></div>
+  }
+
+  @if (!isLoading) {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card">
+
+    <!-- ── 1. Identificação pessoal ── -->
+    <div class="form-section">
+      <h3 class="section-title">👤 1. Identificação Pessoal</h3>
+      <div class="form-grid cols3">
+
+        <div class="form-group required full">
+          <label>Nome completo</label>
+          <input type="text" formControlName="nome" placeholder="Nome conforme documento de identidade"
+                 [class.is-invalid]="form.get('nome')?.invalid && form.get('nome')?.touched">
+          @if (form.get('nome')?.invalid && form.get('nome')?.touched) {
+            <span class="field-error">Obrigatório</span>
+          }
+        </div>
+
+        <div class="form-group required">
+          <label>CPF</label>
+          <input type="text" formControlName="cpf" placeholder="000.000.000-00"
+                 [class.is-invalid]="form.get('cpf')?.invalid && form.get('cpf')?.touched">
+        </div>
+
+        <div class="form-group required">
+          <label>RG</label>
+          <input type="text" formControlName="rg" placeholder="Nº do documento">
+        </div>
+
+        <div class="form-group required">
+          <label>Data de Nascimento</label>
+          <input type="date" formControlName="nascimento"
+                 [class.is-invalid]="form.get('nascimento')?.invalid && form.get('nascimento')?.touched">
+        </div>
+
+        <div class="form-group required">
+          <label>Naturalidade (cidade)</label>
+          <input type="text" formControlName="naturalidade" placeholder="Cidade de nascimento">
+        </div>
+
+        <div class="form-group">
+          <label>UF</label>
+          <select formControlName="uf">
+            @for (uf of UFS; track uf) {
+              <option [value]="uf">{{ uf }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>País</label>
+          <input type="text" formControlName="pais" placeholder="BRASIL">
+        </div>
+
+        <div class="form-group checkbox-inline">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="estrangeiro">
+            <span>Estrangeiro</span>
+          </label>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── 2. Filiação ── -->
+    <div class="form-section">
+      <h3 class="section-title">👨‍👩‍👦 2. Filiação</h3>
+      <div class="form-grid cols2">
+        <div class="form-group required">
+          <label>Nome da Mãe</label>
+          <input type="text" formControlName="mae" placeholder="Nome completo da mãe"
+                 [class.is-invalid]="form.get('mae')?.invalid && form.get('mae')?.touched">
+        </div>
+        <div class="form-group">
+          <label>Nome do Pai</label>
+          <input type="text" formControlName="pai" placeholder="Nome completo do pai (ou N/I)">
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3. Dados clínicos e legais ── -->
+    <div class="form-section">
+      <h3 class="section-title">⚕️ 3. Dados Clínicos e Situação Legal</h3>
+      <div class="form-grid cols3">
+
+        <div class="form-group">
+          <label>Gêmeo?</label>
+          <select formControlName="gemeo">
+            <option value="NO">Não</option>
+            <option value="YES">Sim</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Fez transfusão de sangue?</label>
+          <select formControlName="transfusao">
+            <option value="NO">Não</option>
+            <option value="YES">Sim</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Transplantado?</label>
+          <select formControlName="transplante">
+            <option value="NO">Não</option>
+            <option value="YES">Sim</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Já processado no RNBG?</label>
+          <select formControlName="processado_banco_perfis_genetico">
+            <option value="NO">Não</option>
+            <option value="YES">Sim</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Situação</label>
+          <select formControlName="situacao">
+            <option value="NAO_APENADO">Não Apenado</option>
+            @if (!isExterno) {
+              <option value="APENADO">Apenado</option>
+            }
+          </select>
+          @if (isExterno) {
+            <span class="field-info">
+              <i class="bi bi-lock-fill"></i> Fixado como Não Apenado para usuários externos
+            </span>
+          }
+        </div>
+
+        <!-- Campos obrigatórios apenas para APENADO -->
+        @if (isApenado) {
+          <div class="form-group required">
+            <label>Unidade Prisional</label>
+            <input type="text" formControlName="unidade_prisional"
+                   placeholder="Nome da unidade prisional" required>
+          </div>
+          <div class="form-group required">
+            <label>Tipo Penal</label>
+            <input type="text" formControlName="tipo_penal"
+                   placeholder="Ex: Homicídio qualificado (Art. 121 §2º CP)">
+          </div>
+        }
+
+      </div>
+    </div>
+
+    <!-- ── 4. Dados da coleta ── -->
+    <div class="form-section">
+      <h3 class="section-title">🧪 4. Dados da Coleta</h3>
+      <div class="form-grid cols3">
+
+        <div class="form-group required">
+          <label>Finalidade da Coleta</label>
+          <select formControlName="finalidade_coleta">
+            <option value="LEI">Lei 12.654/2012</option>
+            <option value="DJ">Decisão Judicial</option>
+          </select>
+        </div>
+
+        <div class="form-group required">
+          <label>Data da Coleta</label>
+          <input type="date" formControlName="data_da_coleta"
+                 [class.is-invalid]="form.get('data_da_coleta')?.invalid && form.get('data_da_coleta')?.touched">
+        </div>
+
+        <div class="form-group">
+          <label>Código de Barras (tubo/envelope)</label>
+          <input type="text" formControlName="codigo_barras" placeholder="Código de barras da amostra">
+        </div>
+
+        <div class="form-group">
+          <label>Lacres</label>
+          <input type="text" formControlName="lacres" placeholder="Nºs dos lacres utilizados">
+        </div>
+
+        <div class="form-group">
+          <label>Responsável pela Coleta</label>
+          <input type="text" formControlName="responsavel_coleta" placeholder="Nome de quem coletou">
+        </div>
+
+        <div class="form-group">
+          <label>Perito Responsável</label>
+          <select formControlName="perito_id">
+            <option [ngValue]="null">Selecione...</option>
+            @for (u of usuarios; track u.id) {
+              <option [ngValue]="u.id">{{ u.nome_completo }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Testemunha 1</label>
+          <input type="text" formControlName="testemunha" placeholder="Nome da 1ª testemunha">
+        </div>
+
+        <div class="form-group">
+          <label>Testemunha 2</label>
+          <input type="text" formControlName="testemunha2" placeholder="Nome da 2ª testemunha">
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── 5. Referências processuais ── -->
+    <div class="form-section">
+      <h3 class="section-title">📋 5. Referências Processuais</h3>
+      <div class="form-grid cols3">
+
+        <div class="form-group">
+          <label>Nº Processo SEI</label>
+          <input type="text" formControlName="num_processo_sei" placeholder="SEI da requisição">
+        </div>
+
+        <div class="form-group">
+          <label>Ocorrência Policial</label>
+          <input type="text" formControlName="ocorrencia" placeholder="Nº do BO / RAI">
+        </div>
+
+        <div class="form-group">
+          <label>Processo Judicial</label>
+          <input type="text" formControlName="processo_judicial" placeholder="Nº do processo judicial">
+        </div>
+
+        <div class="form-group">
+          <label>Vestígio vinculado (ID)</label>
+          <input type="number" formControlName="vestigio_id" placeholder="ID do vestígio">
+        </div>
+
+        <div class="form-group checkbox-inline">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="registrado_por_usuario_externo">
+            <span>Registrado por usuário externo</span>
+          </label>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── 6. Fotografia do Coletado ── -->
+    <div class="form-section">
+      <h3 class="section-title">📷 6. Fotografia do Coletado</h3>
+      <p class="section-desc">
+        Opcional. Aceita JPG, PNG, WEBP. Máximo 5 MB.
+      </p>
+
+      <div class="foto-upload-area">
+        <!-- Pré-visualização -->
+        @if (fotoPreview) {
+          <div class="foto-preview-wrap">
+            <img [src]="fotoPreview" alt="Foto do coletado" class="foto-preview">
+            <button type="button" class="btn-remover-foto" (click)="removerFoto()" title="Remover foto">
+              <i class="bi bi-x-circle-fill"></i>
+            </button>
+          </div>
+        } @else {
+          <label class="foto-placeholder" (click)="abrirSeletorFoto()" style="cursor:pointer">
+            <i class="bi bi-person-bounding-box"></i>
+            <span>Clique para selecionar uma foto</span>
+            <span class="foto-hint">JPG, PNG, WEBP — máx. 5 MB</span>
+          </label>
+        }
+
+        <input
+          #fotoInputRef
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          (change)="onFotoSelecionada($event)"
+          class="foto-input-hidden"
+        >
+
+        @if (!fotoPreview) {
+          <button type="button" class="btn-escolher-foto" (click)="abrirSeletorFoto()">
+            <i class="bi bi-upload"></i> Escolher foto
+          </button>
+        } @else {
+          <button type="button" class="btn-escolher-foto" (click)="abrirSeletorFoto()">
+            <i class="bi bi-arrow-repeat"></i> Trocar foto
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- ── 7. Observações ── -->
+    <div class="form-section">
+      <h3 class="section-title">📝 7. Observações</h3>
+      <div class="form-group full-width">
+        <textarea formControlName="notas" rows="4"
+                  placeholder="Informações adicionais, intercorrências durante a coleta, etc."></textarea>
+      </div>
+    </div>
+
+    <!-- Ações -->
+    <div class="form-actions">
+      <button type="button" class="btn-cancelar" (click)="cancelar()">
+        <i class="bi bi-x-circle"></i> Cancelar
+      </button>
+      <button type="submit" class="btn-salvar" [disabled]="isSaving">
+        <i class="bi bi-check-circle"></i>
+        {{ isSaving ? 'Salvando...' : (isEditMode ? 'Salvar Alterações' : 'Registrar DNA') }}
+      </button>
+    </div>
+
+  </form>
+  }
+
+</div>

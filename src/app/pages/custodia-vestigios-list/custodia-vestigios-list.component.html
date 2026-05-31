@@ -1,0 +1,187 @@
+<div class="container">
+
+  <div class="header-row">
+    <div>
+      <h1>🔒 Custódia de Vestígios</h1>
+      <p class="subtitle">Gerenciamento de vestígios e cadeia de custódia.</p>
+    </div>
+    @if (isCustodiante) {
+      <div class="actions-header">
+        <button class="btn-primary" (click)="novoVestigio()">
+          <i class="bi bi-plus-circle"></i>
+          Novo Vestígio
+        </button>
+      </div>
+    }
+  </div>
+
+  <div class="filtros-card">
+    <div class="filtros-grid">
+      <div class="filtro-group">
+        <label>Lacre</label>
+        <input type="text" [(ngModel)]="filtroLacre" placeholder="Buscar por lacre..."
+               (keyup.enter)="buscarVestigios()" class="filtro-input">
+      </div>
+      <div class="filtro-group">
+        <label>Nº Processo SEI</label>
+        <input type="text" [(ngModel)]="filtroSei" placeholder="Nº SEI..."
+               (keyup.enter)="buscarVestigios()" class="filtro-input">
+      </div>
+      <div class="filtro-group">
+        <label>Ocorrência</label>
+        <input type="text" [(ngModel)]="filtroOcorrencia" placeholder="Nº ocorrência..."
+               (keyup.enter)="buscarVestigios()" class="filtro-input">
+      </div>
+      <div class="filtro-group">
+        <label>Serviço Pericial</label>
+        <select [(ngModel)]="filtroServico" class="filtro-input">
+          <option value="">Todos</option>
+          @for (s of servicos; track s.id) {
+            <option [value]="s.id">{{ s.sigla }} — {{ s.nome }}</option>
+          }
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Unidade Demandante</label>
+        <select [(ngModel)]="filtroUnidade" class="filtro-input">
+          <option value="">Todas</option>
+          @for (u of unidades; track u.id) {
+            <option [value]="u.id">{{ u.sigla }} — {{ u.nome }}</option>
+          }
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Biológico</label>
+        <select [(ngModel)]="filtroBiologico" class="filtro-input">
+          <option value="">Todos</option>
+          <option [value]="true">Sim</option>
+          <option [value]="false">Não</option>
+        </select>
+      </div>
+    </div>
+    <div class="filtros-actions">
+      <button class="btn-search" (click)="buscarVestigios()">
+        <i class="bi bi-search"></i> Buscar
+      </button>
+      <button class="btn-limpar" (click)="limparFiltros()">
+        <i class="bi bi-x-circle"></i> Limpar
+      </button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab" [class.active]="tabAtiva === ''" (click)="mudarTab('')">
+      <i class="bi bi-collection"></i> Todos
+    </button>
+    <button class="tab" [class.active]="tabAtiva === 'INICIAL'" (click)="mudarTab('INICIAL')">
+      <i class="bi bi-hourglass"></i> Inicial
+    </button>
+    <button class="tab" [class.active]="tabAtiva === 'ANDAMENTO'" (click)="mudarTab('ANDAMENTO')">
+      <i class="bi bi-arrow-repeat"></i> Em Andamento
+    </button>
+    <button class="tab" [class.active]="tabAtiva === 'FINALIZADO'" (click)="mudarTab('FINALIZADO')">
+      <i class="bi bi-check-circle"></i> Finalizados
+    </button>
+  </div>
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="loading-indicator">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando vestígios...</p>
+    </div>
+  }
+
+  @if (!isLoading && vestigios.length > 0) {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Lacre</th>
+            <th>SEI</th>
+            <th>Ocorrência</th>
+            <th>Status</th>
+            <th>Serviço</th>
+            <th>Unidade</th>
+            <th class="text-center">Bio</th>
+            <th class="text-center">Conf.</th>
+            <th>Registrado em</th>
+            <th class="actions-header">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of vestigios; track v.id) {
+            <tr>
+              <td data-label="Lacre" class="nome-cell">{{ v.lacre || '—' }}</td>
+              <td data-label="SEI">{{ v.num_processo_sei || '—' }}</td>
+              <td data-label="Ocorrência">
+                {{ v.ocorrencia || '—' }}
+                @if (v.ano_ocorrencia) {
+                  <span class="ano-badge">{{ v.ano_ocorrencia }}</span>
+                }
+              </td>
+              <td data-label="Status">
+                <span class="badge-status" [ngClass]="badgeStatus(v.status)">
+                  {{ v.status_display }}
+                </span>
+              </td>
+              <td data-label="Serviço">{{ v.servico_pericial?.sigla || '—' }}</td>
+              <td data-label="Unidade">{{ v.unidade_demandante?.sigla || '—' }}</td>
+              <td data-label="Bio" class="text-center">
+                @if (v.biologico) {
+                  <i class="bi bi-check-circle-fill text-success" title="Sim"></i>
+                } @else {
+                  <i class="bi bi-dash-circle text-muted" title="Não"></i>
+                }
+              </td>
+              <td data-label="Conf." class="text-center">
+                @if (v.conformidade) {
+                  <i class="bi bi-check-circle-fill text-success" title="Em conformidade"></i>
+                } @else {
+                  <i class="bi bi-exclamation-circle text-warning" title="Não conformidade"></i>
+                }
+              </td>
+              <td data-label="Registrado em">{{ v.created_at | date:'dd/MM/yyyy' }}</td>
+              <td class="actions-cell" data-label="Ações">
+                <button class="icon-btn view" title="Ver detalhes" (click)="verDetalhes(v.id)">
+                  <i class="bi bi-eye"></i>
+                </button>
+                @if (isCustodiante) {
+                  <button class="icon-btn edit" title="Editar" (click)="editarVestigio(v.id)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                }
+                @if (isSuperAdmin) {
+                  <button class="icon-btn danger" title="Excluir" (click)="deletarVestigio(v)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginador
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      [totalItems]="totalCount"
+      itemName="vestígios"
+      (pageChange)="mudarPagina($event)">
+    </app-paginador>
+  }
+
+  @if (!isLoading && vestigios.length === 0) {
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <p>Nenhum vestígio encontrado</p>
+    </div>
+  }
+
+</div>

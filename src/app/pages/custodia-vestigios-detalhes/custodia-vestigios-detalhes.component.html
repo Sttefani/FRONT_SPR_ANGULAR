@@ -1,0 +1,293 @@
+<div class="container">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <button class="btn-back" (click)="voltar()">
+      <i class="bi bi-arrow-left"></i> Vestígios
+    </button>
+    @if (vestigio) {
+      <span class="separator">/</span>
+      <span class="current">{{ vestigio.lacre || '#' + vestigio.id }}</span>
+    }
+  </div>
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="loading-indicator">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando vestígio...</p>
+    </div>
+  }
+
+  @if (!isLoading && vestigio) {
+
+    <!-- Header do vestígio -->
+    <div class="vestigio-header">
+      <div class="vestigio-title">
+        <h1>🔒 Vestígio #{{ vestigio.id }}</h1>
+        <span class="badge-status" [ngClass]="badgeStatus(vestigio.status)">
+          {{ vestigio.status_display }}
+        </span>
+        @if (vestigio.biologico) {
+          <span class="badge-bio">🧬 Biológico</span>
+        }
+        @if (vestigio.saiu_da_custodia) {
+          <span class="badge-saiu">📤 Saiu da custódia</span>
+        }
+      </div>
+      <div class="vestigio-actions">
+        <!-- Ficha PDF — disponível para todos -->
+        <button class="btn-pdf" (click)="imprimirFicha()">
+          <i class="bi bi-file-earmark-pdf"></i> Ficha PDF
+        </button>
+
+        @if (isCustodiante) {
+          <button class="btn-outline" (click)="editar()">
+            <i class="bi bi-pencil"></i> Editar
+          </button>
+          <button class="btn-dna" (click)="registrarDna()">
+            <i class="bi bi-dna"></i> Registrar DNA
+          </button>
+          @if (vestigio.status !== 'FINALIZADO') {
+            <button class="btn-finalizar" (click)="finalizar()">
+              <i class="bi bi-check-circle"></i> Finalizar
+            </button>
+          } @else {
+            <button class="btn-reabrir" (click)="reabrir()">
+              <i class="bi bi-arrow-counterclockwise"></i> Reabrir
+            </button>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Cards de informação -->
+    <div class="info-grid">
+
+      <div class="info-card">
+        <h4>📋 Identificação</h4>
+        <dl>
+          <dt>Lacre</dt>
+          <dd>{{ vestigio.lacre || '—' }}</dd>
+          <dt>Nº Processo SEI</dt>
+          <dd>{{ vestigio.num_processo_sei || '—' }}</dd>
+          <dt>Ocorrência</dt>
+          <dd>{{ vestigio.ocorrencia || '—' }} {{ vestigio.ano_ocorrencia ? '/' + vestigio.ano_ocorrencia : '' }}</dd>
+        </dl>
+      </div>
+
+      <div class="info-card">
+        <h4>🏛️ Origem</h4>
+        <dl>
+          <dt>Unidade Demandante</dt>
+          <dd>{{ vestigio.unidade_demandante?.nome || '—' }}</dd>
+          <dt>Serviço Pericial</dt>
+          <dd>{{ vestigio.servico_pericial?.nome || '—' }}</dd>
+          <dt>Autoridade</dt>
+          <dd>{{ vestigio.autoridade?.nome || '—' }}</dd>
+        </dl>
+      </div>
+
+      <div class="info-card">
+        <h4>📅 Auditoria</h4>
+        <dl>
+          <dt>Registrado por</dt>
+          <dd>{{ vestigio.registrado_por || '—' }}</dd>
+          <dt>Registrado em</dt>
+          <dd>{{ vestigio.created_at | date:'dd/MM/yyyy HH:mm' }}</dd>
+          <dt>Atualizado por</dt>
+          <dd>{{ vestigio.atualizado_por || '—' }}</dd>
+          <dt>Atualizado em</dt>
+          <dd>{{ vestigio.updated_at | date:'dd/MM/yyyy HH:mm' }}</dd>
+        </dl>
+      </div>
+
+    </div>
+
+    <!-- Descrição -->
+    @if (vestigio.descricao) {
+      <div class="descricao-card">
+        <h4>📝 Descrição</h4>
+        <p>{{ vestigio.descricao }}</p>
+      </div>
+    }
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab" [class.active]="tabAtiva === 'movimentacoes'" (click)="mudarTab('movimentacoes')">
+        <i class="bi bi-arrow-left-right"></i>
+        Movimentações
+        <span class="tab-count">{{ movimentacoes.length }}</span>
+      </button>
+      <button class="tab" [class.active]="tabAtiva === 'dnas'" (click)="mudarTab('dnas')">
+        <i class="bi bi-dna"></i>
+        DNAs
+        <span class="tab-count">{{ dnas.length }}</span>
+      </button>
+    </div>
+
+    <!-- Tab: Movimentações -->
+    @if (tabAtiva === 'movimentacoes') {
+      <div class="tab-content">
+
+        @if (isCustodiante && vestigio.status !== 'FINALIZADO') {
+          <div class="tab-actions">
+            <button class="btn-primary" (click)="showMovForm = !showMovForm">
+              <i class="bi" [ngClass]="showMovForm ? 'bi-x-circle' : 'bi-plus-circle'"></i>
+              {{ showMovForm ? 'Cancelar' : 'Nova Movimentação' }}
+            </button>
+          </div>
+        }
+
+        <!-- Form de nova movimentação -->
+        @if (showMovForm) {
+          <div class="sub-form">
+            <h4>Registrar Movimentação</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Lacre</label>
+                <input type="text" [(ngModel)]="movForm.lacre" placeholder="Lacre...">
+              </div>
+              <div class="form-group">
+                <label>Nº SEI</label>
+                <input type="text" [(ngModel)]="movForm.num_processo_sei" placeholder="Nº SEI...">
+              </div>
+              <div class="form-group">
+                <label>Destino — Unidade</label>
+                <select [(ngModel)]="movForm.unidade_demandante_id">
+                  <option [ngValue]="null">Selecione...</option>
+                  @for (u of unidades; track u.id) {
+                    <option [ngValue]="u.id">{{ u.sigla }} — {{ u.nome }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Destino — Serviço</label>
+                <select [(ngModel)]="movForm.servico_pericial_id">
+                  <option [ngValue]="null">Selecione...</option>
+                  @for (s of servicos; track s.id) {
+                    <option [ngValue]="s.id">{{ s.sigla }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Autoridade</label>
+                <select [(ngModel)]="movForm.autoridade_id">
+                  <option [ngValue]="null">Nenhuma</option>
+                  @for (a of autoridades; track a.id) {
+                    <option [ngValue]="a.id">{{ a.nome }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group full-width">
+                <label>Descrição</label>
+                <textarea [(ngModel)]="movForm.descricao" rows="3" placeholder="Observações da movimentação..."></textarea>
+              </div>
+            </div>
+            <div class="sub-form-actions">
+              <button class="btn-salvar" (click)="registrarMovimentacao()" [disabled]="isSaving">
+                <i class="bi bi-check-circle"></i>
+                {{ isSaving ? 'Salvando...' : 'Registrar' }}
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (isLoadingMovs) {
+          <div class="loading-indicator"><i class="bi bi-hourglass-split"></i><p>Carregando...</p></div>
+        }
+
+        @if (!isLoadingMovs && movimentacoes.length === 0) {
+          <div class="empty-state"><i class="bi bi-inbox"></i><p>Nenhuma movimentação registrada</p></div>
+        }
+
+        @if (!isLoadingMovs && movimentacoes.length > 0) {
+          <div class="timeline">
+            @for (mov of movimentacoes; track mov.id) {
+              <div class="timeline-item" [class.aceito]="mov.aceito">
+                <div class="timeline-dot" [class.aceito]="mov.aceito">
+                  <i class="bi" [ngClass]="mov.aceito ? 'bi-check-circle-fill' : 'bi-arrow-right-circle'"></i>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <span class="timeline-date">{{ mov.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                    <span class="timeline-by">{{ mov.criado_por || 'Sistema' }}</span>
+                    @if (mov.aceito) {
+                      <span class="badge-aceito">✓ Aceito em {{ mov.data_hora_aceito | date:'dd/MM/yyyy HH:mm' }}</span>
+                    } @else if (isCustodiante) {
+                      <button class="btn-aceitar" (click)="aceitarMovimentacao(mov)">
+                        <i class="bi bi-check2"></i> Confirmar recebimento
+                      </button>
+                    }
+                  </div>
+                  <div class="timeline-body">
+                    @if (mov.lacre) { <p><strong>Lacre:</strong> {{ mov.lacre }}</p> }
+                    @if (mov.num_processo_sei) { <p><strong>SEI:</strong> {{ mov.num_processo_sei }}</p> }
+                    @if (mov.unidade_demandante) { <p><strong>Destino:</strong> {{ mov.unidade_demandante.sigla }} — {{ mov.unidade_demandante.nome }}</p> }
+                    @if (mov.servico_pericial) { <p><strong>Serviço:</strong> {{ mov.servico_pericial.sigla }}</p> }
+                    @if (mov.autoridade_nome) { <p><strong>Autoridade:</strong> {{ mov.autoridade_nome }}</p> }
+                    @if (mov.descricao) { <p class="descricao-mov">{{ mov.descricao }}</p> }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- Tab: DNAs -->
+    @if (tabAtiva === 'dnas') {
+      <div class="tab-content">
+        @if (isLoadingDnas) {
+          <div class="loading-indicator"><i class="bi bi-hourglass-split"></i><p>Carregando...</p></div>
+        }
+        @if (!isLoadingDnas && dnas.length === 0) {
+          <div class="empty-state"><i class="bi bi-dna"></i><p>Nenhuma coleta de DNA registrada</p></div>
+        }
+        @if (!isLoadingDnas && dnas.length > 0) {
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>CPF</th>
+                  <th>UF</th>
+                  <th>Finalidade</th>
+                  <th>Data Coleta</th>
+                  <th>Cód. Barras</th>
+                  <th>Perito</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (dna of dnas; track dna.id) {
+                  <tr>
+                    <td class="nome-cell">{{ dna.nome }}</td>
+                    <td>{{ dna.cpf }}</td>
+                    <td>{{ dna.uf || '—' }}</td>
+                    <td>
+                      <span class="badge-finalidade" [class.badge-lei]="dna.finalidade_coleta === 'LEI'" [class.badge-dj]="dna.finalidade_coleta === 'DJ'">
+                        {{ dna.finalidade_coleta_display }}
+                      </span>
+                    </td>
+                    <td>{{ dna.data_da_coleta | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ dna.codigo_barras || '—' }}</td>
+                    <td>{{ dna.perito_nome || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+  }
+
+</div>
