@@ -1,0 +1,192 @@
+<div class="dashboard-container">
+
+  <!-- Header -->
+  <div class="header-section">
+    <div class="welcome-content">
+      <h1>Bem-vindo, {{ getFirstName() }}!</h1>
+      <p class="user-role">Custodiante</p>
+    </div>
+    <div class="header-meta">
+      <span class="meta-label">Visão Global</span>
+      <span class="meta-valor">{{ totalUnidades }} unidade{{ totalUnidades !== 1 ? 's' : '' }} ativas</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="loading">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando painel global...</p>
+    </div>
+  }
+
+  <!-- Erro -->
+  @if (!isLoading && erro) {
+    <div class="erro-msg">
+      <i class="bi bi-exclamation-triangle"></i> {{ erro }}
+    </div>
+  }
+
+  @if (!isLoading && dados) {
+
+    <!-- Alertas -->
+    <div class="alert-zone">
+      <div class="alert-card"
+           [class.alert-danger]="temPendencias"
+           [class.alert-ok]="!temPendencias"
+           [class.alert-pulsing]="temPendencias">
+        <span class="alert-icon">{{ temPendencias ? '⚠️' : '✅' }}</span>
+        <div class="alert-body">
+          <span class="alert-label">Transferências Pendentes</span>
+          <span class="alert-number">{{ dados.alertas.transferencias_pendentes }}</span>
+          <span class="alert-action">
+            {{ temPendencias ? 'Movimentações aguardando aceite' : 'Todas aceitas' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="alert-card alert-info">
+        <span class="alert-icon">🏢</span>
+        <div class="alert-body">
+          <span class="alert-label">Unidades com Vestígios</span>
+          <span class="alert-number">{{ totalUnidades }}</span>
+          <span class="alert-action">Visão consolidada global</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Totais globais -->
+    <div class="section-divider custodia">
+      <div class="divider-icon">🌐</div>
+      <h2>Totais Globais</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="stat-card primary">
+        <div class="stat-icon">📦</div>
+        <div class="stat-content">
+          <h3>Total Vestígios</h3>
+          <p class="stat-number">{{ dados.vestigios.total }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔵</div>
+        <div class="stat-content">
+          <h3>Inicial</h3>
+          <p class="stat-number">{{ dados.vestigios.inicial }}</p>
+        </div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-icon">🔄</div>
+        <div class="stat-content">
+          <h3>Em Andamento</h3>
+          <p class="stat-number">{{ dados.vestigios.andamento }}</p>
+        </div>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3>Finalizados</h3>
+          <p class="stat-number">{{ dados.vestigios.finalizado }}</p>
+        </div>
+      </div>
+      <div class="stat-card" style="--card-color: #805ad5;">
+        <div class="stat-icon">🧬</div>
+        <div class="stat-content">
+          <h3>Biológicos</h3>
+          <p class="stat-number">{{ dados.vestigios.biologicos }}</p>
+        </div>
+      </div>
+      <div class="stat-card" style="--card-color: #0bc5ea;">
+        <div class="stat-icon">🧪</div>
+        <div class="stat-content">
+          <h3>Coletas DNA</h3>
+          <p class="stat-number">{{ dados.dnas_total }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Breakdown por unidade -->
+    <div class="section-divider">
+      <div class="divider-icon">🏢</div>
+      <h2>Vestígios por Unidade</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="tabela-card">
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Unidade</th>
+            <th class="th-num">Total</th>
+            <th class="th-num">Ativos</th>
+            <th class="th-num">Biológicos</th>
+            <th class="th-bar">Distribuição</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of dados.vestigios_por_unidade; track u['unidade_demandante__id']) {
+            <tr>
+              <td>
+                <span class="ud-sigla">{{ u['unidade_demandante__sigla'] }}</span>
+                <span class="ud-nome">{{ u['unidade_demandante__nome'] }}</span>
+              </td>
+              <td class="td-num">{{ u['total'] }}</td>
+              <td class="td-num">{{ u['ativos'] }}</td>
+              <td class="td-num">{{ u['biologicos'] }}</td>
+              <td class="td-bar">
+                <div class="bar-track">
+                  <div class="bar-fill"
+                       [style.width.%]="dados.vestigios.total > 0 ? (u['total'] / dados.vestigios.total * 100) : 0">
+                  </div>
+                </div>
+                <span class="bar-pct">
+                  {{ dados.vestigios.total > 0 ? (u['total'] / dados.vestigios.total * 100 | number:'1.0-0') : 0 }}%
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Movimentações recentes -->
+    <div class="section-divider">
+      <div class="divider-icon">🔁</div>
+      <h2>Movimentações Recentes</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    @if (dados.movimentacoes_recentes.length === 0) {
+      <div class="empty-state">Nenhuma movimentação registrada.</div>
+    } @else {
+      <div class="movs-lista">
+        @for (mov of dados.movimentacoes_recentes; track mov.id) {
+          <div class="mov-item" [class.mov-pendente]="!mov.aceito">
+            <span class="mov-badge" [class.badge-aceito]="mov.aceito" [class.badge-pendente]="!mov.aceito">
+              {{ mov.aceito ? 'Aceita' : 'Pendente' }}
+            </span>
+            <div class="mov-unidade">
+              @if (mov.unidade_demandante) {
+                <span class="ud-chip">{{ mov.unidade_demandante.sigla }}</span>
+              }
+            </div>
+            <div class="mov-info">
+              <span class="mov-lacre">Lacre: {{ mov.lacre || '—' }}</span>
+              @if (mov.descricao) {
+                <span class="mov-desc">{{ mov.descricao }}</span>
+              }
+            </div>
+            <div class="mov-meta">
+              <span>{{ mov.criado_por || '—' }}</span>
+              <span>{{ mov.created_at | date:'dd/MM/yy HH:mm' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  }
+
+</div>

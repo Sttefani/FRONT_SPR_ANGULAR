@@ -209,6 +209,24 @@ export const routes: Routes = [
       },
 
       // =====================================================================
+      // DASHBOARDS DEDICADOS — EXTERNO E CUSTODIANTE
+      // =====================================================================
+      {
+        path: 'custodia/dashboard-externo',
+        loadComponent: () => import('./pages/dashboard-externo/dashboard-externo.component')
+          .then(m => m.DashboardExternoComponent),
+        canActivate: [perfilGuard],
+        data: { requiredPerfis: ['EXTERNO'] }
+      },
+      {
+        path: 'custodia/dashboard-custodiante',
+        loadComponent: () => import('./pages/dashboard-custodiante/dashboard-custodiante.component')
+          .then(m => m.DashboardCustodianteComponent),
+        canActivate: [perfilGuard],
+        data: { requiredPerfis: ['CUSTODIANTE'] }
+      },
+
+      // =====================================================================
       // CUSTÓDIA DE VESTÍGIOS
       // =====================================================================
       {

@@ -1,0 +1,142 @@
+@if (mostrarWidget()) {
+
+  <!-- Separador de seção — mesmo padrão visual do dashboard -->
+  <div class="section-divider custodia">
+    <div class="divider-icon">🧪</div>
+    <h2>Custódia de Vestígios</h2>
+    <div class="divider-line"></div>
+
+    @if (isPeritoOuOperacional() && servicosDisponiveis.length > 1) {
+      <select class="divider-select" [(ngModel)]="servicoSelecionado" (change)="onFiltroChange()">
+        <option [ngValue]="null">Todos os serviços</option>
+        @for (s of servicosDisponiveis; track s.id) {
+          <option [ngValue]="s.id">{{ s.sigla }}</option>
+        }
+      </select>
+    }
+
+    @if (isAdminOrSuper()) {
+      <select class="divider-select" [(ngModel)]="unidadeSelecionada" (change)="onFiltroChange()">
+        <option [ngValue]="null">Todas as unidades</option>
+        @for (u of unidadesDisponiveis; track u.id) {
+          <option [ngValue]="u.id">{{ u.sigla }}</option>
+        }
+      </select>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="cust-loading">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando custódia...</p>
+    </div>
+  }
+
+  <!-- Erro -->
+  @if (!isLoading && erro) {
+    <div class="cust-erro">
+      <i class="bi bi-exclamation-triangle"></i> {{ erro }}
+    </div>
+  }
+
+  <!-- Cards de estatísticas -->
+  @if (!isLoading && resumo) {
+    <div class="kpi-grid cust-grid">
+
+      <div class="stat-card primary cust-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-content">
+          <h3>Total de Vestígios</h3>
+          <p class="stat-number">{{ resumo.vestigios.total }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card cust-card" style="--card-color: #718096;">
+        <div class="stat-icon">🔵</div>
+        <div class="stat-content">
+          <h3>Inicial</h3>
+          <p class="stat-number">{{ resumo.vestigios.inicial }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card warning cust-card">
+        <div class="stat-icon">🔄</div>
+        <div class="stat-content">
+          <h3>Em Andamento</h3>
+          <p class="stat-number">{{ resumo.vestigios.andamento }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card success cust-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3>Finalizados</h3>
+          <p class="stat-number">{{ resumo.vestigios.finalizado }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card cust-card" style="--card-color: #805ad5;">
+        <div class="stat-icon">🧬</div>
+        <div class="stat-content">
+          <h3>Biológicos</h3>
+          <p class="stat-number">{{ resumo.vestigios.biologicos }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card cust-card" style="--card-color: #0bc5ea;">
+        <div class="stat-icon">🧪</div>
+        <div class="stat-content">
+          <h3>Coletas DNA</h3>
+          <p class="stat-number">{{ resumo.dnas_total }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card cust-card"
+           [class.danger]="resumo.transferencias_pendentes > 0"
+           [style.--card-color]="resumo.transferencias_pendentes > 0 ? '#dc3545' : '#718096'">
+        <div class="stat-icon">{{ resumo.transferencias_pendentes > 0 ? '⚠️' : '🔁' }}</div>
+        <div class="stat-content">
+          <h3>Transf. Pendentes</h3>
+          <p class="stat-number">{{ resumo.transferencias_pendentes }}</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tabela por unidade — apenas admin/super_admin sem filtro de unidade ativo -->
+    @if (mostrarTabelaUnidades()) {
+      <div class="cust-tabela-card">
+        <div class="cust-tabela-header">
+          <i class="bi bi-building"></i>
+          <span>Vestígios por Unidade</span>
+        </div>
+        <table class="cust-tabela">
+          <thead>
+            <tr>
+              <th>Unidade</th>
+              <th>Total</th>
+              <th>Ativos</th>
+              <th>Biológicos</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of (resumo.vestigios_por_unidade ?? []); track u['unidade_demandante__id']) {
+              <tr>
+                <td>
+                  <span class="ud-sigla">{{ u['unidade_demandante__sigla'] }}</span>
+                  <span class="ud-nome">{{ u['unidade_demandante__nome'] }}</span>
+                </td>
+                <td class="td-num">{{ u['total'] }}</td>
+                <td class="td-num">{{ u['ativos'] }}</td>
+                <td class="td-num">{{ u['biologicos'] }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+  }
+
+}

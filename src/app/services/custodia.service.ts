@@ -134,6 +134,58 @@ export interface VestigioFiltros {
   page_size?: number;
 }
 
+export interface DashboardExterno {
+  unidade: { id: number; sigla: string; nome: string };
+  vestigios: { total: number; inicial: number; andamento: number; finalizado: number; biologicos: number };
+  dnas_total: number;
+  movimentacoes_recentes: VestigioMovimentacao[];
+  alertas: { transferencias_pendentes: number };
+}
+
+export interface DashboardCustodianteUnidade {
+  'unidade_demandante__id': number;
+  'unidade_demandante__sigla': string;
+  'unidade_demandante__nome': string;
+  total: number;
+  ativos: number;
+  biologicos: number;
+}
+
+export interface DashboardCustodiante {
+  vestigios: { total: number; inicial: number; andamento: number; finalizado: number; biologicos: number };
+  dnas_total: number;
+  vestigios_por_unidade: DashboardCustodianteUnidade[];
+  alertas: { transferencias_pendentes: number };
+  movimentacoes_recentes: VestigioMovimentacao[];
+}
+
+export interface CustodiaResumoFiltros {
+  servico_pericial_id?: number;
+  unidade_demandante_id?: number;
+}
+
+export interface CustodiaResumoUnidade {
+  'unidade_demandante__id': number;
+  'unidade_demandante__sigla': string;
+  'unidade_demandante__nome': string;
+  total: number;
+  ativos: number;
+  biologicos: number;
+}
+
+export interface CustodiaResumo {
+  vestigios: {
+    total: number;
+    inicial: number;
+    andamento: number;
+    finalizado: number;
+    biologicos: number;
+  };
+  dnas_total: number;
+  transferencias_pendentes: number;
+  vestigios_por_unidade?: CustodiaResumoUnidade[];
+}
+
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 @Injectable({ providedIn: 'root' })
@@ -183,6 +235,22 @@ export class CustodiaService {
 
   getDashboard(): Observable<DashboardCustodia> {
     return this.http.get<DashboardCustodia>(`${this.base}/custodia/vestigios/dashboard/`);
+  }
+
+  getDashboardExterno(): Observable<DashboardExterno> {
+    return this.http.get<DashboardExterno>(`${this.base}/custodia/dashboard/externo/`);
+  }
+
+  getDashboardCustodiante(): Observable<DashboardCustodiante> {
+    return this.http.get<DashboardCustodiante>(`${this.base}/custodia/dashboard/custodiante/`);
+  }
+
+  getResumo(filtros: CustodiaResumoFiltros = {}): Observable<CustodiaResumo> {
+    let params = new HttpParams();
+    Object.entries(filtros).forEach(([k, v]) => {
+      if (v !== null && v !== undefined && v !== '') params = params.set(k, String(v));
+    });
+    return this.http.get<CustodiaResumo>(`${this.base}/custodia/resumo/`, { params });
   }
 
   // Movimentações

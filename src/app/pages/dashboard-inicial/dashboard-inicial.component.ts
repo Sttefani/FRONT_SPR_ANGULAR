@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { OcorrenciaService } from '../../services/ocorrencia.service';
 import { OrdemServicoService } from '../../services/ordem-servico.service';
 import { ServicoPericialService } from '../../services/servico-pericial.service';
+import { CustodiaResumoComponent } from '../custodia-resumo/custodia-resumo.component';
 import { Chart, registerables, ChartConfiguration } from 'chart.js';
 
 Chart.register(...registerables);
@@ -42,7 +43,7 @@ Chart.register(barValuePlugin);
 @Component({
   selector: 'app-dashboard-inicial',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, DatePipe],
+  imports: [CommonModule, FormsModule, RouterModule, DatePipe, CustodiaResumoComponent],
   templateUrl: './dashboard-inicial.component.html',
   styleUrls: ['./dashboard-inicial.component.scss']
 })
@@ -83,6 +84,17 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
+
+    const perfil = this.currentUser?.perfil;
+    if (perfil === 'EXTERNO') {
+      this.router.navigate(['/gabinete-virtual/custodia/dashboard-externo']);
+      return;
+    }
+    if (perfil === 'CUSTODIANTE') {
+      this.router.navigate(['/gabinete-virtual/custodia/dashboard-custodiante']);
+      return;
+    }
+
     this.loadServicos();
     this.loadEstatisticas();
     this.loadEstatisticasOS();

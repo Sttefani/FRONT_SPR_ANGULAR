@@ -1,0 +1,137 @@
+<div class="dashboard-container">
+
+  <!-- Header -->
+  <div class="header-section">
+    <div class="welcome-content">
+      <h1>Bem-vindo, {{ getFirstName() }}!</h1>
+      <p class="user-role">Usuário Externo</p>
+    </div>
+    @if (dados?.unidade) {
+      <div class="unidade-badge">
+        <span class="ud-label">Sua Unidade</span>
+        <span class="ud-sigla">{{ dados!.unidade.sigla }}</span>
+        <span class="ud-nome">{{ dados!.unidade.nome }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="loading">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando painel...</p>
+    </div>
+  }
+
+  <!-- Erro -->
+  @if (!isLoading && erro) {
+    <div class="erro-msg">
+      <i class="bi bi-exclamation-triangle"></i> {{ erro }}
+    </div>
+  }
+
+  @if (!isLoading && dados) {
+
+    <!-- Alertas -->
+    <div class="alert-zone">
+      <div class="alert-card"
+           [class.alert-danger]="temPendencias"
+           [class.alert-ok]="!temPendencias"
+           [class.alert-pulsing]="temPendencias">
+        <span class="alert-icon">{{ temPendencias ? '⚠️' : '✅' }}</span>
+        <div class="alert-body">
+          <span class="alert-label">Transferências Pendentes</span>
+          <span class="alert-number">{{ dados.alertas.transferencias_pendentes }}</span>
+          <span class="alert-action">
+            {{ temPendencias ? 'Aguardando aceite da sua unidade' : 'Nenhuma pendência' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vestígios -->
+    <div class="section-divider custodia">
+      <div class="divider-icon">📦</div>
+      <h2>Vestígios da Unidade</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="stat-card primary">
+        <div class="stat-icon">📋</div>
+        <div class="stat-content">
+          <h3>Total de Vestígios</h3>
+          <p class="stat-number">{{ dados.vestigios.total }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔵</div>
+        <div class="stat-content">
+          <h3>Inicial</h3>
+          <p class="stat-number">{{ dados.vestigios.inicial }}</p>
+        </div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-icon">🔄</div>
+        <div class="stat-content">
+          <h3>Em Andamento</h3>
+          <p class="stat-number">{{ dados.vestigios.andamento }}</p>
+        </div>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3>Finalizados</h3>
+          <p class="stat-number">{{ dados.vestigios.finalizado }}</p>
+        </div>
+      </div>
+      <div class="stat-card" style="--card-color: #805ad5;">
+        <div class="stat-icon">🧬</div>
+        <div class="stat-content">
+          <h3>Biológicos</h3>
+          <p class="stat-number">{{ dados.vestigios.biologicos }}</p>
+        </div>
+      </div>
+      <div class="stat-card" style="--card-color: #0bc5ea;">
+        <div class="stat-icon">🧪</div>
+        <div class="stat-content">
+          <h3>Coletas DNA</h3>
+          <p class="stat-number">{{ dados.dnas_total }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Movimentações recentes -->
+    <div class="section-divider">
+      <div class="divider-icon">🔁</div>
+      <h2>Movimentações Recentes</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    @if (dados.movimentacoes_recentes.length === 0) {
+      <div class="empty-state">Nenhuma movimentação registrada para a sua unidade.</div>
+    } @else {
+      <div class="movs-lista">
+        @for (mov of dados.movimentacoes_recentes; track mov.id) {
+          <div class="mov-item" [class.mov-pendente]="!mov.aceito">
+            <span [class.badge-aceito]="mov.aceito" [class.badge-pendente]="!mov.aceito" class="mov-badge">
+              {{ mov.aceito ? 'Aceita' : 'Pendente' }}
+            </span>
+            <div class="mov-info">
+              <span class="mov-lacre">Lacre: {{ mov.lacre || '—' }}</span>
+              @if (mov.descricao) {
+                <span class="mov-desc">{{ mov.descricao }}</span>
+              }
+            </div>
+            <div class="mov-meta">
+              <span>{{ mov.criado_por || '—' }}</span>
+              <span>{{ mov.created_at | date:'dd/MM/yy HH:mm' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  }
+
+</div>

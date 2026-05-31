@@ -1,0 +1,283 @@
+<div class="dashboard-container">
+
+  <div class="header-section">
+    <div class="welcome-content">
+      <h1>Bem-vindo, {{ getFirstName(user?.nome_completo) }}!</h1>
+      <p class="user-role">{{ user?.perfil }}</p>
+    </div>
+
+    <div class="live-indicator">
+      <span class="live-dot" [class.live-dot-refreshing]="isRefreshing"></span>
+      <span class="live-label">
+        @if (isRefreshing) { Atualizando... }
+        @else if (ultimaAtualizacao) { Atualizado às {{ getUltimaAtualizacaoLabel() }} }
+        @else { Atualiza a cada 60 segundos }
+      </span>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando estatísticas...</p>
+    </div>
+  }
+
+  @if (!isLoading && estatisticas) {
+
+    <div class="alert-zone">
+      <div class="alert-card"
+           [class.alert-danger]="(estatisticasOS?.minhas_os?.vencidas || 0) > 0"
+           [class.alert-ok]="(estatisticasOS?.minhas_os?.vencidas || 0) === 0"
+           [class.alert-pulsing]="(estatisticasOS?.minhas_os?.vencidas || 0) > 0"
+           (click)="(estatisticasOS?.minhas_os?.vencidas || 0) > 0 && irParaOSVencidas()">
+        <span class="alert-icon">{{ (estatisticasOS?.minhas_os?.vencidas || 0) > 0 ? '🔴' : '✅' }}</span>
+        <div class="alert-body">
+          <span class="alert-label">Minhas OS Vencidas</span>
+          <span class="alert-number">{{ estatisticasOS?.minhas_os?.vencidas || 0 }}</span>
+          <span class="alert-action">
+            {{ (estatisticasOS?.minhas_os?.vencidas || 0) > 0 ? 'Prioridade máxima: Resolver agora →' : 'Tudo no prazo' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="alert-card"
+           [class.alert-warning]="(estatisticasOS?.minhas_os?.aguardando_ciencia || 0) > 0"
+           [class.alert-ok]="(estatisticasOS?.minhas_os?.aguardando_ciencia || 0) === 0"
+           [class.alert-pulsing]="(estatisticasOS?.minhas_os?.aguardando_ciencia || 0) > 0"
+           (click)="(estatisticasOS?.minhas_os?.aguardando_ciencia || 0) > 0 && irParaOSSemCienciaPerito()">
+        <span class="alert-icon">{{ (estatisticasOS?.minhas_os?.aguardando_ciencia || 0) > 0 ? '👁️' : '✅' }}</span>
+        <div class="alert-body">
+          <span class="alert-label">Aguardando Minha Ciência</span>
+          <span class="alert-number">{{ estatisticasOS?.minhas_os?.aguardando_ciencia || 0 }}</span>
+          <span class="alert-action">
+            {{ (estatisticasOS?.minhas_os?.aguardando_ciencia || 0) > 0 ? 'Assinar ordens pendentes →' : 'Nenhuma pendência' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="alert-card"
+           [class.alert-info]="(estatisticas.minhas_ocorrencias?.atrasadas || 0) > 0"
+           [class.alert-ok]="(estatisticas.minhas_ocorrencias?.atrasadas || 0) === 0"
+           (click)="irParaMinhasOcorrenciasAtrasadas()">
+        <span class="alert-icon">{{ (estatisticas.minhas_ocorrencias?.atrasadas || 0) > 0 ? '⏳' : '✅' }}</span>
+        <div class="alert-body">
+          <span class="alert-label">Ocorrências Atrasadas (+20 dias)</span>
+          <span class="alert-number">{{ estatisticas.minhas_ocorrencias?.atrasadas || 0 }}</span>
+          <span class="alert-action">
+            {{ (estatisticas.minhas_ocorrencias?.atrasadas || 0) > 0 ? 'Verificar atrasos →' : 'Trabalho em dia' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider custodia">
+      <div class="divider-icon">🧬</div>
+      <h2>Governança Forense, Cadeia de Custódia e DNA do Setor</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="stat-card primary" (click)="irParaVestigiosSetor()" style="cursor: pointer;">
+        <div class="stat-icon">🏛️</div>
+        <div class="stat-content">
+          <h3>Custódia do Setor</h3>
+          <p class="stat-number">{{ sinalizadoresCustodia?.total || 0 }}</p>
+          <small>Evidências gerais registradas</small>
+        </div>
+      </div>
+
+      <div class="stat-card danger" (click)="irParaVestigiosSetor()" style="cursor: pointer;">
+        <div class="stat-icon">☣️</div>
+        <div class="stat-content">
+          <h3>Materiais Biológicos</h3>
+          <p class="stat-number">{{ sinalizadoresCustodia?.biologicos || 0 }}</p>
+          <small>Amostras sob rastreabilidade fria</small>
+        </div>
+      </div>
+
+      <div class="stat-card highlight" (click)="irParaDnasSetor()" style="cursor: pointer;">
+        <div class="stat-icon">🧬</div>
+        <div class="stat-content">
+          <h3>Banco de DNA (CODIS)</h3>
+          <p class="stat-number">{{ totalDnas }}</p>
+          <small>Perfis genéticos indexados no setor</small>
+        </div>
+      </div>
+
+      <div class="stat-card success">
+        <div class="stat-icon">🛡️</div>
+        <div class="stat-content">
+          <h3>Índice de Conformidade</h3>
+          <p class="stat-number">{{ calcularPorcentagem(totalConformes, sinalizadoresCustodia?.total || 1) }}%</p>
+          <small>Integridade física de lacres validada</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider ocorrencias">
+      <div class="divider-icon">🔍</div>
+      <h2>Minhas Ocorrências Periciais</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="stat-card primary">
+        <div class="stat-icon">📋</div>
+        <div class="stat-content">
+          <h3>Total Atribuído a Mim</h3>
+          <p class="stat-number">{{ estatisticas.minhas_ocorrencias.total }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card warning">
+        <div class="stat-icon">🔍</div>
+        <div class="stat-content">
+          <h3>Na Minha Mesa (Análise)</h3>
+          <p class="stat-number">{{ estatisticas.minhas_ocorrencias.em_analise }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card success">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3>Já Finalizadas</h3>
+          <p class="stat-number">{{ estatisticas.minhas_ocorrencias.finalizadas }}</p>
+          <small>{{ estatisticas.minhas_ocorrencias.taxa_finalizacao }}% do meu volume total</small>
+        </div>
+      </div>
+
+      <div class="stat-card info">
+        <div class="stat-icon">📅</div>
+        <div class="stat-content">
+          <h3>Desempenho no Mês</h3>
+          <p class="stat-number">{{ estatisticas.minhas_ocorrencias.finalizadas_este_mes }}</p>
+          <small>Ocorrências finalizadas este mês</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="perito-performance-section mb-3">
+      <div class="perito-performance-header">
+        <span class="pp-title">📊 Distribuição de Carga de Trabalho</span>
+        <span class="pp-subtitle">Volume em relação ao total do setor</span>
+      </div>
+      <div style="padding: 0.5rem 0.5rem 1rem 0.5rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <strong style="color: var(--text-color-dark); font-size: 0.9rem;">
+            Demandas sob minha responsabilidade: <span style="color: var(--primary-color-dark);">{{ estatisticas.minhas_ocorrencias.total }}</span>
+          </strong>
+          <small style="color: var(--text-color-light); font-weight: 700;">
+            {{ estatisticas.minhas_ocorrencias.total }} de {{ estatisticas.servico.total_geral }} ocorrências do setor ({{ estatisticas.servico.minha_participacao }}%)
+          </small>
+        </div>
+        <div class="pp-bar-wrap" style="height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden;">
+          <div [style.width.%]="estatisticas.servico.minha_participacao"
+               style="height: 100%; background: linear-gradient(90deg, #DAA520, #B8860B); border-radius: 6px; transition: width 1s ease;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    @if (estatisticasOS?.minhas_os) {
+      <div class="section-divider ordens-servico">
+        <div class="divider-icon">⚖️</div>
+        <h2>Minhas Ordens de Serviço e Prazos</h2>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="stat-card primary">
+          <div class="stat-icon">🛠️</div>
+          <div class="stat-content">
+            <h3>OS Atribuídas</h3>
+            <p class="stat-number">{{ estatisticasOS.minhas_os.total }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card info">
+          <div class="stat-icon">📂</div>
+          <div class="stat-content">
+            <h3>Trabalho Aberto</h3>
+            <p class="stat-number">{{ estatisticasOS.minhas_os.abertas + estatisticasOS.minhas_os.em_andamento }}</p>
+            <small>Abertas + Em Andamento</small>
+          </div>
+        </div>
+
+        <div class="stat-card success">
+          <div class="stat-icon">✅</div>
+          <div class="stat-content">
+            <h3>Concluídas</h3>
+            <p class="stat-number">{{ estatisticasOS.minhas_os.concluidas }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card danger">
+          <div class="stat-icon">⏰</div>
+          <div class="stat-content">
+            <h3>Vencidas</h3>
+            <p class="stat-number">{{ estatisticasOS.minhas_os.vencidas }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="taxa-strip">
+        <div class="taxa-item taxa-cumprimento">
+          <span class="taxa-valor" [class.ok]="getTaxaConclusaoOSPerito() >= 50" [class.risco]="getTaxaConclusaoOSPerito() < 50">
+            {{ getTaxaConclusaoOSPerito() }}%
+          </span>
+          <span class="taxa-label">Taxa de Conclusão de OS</span>
+        </div>
+
+        <div class="taxa-item taxa-atraso" style="border-top-color: var(--warning-color);">
+          <span class="taxa-valor" style="color: var(--warning-color);">
+            {{ estatisticasOS.minhas_os.aguardando_ciencia + estatisticasOS.minhas_os.abertas + estatisticasOS.minhas_os.em_andamento }}
+          </span>
+          <span class="taxa-label">Total Pendente</span>
+        </div>
+
+        <div class="taxa-item taxa-tempo" style="border-top-color: var(--danger-color);">
+          <span class="taxa-valor" [class.risco]="estatisticasOS.minhas_os.vencidas > 0" [class.ok]="estatisticasOS.minhas_os.vencidas === 0">
+            {{ estatisticasOS.minhas_os.vencidas > 0 ? 'ATENÇÃO' : 'EM DIA' }}
+          </span>
+          <span class="taxa-label">Status dos Prazos</span>
+        </div>
+      </div>
+
+      <div class="charts-row charts-row-4 mt-3">
+        <div class="chart-panel">
+          <div class="chart-panel-header">
+            <h3>🍩 Minhas Ocorrências</h3>
+            <span class="chart-subtitle">Distribuição atual</span>
+          </div>
+          <canvas id="chartOcorrenciasPerito"></canvas>
+        </div>
+
+        <div class="chart-panel">
+          <div class="chart-panel-header">
+            <h3>🍩 Minhas Ordens de Serviço</h3>
+            <span class="chart-subtitle">Status das cobranças</span>
+          </div>
+          <canvas id="chartOSPerito"></canvas>
+        </div>
+      </div>
+    }
+
+    @if (ultimasOcorrencias.length > 0) {
+      <div class="recent-section mt-3">
+        <h2>Recentes na Minha Mesa</h2>
+        <div class="recent-list">
+          @for (ocorrencia of ultimasOcorrencias; track ocorrencia.id) {
+            <div class="recent-item">
+              <strong>{{ ocorrencia.numero_ocorrencia }}</strong>
+              <span class="badge" [ngClass]="'badge-' + ocorrencia.status.toLowerCase()">
+                {{ ocorrencia.status }}
+              </span>
+              <small>{{ ocorrencia.created_at | date:'dd/MM/yyyy' }}</small>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

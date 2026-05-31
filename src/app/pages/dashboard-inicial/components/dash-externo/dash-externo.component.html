@@ -1,0 +1,139 @@
+<div class="dashboard-container p-0">
+
+  <div class="header-section">
+    <div class="welcome-content">
+      <h1>Olá, {{ getFirstName(user?.nome_completo) }}!</h1>
+      <p class="user-role">Painel de Acompanhamento • Usuário Externo</p>
+    </div>
+    @if (user?.unidade_demandante_nome) {
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        <span class="live-label">{{ user.unidade_demandante_nome }}</span>
+      </div>
+    }
+  </div>
+
+  @if (isLoading) {
+    <div class="loading">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Buscando andamentos de laudos e cadastros genéticos...</p>
+    </div>
+  }
+
+  @if (!isLoading) {
+
+    <div class="alert-zone">
+      <div class="alert-card"
+           [class.alert-danger]="vestigiosEmAnaliseUnidade > 0"
+           [class.alert-ok]="vestigiosEmAnaliseUnidade === 0"
+           (click)="irParaMeusVestigios()">
+        <span class="alert-icon">🔬</span>
+        <div class="alert-body">
+          <span class="alert-label">Procedimentos em Análise Pericial</span>
+          <span class="alert-number">{{ vestigiosEmAnaliseUnidade }}</span>
+          <span class="alert-action">Acompanhar andamento dos exames →</span>
+        </div>
+      </div>
+
+      <div class="alert-card"
+           [class.alert-warning]="vestigiosLiberadosUnidade > 0"
+           [class.alert-ok]="vestigiosLiberadosUnidade === 0"
+           [class.alert-pulsing]="vestigiosLiberadosUnidade > 0"
+           (click)="irParaMeusVestigios()">
+        <span class="alert-icon">📜</span>
+        <div class="alert-body">
+          <span class="alert-label">Laudos Prontos / Retorno Liberado</span>
+          <span class="alert-number">{{ vestigiosLiberadosUnidade }}</span>
+          <span class="alert-action">
+            {{ vestigiosLiberadosUnidade > 0 ? 'Laudos emitidos: Liberado para retirada →' : 'Nenhum laudo pendente' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="alert-card alert-info" (click)="irParaNovoDna()">
+        <span class="alert-icon">🧬</span>
+        <div class="alert-body">
+          <span class="alert-label">Cadastro de Perfil Genético</span>
+          <span class="alert-number">+</span>
+          <span class="alert-action">Cadastrar amostra de DNA de envolvido →</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider ocorrencias">
+      <div class="divider-icon">📁</div>
+      <h2>Nossos Materiais Remetidos à Perícia</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="stat-card primary" (click)="irParaMeusVestigios()" style="cursor: pointer;">
+        <div class="stat-icon">📦</div>
+        <div class="stat-content">
+          <h3>Total de Itens Enviados</h3>
+          <p class="stat-number">{{ totalVestigiosUnidade }}</p>
+          <small>Histórico completo da nossa unidade</small>
+        </div>
+      </div>
+
+      <div class="stat-card warning" (click)="irParaMeusVestigios()" style="cursor: pointer;">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-content">
+          <h3>Laudos em Confecção</h3>
+          <p class="stat-number">{{ vestigiosEmAnaliseUnidade }}</p>
+          <small>Amostras atualmente nos laboratórios</small>
+        </div>
+      </div>
+
+      <div class="stat-card success" (click)="irParaMeusVestigios()" style="cursor: pointer;">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3>Laudos Respondidos</h3>
+          <p class="stat-number">{{ vestigiosLiberadosUnidade }}</p>
+          <small>Peças técnicas anexadas e finalizadas</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider producao">
+      <div class="divider-icon">🧬</div>
+      <h2>Banco de Dados Genético (DNA CODIS)</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="stat-card highlight" (click)="irParaMeusDnas()" style="cursor: pointer;">
+        <div class="stat-icon">🧬</div>
+        <div class="stat-content">
+          <h3>Perfis Genéticos Cadastrados</h3>
+          <p class="stat-number">{{ totalDnasUnidade }}</p>
+          <small>Amostras de DNA inseridas por nossa unidade</small>
+        </div>
+      </div>
+
+      <div class="stat-card info" (click)="irParaNovoDna()" style="cursor: pointer;">
+        <div class="stat-icon">➕</div>
+        <div class="stat-content">
+          <h3>Nova Inserção</h3>
+          <p class="stat-number">DNA</p>
+          <small>Registrar indivíduo não apenado</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="recent-section mt-3">
+      <h2>Termos de Segurança e Acesso Judicial</h2>
+      <div class="servico-list">
+        <div class="servico-item">
+          <span class="servico-sigla">LEI 12.654</span>
+          <span class="servico-nome">Os Perfis Genéticos cadastrados por esta autoridade são integrados automaticamente à Rede Integrada de Bancos de Perfis Genéticos (RIBPG) para fins de investigação criminal.</span>
+        </div>
+        <div class="servico-item">
+          <span class="servico-sigla">RESTRIÇÃO</span>
+          <span class="servico-nome">Por motivos de integridade da Cadeia de Custódia, usuários externos possuem permissão restrita de apenas inserção de DNA, sendo vedada qualquer edição ou exclusão de registros homologados.</span>
+        </div>
+      </div>
+    </div>
+
+  }
+</div>

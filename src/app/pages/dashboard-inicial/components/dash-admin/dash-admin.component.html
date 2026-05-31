@@ -1,0 +1,405 @@
+<div class="dashboard-container">
+
+  <div class="header-section">
+    <div class="welcome-content">
+      <h1>Bem-vindo, {{ getFirstName(user?.nome_completo) }}!</h1>
+      <p class="user-role">{{ user?.perfil }} - Gestão Estratégica</p>
+    </div>
+
+    @if (servicosDisponiveis.length > 0) {
+      <div class="filtro-servico">
+        <label>Filtrar por Serviço:</label>
+        <select [(ngModel)]="servicoSelecionado" (change)="onServicoChange()">
+          <option [ngValue]="null">Todos os Serviços</option>
+          @for (servico of servicosDisponiveis; track servico.id) {
+            <option [ngValue]="servico.id">{{ servico.sigla }} - {{ servico.nome }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="live-indicator">
+      <span class="live-dot" [class.live-dot-refreshing]="isRefreshing"></span>
+      <span class="live-label">
+        @if (isRefreshing) { Atualizando... }
+        @else if (ultimaAtualizacao) { Atualizado às {{ getUltimaAtualizacaoLabel() }} }
+        @else { Atualiza a cada 60 segundos }
+      </span>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando estatísticas...</p>
+    </div>
+  }
+
+  @if (!isLoading && estatisticas) {
+
+    @if (estatisticasOS?.geral_os || estatisticas.geral) {
+      <div class="alert-zone">
+        <div class="alert-card"
+             [class.alert-danger]="(estatisticasOS?.geral_os?.vencidas || 0) > 0"
+             [class.alert-ok]="(estatisticasOS?.geral_os?.vencidas || 0) === 0"
+             [class.alert-pulsing]="(estatisticasOS?.geral_os?.vencidas || 0) > 0"
+             (click)="(estatisticasOS?.geral_os?.vencidas || 0) > 0 && irParaOSVencidas()">
+          <span class="alert-icon">{{ (estatisticasOS?.geral_os?.vencidas || 0) > 0 ? '🔴' : '✅' }}</span>
+          <div class="alert-body">
+            <span class="alert-label">OS Vencidas</span>
+            <span class="alert-number">{{ estatisticasOS?.geral_os?.vencidas || 0 }}</span>
+            <span class="alert-action">Ver ordens vencidas →</span>
+          </div>
+        </div>
+
+        <div class="alert-card"
+             [class.alert-warning]="(estatisticasOS?.geral_os?.aguardando_ciencia || 0) > 0"
+             [class.alert-ok]="(estatisticasOS?.geral_os?.aguardando_ciencia || 0) === 0"
+             [class.alert-pulsing]="(estatisticasOS?.geral_os?.aguardando_ciencia || 0) > 0"
+             (click)="(estatisticasOS?.geral_os?.aguardando_ciencia || 0) > 0 && irParaOSSemCiencia()">
+          <span class="alert-icon">👁️</span>
+          <div class="alert-body">
+            <span class="alert-label">OS sem Ciência dos Peritos</span>
+            <span class="alert-number">{{ estatisticasOS?.geral_os?.aguardando_ciencia || 0 }}</span>
+            <span class="alert-action">Ver peritos sem ciência →</span>
+          </div>
+        </div>
+
+        <div class="alert-card"
+             [class.alert-info]="(estatisticas.geral?.aguardando || 0) > 0"
+             [class.alert-ok]="(estatisticas.geral?.aguardando || 0) === 0"
+             [class.alert-pulsing]="(estatisticas.geral?.aguardando || 0) > 0"
+             (click)="(estatisticas.geral?.aguardando || 0) > 0 && irParaOcorrenciasSemPerito()">
+          <span class="alert-icon">⏳</span>
+          <div class="alert-body">
+            <span class="alert-label">Ocorrências sem Perito</span>
+            <span class="alert-number">{{ estatisticas.geral?.aguardando || 0 }}</span>
+            <span class="alert-action">Atribuir peritos →</span>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="section-divider custodia">
+      <div class="divider-icon">🧬</div>
+      <h2>Governança Forense, Cadeia de Custódia e DNA</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="stat-card primary" (click)="irParaVestigiosGeral()" style="cursor: pointer;">
+        <div class="stat-icon">🏛️</div>
+        <div class="stat-content">
+          <h3>Total em Custódia</h3>
+          <p class="stat-number">{{ sinalizadoresCustodia?.total || 0 }}</p>
+          <small>Evidências gerais sob guarda</small>
+        </div>
+      </div>
+
+      <div class="stat-card danger" (click)="irParaVestigiosGeral()" style="cursor: pointer;">
+        <div class="stat-icon">☣️</div>
+        <div class="stat-content">
+          <h3>Amostras Biológicas</h3>
+          <p class="stat-number">{{ sinalizadoresCustodia?.biologicos || 0 }}</p>
+          <small>Materiais sensíveis armazenados</small>
+        </div>
+      </div>
+
+      <div class="stat-card highlight" (click)="irParaDnasGeral()" style="cursor: pointer;">
+        <div class="stat-icon">🧬</div>
+        <div class="stat-content">
+          <h3>Banco de DNA (CODIS)</h3>
+          <p class="stat-number">{{ totalDnas }}</p>
+          <small>Perfis genéticos indexados</small>
+        </div>
+      </div>
+
+      <div class="stat-card success">
+        <div class="stat-icon">🛡️</div>
+        <div class="stat-content">
+          <h3>Conformidade</h3>
+          <p class="stat-number">{{ calcularPorcentagem(totalConformes, sinalizadoresCustodia?.total || 1) }}%</p>
+          <small>Integridade de lacres auditada</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider ocorrencias">
+      <div class="divider-icon">🔍</div>
+      <h2>Ocorrências: Visão Geral</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="stat-card primary">
+        <div class="stat-icon">📋</div>
+        <div class="stat-content">
+          <h3>Total</h3>
+          <p class="stat-number">{{ estatisticas.geral.total }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card info">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-content">
+          <h3>Aguardando Perito</h3>
+          <p class="stat-number">{{ estatisticas.geral.aguardando }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card warning">
+        <div class="stat-icon">🔍</div>
+        <div class="stat-content">
+          <h3>Em Análise</h3>
+          <p class="stat-number">{{ estatisticas.geral.em_analise }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card laudo-entregue">
+        <div class="stat-icon">📬</div>
+        <div class="stat-content">
+          <h3>Laudo Entregue</h3>
+          <p class="stat-number">{{ estatisticas.geral.laudo_entregue }}</p>
+          <small>Aguardando finalização</small>
+        </div>
+      </div>
+
+      <div class="stat-card success">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3>Finalizadas</h3>
+          <p class="stat-number">{{ estatisticas.geral.finalizadas }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card danger">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-content">
+          <h3>Atrasadas</h3>
+          <p class="stat-number">{{ estatisticas.geral.atrasadas }}</p>
+          <small>Mais de 20 dias</small>
+        </div>
+      </div>
+
+      <div class="stat-card info">
+        <div class="stat-icon">📅</div>
+        <div class="stat-content">
+          <h3>Finalizadas este Mês</h3>
+          <p class="stat-number">{{ estatisticas.geral.finalizadas_este_mes }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card highlight">
+        <div class="stat-icon">📈</div>
+        <div class="stat-content">
+          <h3>Últimos 30 Dias</h3>
+          <p class="stat-number">{{ estatisticas.ultimos_30_dias.criadas }}</p>
+          <small>{{ estatisticas.ultimos_30_dias.finalizadas }} finalizadas</small>
+        </div>
+      </div>
+    </div>
+
+    @if (estatisticasOS?.geral_os) {
+      <div class="section-divider ordens-servico">
+        <div class="divider-icon">⚖️</div>
+        <h2>Ordens de Serviço: Visão Geral</h2>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="stat-card primary">
+          <div class="stat-icon">🛠️</div>
+          <div class="stat-content">
+            <h3>OS Emitidas</h3>
+            <p class="stat-number">{{ estatisticasOS.geral_os.total }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card secondary">
+          <div class="stat-icon">👁️</div>
+          <div class="stat-content">
+            <h3>Ag. Ciência</h3>
+            <p class="stat-number">{{ estatisticasOS.geral_os.aguardando_ciencia }}</p>
+            <small>Peritos ainda não cientes</small>
+          </div>
+        </div>
+
+        <div class="stat-card warning">
+          <div class="stat-icon">⚙️</div>
+          <div class="stat-content">
+            <h3>Em Andamento</h3>
+            <p class="stat-number">{{ estatisticasOS.geral_os.em_andamento }}</p>
+            <small>Trabalho em execução</small>
+          </div>
+        </div>
+
+        <div class="stat-card success">
+          <div class="stat-icon">✅</div>
+          <div class="stat-content">
+            <h3>Concluídas</h3>
+            <p class="stat-number">{{ estatisticasOS.geral_os.concluidas }}</p>
+          </div>
+        </div>
+      </div>
+
+      @if (relatoriosGerenciais) {
+        <div class="taxa-strip">
+          <div class="taxa-item taxa-cumprimento">
+            <span class="taxa-valor" [class.ok]="getTaxaCumprimento() >= 70" [class.risco]="getTaxaCumprimento() < 70">
+              {{ getTaxaCumprimento() }}%
+            </span>
+            <span class="taxa-label">Cumprimento no Prazo</span>
+          </div>
+
+          <div class="taxa-item taxa-atraso">
+            <span class="taxa-valor" [class.ok]="(relatoriosGerenciais.taxa_cumprimento?.percentual_com_atraso || 0) < 30"
+                  [class.risco]="(relatoriosGerenciais.taxa_cumprimento?.percentual_com_atraso || 0) >= 30">
+              {{ relatoriosGerenciais.taxa_cumprimento?.percentual_com_atraso || 0 }}%
+            </span>
+            <span class="taxa-label">Concluídas com Atraso</span>
+          </div>
+
+          <div class="taxa-item taxa-tempo">
+            <span class="taxa-valor info">{{ getTempoMedioOS() }}d</span>
+            <span class="taxa-label">Tempo Médio de Conclusão</span>
+          </div>
+        </div>
+      }
+
+      <div class="chart-panel w-100 mt-3 p-4" style="background: #1e1e1e; border-radius: 8px; border: 1px solid #333;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h3 style="color: #fff; margin: 0; font-size: 1.1rem; font-weight: 600;">📊 Linha Dinâmica de Cumprimento de Prazos (SLA)</h3>
+            <span style="color: #aaa; font-size: 0.85rem;">Distribuição proporcional das ordens de serviço ativas por criticidade</span>
+          </div>
+          <span class="badge bg-success" style="font-size: 0.95rem; padding: 6px 12px; font-weight: bold;">
+            Eficiência do Setor: {{ getTaxaCumprimento() }}%
+          </span>
+        </div>
+
+        <div class="progress-container mb-3" style="background: #2d2d2d; border-radius: 6px; height: 26px; overflow: hidden; display: flex;">
+          @if (estatisticasOS.geral_os.concluidas > 0) {
+            <div class="progress-bar bg-success" role="progressbar"
+                 [style.width.%]="calcularPorcentagem(estatisticasOS.geral_os.concluidas, estatisticasOS.geral_os.total)"
+                 style="display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.8rem; font-weight: bold;">
+              {{ calcularPorcentagem(estatisticasOS.geral_os.concluidas, estatisticasOS.geral_os.total) }}%
+            </div>
+          }
+          @if (estatisticasOS.geral_os.em_andamento > 0) {
+            <div class="progress-bar bg-warning text-dark" role="progressbar"
+                 [style.width.%]="calcularPorcentagem(estatisticasOS.geral_os.em_andamento, estatisticasOS.geral_os.total)"
+                 style="display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold;">
+              {{ calcularPorcentagem(estatisticasOS.geral_os.em_andamento, estatisticasOS.geral_os.total) }}%
+            </div>
+          }
+          @if (estatisticasOS.geral_os.vencidas > 0) {
+            <div class="progress-bar bg-danger" role="progressbar"
+                 [style.width.%]="calcularPorcentagem(estatisticasOS.geral_os.vencidas, estatisticasOS.geral_os.total)"
+                 style="display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.8rem; font-weight: bold;">
+              {{ calcularPorcentagem(estatisticasOS.geral_os.vencidas, estatisticasOS.geral_os.total) }}%
+            </div>
+          }
+        </div>
+
+        <div class="d-flex justify-content-between flex-wrap" style="color: #ccc; font-size: 0.85rem;">
+          <div><strong style="color: #28a745;">● Verde (Preservado):</strong> {{ estatisticasOS.geral_os.concluidas }} resolvidas</div>
+          <div><strong style="color: #ff9800;">● Amarelo (Em Tramitação):</strong> {{ estatisticasOS.geral_os.em_andamento }} ativas</div>
+          <div><strong style="color: #e53e3e;">● Vermelho (Atraso Crítico):</strong> {{ estatisticasOS.geral_os.vencidas }} estouradas</div>
+        </div>
+      </div>
+
+      @if (getAllPeritos().length > 0) {
+        <div class="perito-performance-section mt-4">
+          <div class="perito-performance-header">
+            <span class="pp-title">👤 Cumprimento de Ordem de Serviço por Perito</span>
+            <span class="pp-subtitle">Ordens de Serviço: Concluídas · Em andamento · Vencidas</span>
+          </div>
+          <div class="perito-performance-list">
+            @for (p of getAllPeritos(); track p.perito_id || $index) {
+              @if (p.total_emitidas > 0 || p.concluidas > 0 || p.em_andamento > 0) {
+                <div class="perito-performance-item">
+                  <span class="pp-nome">{{ getPrimeiroNome(p.perito) }}</span>
+                  <div class="pp-stats">
+                    <span class="pp-stat pp-concluidas" title="Concluídas">✅ {{ p.concluidas }}</span>
+                    <span class="pp-stat pp-andamento" title="Em andamento">⚙️ {{ p.em_andamento }}</span>
+                    <span class="pp-stat pp-vencidas" [class.pp-alert]="p.vencidas > 0" title="Vencidas">⏰ {{ p.vencidas }}</span>
+                  </div>
+
+                  <div class="pp-bar-wrap">
+                    <div class="pp-bar-track">
+                      <div class="pp-bar-fill" [ngClass]="getBarPerito(p.concluidas, p.total_emitidas)" [style.width.%]="calcularPorcentagem(p.concluidas, p.total_emitidas)"></div>
+                    </div>
+                    <span class="pp-total">{{ p.total_emitidas }} total</span>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      }
+
+      <div class="charts-row charts-row-4 mt-4">
+        <div class="chart-panel">
+          <div class="chart-panel-header">
+            <h3>🍩 Ocorrências por Status</h3>
+            <span class="chart-subtitle">Distribuição atual</span>
+          </div>
+          <canvas id="chartOcorrenciasDonutAdmin"></canvas>
+        </div>
+
+        <div class="chart-panel">
+          <div class="chart-panel-header">
+            <h3>📈 Evolução de Ocorrências</h3>
+            <span class="chart-subtitle">Últimos 6 meses</span>
+          </div>
+          @if (!estatisticas.evolucao_mensal?.length) {
+            <div class="empty-state"><i class="bi bi-bar-chart"></i> Sem dados temporais</div>
+          } @else {
+            <canvas id="chartOcorrenciasEvolucaoAdmin"></canvas>
+          }
+        </div>
+
+        <div class="chart-panel">
+          <div class="chart-panel-header">
+            <h3>🍩 OS por Status</h3>
+            <span class="chart-subtitle">Distribuição atual</span>
+          </div>
+          <canvas id="chartOSDonutAdmin"></canvas>
+        </div>
+
+        <div class="chart-panel">
+          <div class="chart-panel-header">
+            <h3>📈 Evolução Mensal de OS</h3>
+            <span class="chart-subtitle">Últimos 6 meses</span>
+          </div>
+          @if (!relatoriosGerenciais?.evolucao_temporal?.length) {
+            <div class="empty-state"><i class="bi bi-bar-chart"></i> Sem dados temporais</div>
+          } @else {
+            <canvas id="chartEvolucaoAdmin"></canvas>
+          }
+        </div>
+      </div>
+    }
+
+    @if (estatisticas.por_servico?.length > 0) {
+      <div class="section-divider producao mt-4">
+        <div class="divider-icon">📂</div>
+        <h2>Ocorrências por Serviço Pericial</h2>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="recent-section">
+        <div class="servico-list">
+          @for (servico of estatisticas.por_servico; track $index) {
+            <div class="servico-item">
+              <span class="servico-sigla">{{ servico.servico_pericial__sigla }}</span>
+              <span class="servico-nome">{{ servico.servico_pericial__nome }}</span>
+              <span class="servico-total">{{ servico.total }} ocorrências</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  }
+</div>

@@ -1,0 +1,142 @@
+<div class="dashboard-container p-0">
+
+  <div class="header-section">
+    <div class="welcome-content">
+      <h1>Bem-vindo, {{ getFirstName(user?.nome_completo) }}!</h1>
+      <p class="user-role">Painel de Controle Forense • Central de Custódia</p>
+    </div>
+    <div class="live-indicator">
+      <span class="live-dot"></span>
+      <span class="live-label">Monitor do Depósito Ativo</span>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Inventariando posições de prateleiras e lacres...</p>
+    </div>
+  }
+
+  @if (!isLoading && sinalizadores) {
+
+    <div class="alert-zone">
+      <div class="alert-card"
+           [class.alert-warning]="sinalizadores.inicial > 0"
+           [class.alert-ok]="sinalizadores.inicial === 0"
+           [class.alert-pulsing]="sinalizadores.inicial > 0"
+           (click)="sinalizadores.inicial > 0 && irParaVestigiosStatus('INICIAL')">
+        <span class="alert-icon">{{ sinalizadores.inicial > 0 ? '📥' : '✅' }}</span>
+        <div class="alert-body">
+          <span class="alert-label">Triagem / Entrada Pendente</span>
+          <span class="alert-number">{{ sinalizadores.inicial }}</span>
+          <span class="alert-action">
+            {{ sinalizadores.inicial > 0 ? 'Material aguardando alocação física →' : 'Nenhum item na triagem' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="alert-card alert-danger"
+           [class.alert-pulsing]="sinalizadores.biologicos > 0"
+           (click)="irParaVestigiosBiologicos()">
+        <span class="alert-icon">☣️</span>
+        <div class="alert-body">
+          <span class="alert-label">Amostras Biológicas Críticas</span>
+          <span class="alert-number">{{ sinalizadores.biologicos }}</span>
+          <span class="alert-action">Exige monitoramento térmico →</span>
+        </div>
+      </div>
+
+      <div class="alert-card alert-info" (click)="irParaVestigiosStatus('FINALIZADO')">
+        <span class="alert-icon">📦</span>
+        <div class="alert-body">
+          <span class="alert-label">Prontos para Logística Reversa</span>
+          <span class="alert-number">{{ sinalizadores.finalizado }}</span>
+          <span class="alert-action">Laudos concluídos pelo setor →</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider producao">
+      <div class="divider-icon">🏢</div>
+      <h2>Inventário Geral Forense (Cadeia de Custódia)</h2>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="stat-card primary" (click)="irParaListaCompleta()" style="cursor: pointer;">
+        <div class="stat-icon">🗄️</div>
+        <div class="stat-content">
+          <h3>Estoque Geral Guardado</h3>
+          <p class="stat-number">{{ sinalizadores.total }}</p>
+          <small>Total absoluto sob custódia legal</small>
+        </div>
+      </div>
+
+      <div class="stat-card warning" (click)="irParaVestigiosStatus('INICIAL')" style="cursor: pointer;">
+        <div class="stat-icon">📥</div>
+        <div class="stat-content">
+          <h3>Aguardando Triagem/Conferência</h3>
+          <p class="stat-number">{{ sinalizadores.inicial }}</p>
+          <small>Status INICIAL no sistema</small>
+        </div>
+      </div>
+
+      <div class="stat-card info" (click)="irParaVestigiosStatus('ANDAMENTO')" style="cursor: pointer;">
+        <div class="stat-icon">🔬</div>
+        <div class="stat-content">
+          <h3>Em Exame com os Peritos</h3>
+          <p class="stat-number">{{ sinalizadores.andamento }}</p>
+          <small>Status ANDAMENTO (Bancadas externas)</small>
+        </div>
+      </div>
+
+      <div class="stat-card success" (click)="irParaVestigiosStatus('FINALIZADO')" style="cursor: pointer;">
+        <div class="stat-icon">⚖️</div>
+        <div class="stat-content">
+          <h3>Processos Concluídos</h3>
+          <p class="stat-number">{{ sinalizadores.finalizado }}</p>
+          <small>Status FINALIZADO (Arquivamento/Descarte)</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="taxa-strip mt-3">
+      <div class="taxa-item taxa-cumprimento">
+        <span class="taxa-valor ok">
+          {{ calcularPorcentagem(sinalizadores.finalizado, sinalizadores.total) }}%
+        </span>
+        <span class="taxa-label">Índice de Liberação / Descarte</span>
+      </div>
+
+      <div class="taxa-item taxa-atraso">
+        <span class="taxa-valor" [class.risco]="sinalizadores.inicial > 0" [class.ok]="sinalizadores.inicial === 0">
+          {{ calcularPorcentagem(sinalizadores.inicial, sinalizadores.total) }}%
+        </span>
+        <span class="taxa-label">Taxa de Ocupação da Triagem</span>
+      </div>
+
+      <div class="taxa-item taxa-tempo">
+        <span class="taxa-valor info">
+          {{ calcularPorcentagem(sinalizadores.andamento, sinalizadores.total) }}%
+        </span>
+        <span class="taxa-label">Gargalo Ativo em Laboratórios</span>
+      </div>
+    </div>
+
+    <div class="recent-section mt-3">
+      <h2>Diretrizes da Central de Custódia</h2>
+      <div class="servico-list">
+        <div class="servico-item">
+          <span class="servico-sigla">POP 01</span>
+          <span class="servico-nome">Conferência de Lacre Forense: Sempre valide a integridade física do invólucro antes de assinar o recebimento no sistema.</span>
+        </div>
+        <div class="servico-item">
+          <span class="servico-sigla">POP 02</span>
+          <span class="servico-nome">Amostras Biológicas (DNA/Fluidos): Devem ser movidas imediatamente para a área refrigerada e identificadas com etiqueta de risco biológico.</span>
+        </div>
+      </div>
+    </div>
+
+  }
+</div>
