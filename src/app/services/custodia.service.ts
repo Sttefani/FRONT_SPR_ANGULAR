@@ -35,16 +35,34 @@ export interface VestigioList {
   created_at: string;
 }
 
+export interface OcorrenciaProcedimento {
+  id: number;
+  numero_completo: string;
+  numero: string;
+  ano: number;
+  tipo: { id: number; sigla: string; nome: string };
+}
+
+export interface OcorrenciaVinculada {
+  id: number;
+  numero_ocorrencia: string;
+  status: string;
+  status_display: string;
+  servico_sigla: string;
+  unidade_sigla: string;
+  procedimento: OcorrenciaProcedimento | null;
+}
+
 export interface VestigioDetalhe extends VestigioList {
   descricao: string | null;
   autoridade: { id: number; nome: string; cargo_nome: string } | null;
   user_destino: UsuarioSimples | null;
   procedimentos: { id: number; numero: string; ano: number; numero_completo: string }[];
+  ocorrencias_vinculadas: OcorrenciaVinculada[];
   vestigio_contra_prova: number | null;
   vestigio_contra_prova_lacre: string | null;
   created_by: UsuarioSimples | null;
   updated_by: UsuarioSimples | null;
-  // Campos calculados (priorizam FK, caem para fallback de auditoria histórica)
   registrado_por: string | null;
   atualizado_por: string | null;
   updated_at: string;
@@ -231,6 +249,26 @@ export class CustodiaService {
 
   reabrirVestigio(id: number): Observable<VestigioDetalhe> {
     return this.http.post<VestigioDetalhe>(`${this.base}/custodia/vestigios/${id}/reabrir/`, {});
+  }
+
+  getContraProvas(vestigioId: number): Observable<VestigioList[]> {
+    return this.http.get<VestigioList[]>(`${this.base}/custodia/vestigios/${vestigioId}/contra-provas/`);
+  }
+
+  vincularOcorrencia(vestigioId: number, ocorrenciaId: number, acao: 'add' | 'remove'): Observable<any> {
+    return this.http.post<any>(
+      `${this.base}/custodia/vestigios/${vestigioId}/vincular-ocorrencia/`,
+      { ocorrencia_id: ocorrenciaId, acao }
+    );
+  }
+
+  getGrafoVestigio(vestigioId: number): Observable<any> {
+    return this.http.get<any>(`${this.base}/custodia/vestigios/${vestigioId}/grafo/`);
+  }
+
+  buscarOcorrenciaPorNumero(numero: string): Observable<{ exists: boolean; ocorrencia: OcorrenciaVinculada | null }> {
+    const params = new HttpParams().set('numero_ocorrencia', numero.trim().toUpperCase());
+    return this.http.get<any>(`${this.base}/ocorrencias/buscar-por-numero/`, { params });
   }
 
   getDashboard(): Observable<DashboardCustodia> {

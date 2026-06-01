@@ -46,6 +46,10 @@ export class AutoridadeService {
 
   constructor(private http: HttpClient) {}
 
+  getAllForDropdown(): Observable<Autoridade[]> {
+    return this.http.get<Autoridade[]>(`${this.baseUrl}/autoridades/dropdown/`);
+  }
+
   getAll(search?: string, cargo?: number): Observable<PaginatedResponse> {
     let params = new HttpParams();
     if (search) {

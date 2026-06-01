@@ -8,6 +8,7 @@ import {
   CustodiaService,
   VestigioDetalhe,
   VestigioMovimentacao,
+  OcorrenciaVinculada,
   DNA
 } from '../../services/custodia.service';
 import { AuthService } from '../../services/auth.service';
@@ -56,6 +57,7 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
   servicos: any[] = [];
   unidades: any[] = [];
   autoridades: any[] = [];
+
 
   constructor(
     private route: ActivatedRoute,
@@ -220,6 +222,105 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
 
   resetMovForm(): void {
     this.movForm = { lacre: '', num_processo_sei: '', descricao: '', unidade_demandante_id: null, servico_pericial_id: null, autoridade_id: null };
+  }
+
+  // ── Ocorrências vinculadas ────────────────────────────────────────────────
+
+  /**
+   * Abre o modal de busca por número de ocorrência (mesmo padrão do
+   * vincular-procedimento na tela de detalhes da Ocorrência).
+   */
+  abrirModalVincularOcorrencia(): void {
+    Swal.fire({
+      title: 'Vincular Ocorrência',
+      html: `
+        <p style="margin-bottom:1rem;font-size:.9rem;color:#555">
+          Digite o número da ocorrência (ex: <strong>2405001/BAL</strong>)
+        </p>
+        <input id="swal-numero-oc"
+               class="swal2-input"
+               placeholder="Número da ocorrência"
+               style="text-transform:uppercase">
+      `,
+      confirmButtonText: 'Buscar',
+      cancelButtonText: 'Cancelar',
+      showCancelButton: true,
+      preConfirm: () => {
+        const val = (document.getElementById('swal-numero-oc') as HTMLInputElement)?.value?.trim();
+        if (!val) { Swal.showValidationMessage('Informe o número da ocorrência.'); return false; }
+        return val;
+      }
+    }).then(result => {
+      if (result.isConfirmed && result.value) {
+        this.buscarEVincularOcorrencia(result.value);
+      }
+    });
+  }
+
+  private buscarEVincularOcorrencia(numero: string): void {
+    this.custodiaService.buscarOcorrenciaPorNumero(numero).subscribe({
+      next: (resp) => {
+        if (!resp.exists || !resp.ocorrencia) {
+          Swal.fire('Não encontrada',
+            `Ocorrência <strong>${numero}</strong> não existe ou não foi localizada.`,
+            'warning');
+          return;
+        }
+        const oc = resp.ocorrencia;
+        const procInfo = oc.procedimento
+          ? `<br><small>Procedimento: <strong>${oc.procedimento.numero_completo}</strong> (será vinculado automaticamente)</small>`
+          : '';
+        Swal.fire({
+          title: 'Confirmar vinculação?',
+          html: `
+            <p><strong>${oc.numero_ocorrencia}</strong></p>
+            <p style="font-size:.85rem;color:#555">
+              Serviço: ${oc.servico_sigla} &nbsp;|&nbsp; Status: ${oc.status_display}
+            </p>
+            ${procInfo}
+          `,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Sim, vincular',
+          cancelButtonText: 'Cancelar'
+        }).then(conf => {
+          if (conf.isConfirmed) this.executarVinculo(oc.id, 'add');
+        });
+      },
+      error: () => Swal.fire('Erro', 'Não foi possível buscar a ocorrência.', 'error')
+    });
+  }
+
+  desvincularOcorrencia(oc: OcorrenciaVinculada): void {
+    Swal.fire({
+      title: 'Desvincular ocorrência?',
+      html: `Remover o vínculo com <strong>${oc.numero_ocorrencia}</strong>?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, desvincular',
+      cancelButtonText: 'Cancelar'
+    }).then(result => {
+      if (result.isConfirmed) this.executarVinculo(oc.id, 'remove');
+    });
+  }
+
+  private executarVinculo(ocorrenciaId: number, acao: 'add' | 'remove'): void {
+    if (!this.vestigio) return;
+    this.custodiaService.vincularOcorrencia(this.vestigio.id, ocorrenciaId, acao).subscribe({
+      next: (resp) => {
+        this.vestigio = resp.vestigio;
+        const msg = acao === 'add' ? 'Ocorrência vinculada com sucesso.' : 'Ocorrência desvinculada.';
+        this.showMessage(msg, 'success');
+      },
+      error: (err) => {
+        const msg = err?.error?.detail || 'Erro ao alterar vínculo com ocorrência.';
+        this.showMessage(msg, 'error');
+      }
+    });
+  }
+
+  navegarParaOcorrencia(ocorrenciaId: number): void {
+    this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', ocorrenciaId]);
   }
 
   // ── Utilitários ───────────────────────────────────────────────────────────

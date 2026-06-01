@@ -60,4 +60,18 @@ export class GabineteVirtualComponent implements OnInit, OnDestroy {
   isCustodia(): boolean {
     return this.authService.isLoggedIn();
   }
+
+  isExterno(): boolean {
+    return this.authService.getCurrentUser()?.perfil === 'EXTERNO';
+  }
+
+  isCustodiante(): boolean {
+    return this.authService.getCurrentUser()?.perfil === 'CUSTODIANTE';
+  }
+
+  /** True para EXTERNO e CUSTODIANTE — perfis que só acessam o módulo de Custódia. */
+  isRestritoCustodia(): boolean {
+    const p = this.authService.getCurrentUser()?.perfil;
+    return p === 'EXTERNO' || p === 'CUSTODIANTE';
+  }
 }

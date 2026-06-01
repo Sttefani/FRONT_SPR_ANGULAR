@@ -2,6 +2,9 @@
 
   <div class="header-row">
     <div>
+      <button type="button" class="btn-voltar" (click)="voltar()">
+        <i class="bi bi-arrow-left"></i> Voltar
+      </button>
       <h1>{{ isEditMode ? '✏️ Editar Vestígio' : '➕ Novo Vestígio' }}</h1>
       <p class="subtitle">Preencha os dados do vestígio em custódia.</p>
     </div>
@@ -116,6 +119,58 @@
           <textarea id="descricao" formControlName="descricao" rows="5"
                     placeholder="Descreva o vestígio, condições de armazenamento, observações..."></textarea>
         </div>
+      </div>
+
+      <!-- Seção opcional: vincular ocorrência no momento do cadastro -->
+      <div class="form-section">
+        <h3 class="section-title">🔗 Ocorrência Vinculada <span class="optional-tag">opcional</span></h3>
+
+        @if (!ocorrenciaSelecionada) {
+          <div class="oc-search-row">
+            <input
+              type="text"
+              class="oc-search-input"
+              [value]="searchOcorrenciaNr"
+              (input)="searchOcorrenciaNr = $any($event.target).value"
+              placeholder="Número da ocorrência (ex: 2405001/BAL)"
+              (keyup.enter)="buscarOcorrenciaInline()"
+              [disabled]="isSearchingOcorrencia">
+            <button
+              type="button"
+              class="btn-buscar-oc"
+              (click)="buscarOcorrenciaInline()"
+              [disabled]="isSearchingOcorrencia || !searchOcorrenciaNr.trim()">
+              @if (isSearchingOcorrencia) { <i class="bi bi-hourglass-split"></i> Buscando… }
+              @else { <i class="bi bi-search"></i> Buscar }
+            </button>
+          </div>
+
+          @if (ocorrenciaErro) {
+            <p class="oc-erro">{{ ocorrenciaErro }}</p>
+          }
+        }
+
+        @if (ocorrenciaSelecionada) {
+          <div class="oc-card-selecionada">
+            <div class="oc-card-info">
+              <strong>{{ ocorrenciaSelecionada.numero_ocorrencia }}</strong>
+              <span class="oc-status">{{ ocorrenciaSelecionada.status_display }}</span>
+              <span class="oc-meta">
+                {{ ocorrenciaSelecionada.servico_sigla }} — {{ ocorrenciaSelecionada.unidade_sigla }}
+              </span>
+              @if (ocorrenciaSelecionada.procedimento) {
+                <span class="oc-proc">
+                  <i class="bi bi-folder"></i>
+                  {{ ocorrenciaSelecionada.procedimento.numero_completo }}
+                  <em>(procedimento será vinculado automaticamente)</em>
+                </span>
+              }
+            </div>
+            <button type="button" class="btn-remover-oc" (click)="removerOcorrencia()" title="Remover vínculo">
+              <i class="bi bi-x-circle"></i>
+            </button>
+          </div>
+        }
       </div>
 
       <div class="form-actions">

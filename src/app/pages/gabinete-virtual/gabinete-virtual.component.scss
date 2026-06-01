@@ -217,6 +217,30 @@
   flex-shrink: 0;
 }
 
+/* Badge de perfil restrito (EXTERNO / CUSTODIANTE) no rodapé do sidebar */
+.nav-perfil-badge {
+  margin: 1rem 0.8rem 0.4rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+
+  span { display: block; margin-bottom: 0.15rem; }
+  small { display: block; font-weight: 400; opacity: 0.8; font-size: 0.7rem; }
+
+  &.externo {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+  }
+
+  &.custodiante {
+    background: #d1e7dd;
+    color: #0a3622;
+    border: 1px solid #198754;
+  }
+}
+
 /* Badge "Novo" */
 .badge-novo {
   background: linear-gradient(135deg, #DAA520, #B8860B);

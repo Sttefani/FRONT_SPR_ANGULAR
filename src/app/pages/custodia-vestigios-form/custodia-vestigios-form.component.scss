@@ -23,6 +23,143 @@
   .subtitle { color: var(--text-color-light); font-size: 0.9rem; margin: 0; }
 }
 
+// ── Tag "opcional" no título da seção ────────────────────────────────────────
+.optional-tag {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text-color-light);
+  background: #f1f5f9;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 0.1rem 0.5rem;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+// ── Busca inline de ocorrência ────────────────────────────────────────────────
+.oc-search-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.oc-search-input {
+  flex: 1;
+  padding: 0.55rem 0.85rem;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: var(--text-color-dark);
+  font-family: inherit;
+  text-transform: uppercase;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(218,165,32,.12);
+  }
+  &:disabled { opacity: 0.6; }
+}
+
+.btn-buscar-oc {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--primary-color);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) { background: var(--primary-color-dark); }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+.oc-erro {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--danger-color);
+  font-weight: 500;
+}
+
+.oc-card-selecionada {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+}
+
+.oc-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  strong { font-size: 0.95rem; color: var(--text-color-dark); }
+
+  .oc-status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #15803d;
+    background: #dcfce7;
+    border-radius: 20px;
+    padding: 0.1rem 0.5rem;
+    align-self: flex-start;
+  }
+
+  .oc-meta {
+    font-size: 0.8rem;
+    color: var(--text-color-light);
+  }
+
+  .oc-proc {
+    font-size: 0.78rem;
+    color: #0369a1;
+    i { margin-right: 0.25rem; }
+    em { opacity: 0.7; }
+  }
+}
+
+.btn-remover-oc {
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0.1rem;
+  line-height: 1;
+  transition: opacity 0.2s;
+  &:hover { opacity: 0.7; }
+}
+
+.btn-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: none;
+  color: var(--text-color-light);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.3rem 0;
+  cursor: pointer;
+  margin-bottom: 0.6rem;
+  transition: color 0.2s;
+
+  i { font-size: 0.9rem; }
+  &:hover { color: var(--primary-color-dark); }
+}
+
 .message {
   padding: 0.8rem 1.2rem;
   border-radius: 6px;
@@ -94,6 +231,9 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  // Impede que o conteúdo (ex: <select> com texto longo) expanda
+  // a célula do grid além de 1fr — sem isso o select "estoura" a margem.
+  min-width: 0;
 
   &.full-width { grid-column: 1 / -1; }
 
@@ -112,6 +252,9 @@
   }
 
   input, select, textarea {
+    // Ocupa 100% da célula do grid e nunca ultrapassa o container.
+    width: 100%;
+    box-sizing: border-box;
     padding: 0.6rem 0.85rem;
     border: 2px solid var(--border-color);
     border-radius: 6px;
@@ -133,7 +276,14 @@
   }
 
   textarea { resize: vertical; min-height: 100px; }
-  select { cursor: pointer; }
+
+  select {
+    cursor: pointer;
+    // Trunca o texto selecionado dentro do campo (não afeta o dropdown aberto).
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .field-error {

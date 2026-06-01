@@ -117,6 +117,57 @@
       </div>
     }
 
+    <!-- ── Ocorrências Vinculadas (cards) ───────────────────────────────── -->
+    <div class="oc-section">
+      <div class="oc-section-header">
+        <h4>Ocorrências Vinculadas</h4>
+        <div class="oc-section-actions">
+          @if (isCustodiante) {
+            <button class="btn-oc-vincular" (click)="abrirModalVincularOcorrencia()">
+              + Vincular
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (!vestigio || !vestigio.ocorrencias_vinculadas.length) {
+        <p class="oc-vazia">Nenhuma ocorrência vinculada a este vestígio.</p>
+      } @else {
+        @for (oc of vestigio.ocorrencias_vinculadas; track oc.id) {
+          <!-- Card: Ocorrência -->
+          <div class="oc-card">
+            <div class="oc-card-row">
+              <div class="oc-card-icon oc">📋</div>
+              <div class="oc-card-body">
+                <div class="oc-card-titulo">{{ oc.numero_ocorrencia }}</div>
+                <div class="oc-card-sub">{{ oc.servico_sigla }} &nbsp;·&nbsp; {{ oc.unidade_sigla }}</div>
+              </div>
+              <div class="oc-card-right">
+                <span class="oc-badge" [class]="'oc-st-' + oc.status.toLowerCase()">
+                  {{ oc.status_display }}
+                </span>
+                @if (isCustodiante) {
+                  <button class="oc-btn-remover" (click)="desvincularOcorrencia(oc)" title="Desvincular">✕</button>
+                }
+              </div>
+            </div>
+
+            <!-- Card: Procedimento (se existir) -->
+            @if (oc.procedimento) {
+              <div class="oc-proc-seta">↳</div>
+              <div class="oc-card-row oc-proc-row">
+                <div class="oc-card-icon proc">📁</div>
+                <div class="oc-card-body">
+                  <div class="oc-card-titulo">{{ oc.procedimento.numero_completo }}</div>
+                  <div class="oc-card-sub">{{ oc.procedimento.tipo.nome }}</div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+
     <!-- Tabs -->
     <div class="tabs">
       <button class="tab" [class.active]="tabAtiva === 'movimentacoes'" (click)="mudarTab('movimentacoes')">

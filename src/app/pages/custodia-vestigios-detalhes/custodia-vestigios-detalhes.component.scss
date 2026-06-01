@@ -250,7 +250,6 @@
 .descricao-card {
   background: var(--card-background-color);
   border: 1px solid var(--border-color);
-  border-left: 4px solid var(--primary-color);
   border-radius: 8px;
   padding: 1.1rem 1.3rem;
   margin-bottom: 1rem;
@@ -453,3 +452,180 @@
   .vestigio-header { flex-direction: column; }
   .timeline::before { display: none; }
 }
+
+// ── Ocorrências Vinculadas — cards estilo mobile ─────────────────────────────
+
+.oc-section {
+  background: var(--card-background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  margin-top: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+.oc-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+
+  h4 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-color-dark);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+}
+
+.oc-section-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-toggle-grafo {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.8rem;
+  border-radius: 20px;
+  border: 1.5px solid var(--border-color);
+  background: transparent;
+  color: var(--text-color-light);
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover, &.ativo {
+    background: var(--text-color-dark);
+    color: #fff;
+    border-color: var(--text-color-dark);
+  }
+}
+
+.btn-oc-vincular {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  border: none;
+  background: var(--primary-color);
+  color: #000;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: var(--primary-color-dark); }
+}
+
+.oc-vazia {
+  font-size: 0.84rem;
+  color: var(--text-color-light);
+  font-style: italic;
+  margin: 0;
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+// Card de ocorrência — moldura completa (border em todos os lados)
+.oc-card {
+  background: var(--card-background-color);
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.7rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.oc-card-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  &.oc-proc-row {
+    margin-top: 0.5rem;
+    padding-left: 0.5rem;
+  }
+}
+
+.oc-card-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  width: 2rem;
+  text-align: center;
+
+  &.oc   { font-size: 1.4rem; }
+  &.proc { font-size: 1.2rem; opacity: 0.8; }
+}
+
+.oc-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.oc-card-titulo {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-color-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.oc-card-sub {
+  font-size: 0.75rem;
+  color: var(--text-color-light);
+  margin-top: 0.1rem;
+}
+
+.oc-card-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.oc-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  &.oc-st-aguardando_perito { background: #fef3c7; color: #92400e; }
+  &.oc-st-em_analise        { background: #dbeafe; color: #1e40af; }
+  &.oc-st-laudo_entregue    { background: #d1fae5; color: #065f46; }
+  &.oc-st-finalizada        { background: #e5e7eb; color: #374151; }
+}
+
+.oc-btn-remover {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #dc2626;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem 0.35rem;
+  border-radius: 4px;
+  transition: background 0.15s;
+  &:hover { background: #fee2e2; }
+}
+
+.oc-proc-seta {
+  font-size: 0.85rem;
+  color: var(--text-color-light);
+  margin: 0.4rem 0 0.3rem 0.75rem;
+}
+
+.oc-proc-row {
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  margin-top: 0;
+}
+
+
