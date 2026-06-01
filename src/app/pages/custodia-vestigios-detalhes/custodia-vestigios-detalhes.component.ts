@@ -120,30 +120,85 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
   // ── Finalizar / Reabrir ──────────────────────────────────────────────────
 
   finalizar(): void {
+    const emailUsuario = this.authService.getCurrentUser()?.email ?? '';
+
     Swal.fire({
       title: 'Finalizar Vestígio',
       html: `
-        <p style="margin-bottom:1rem">O vestígio saiu fisicamente da custódia?</p>
-        <label style="display:flex;align-items:center;gap:.5rem;justify-content:center">
-          <input type="checkbox" id="saiuCheck"> Sim, saiu da custódia
-        </label>
+        <div style="text-align:left;font-size:.9rem">
+
+          <div style="margin-bottom:1rem">
+            <label style="display:block;font-weight:600;margin-bottom:.3rem">
+              Motivo da finalização <span style="color:#e74c3c">*</span>
+            </label>
+            <textarea id="swal-motivo" rows="4"
+              style="width:100%;padding:.5rem;border:1px solid #ccc;border-radius:4px;resize:vertical;font-size:.9rem"
+              placeholder="Descreva o motivo da finalização, destinatário, condições de entrega..."></textarea>
+          </div>
+
+          <div style="margin-bottom:1rem">
+            <label style="display:flex;align-items:center;gap:.5rem">
+              <input type="checkbox" id="swal-saiu" style="width:16px;height:16px">
+              <span>O vestígio saiu fisicamente da custódia</span>
+            </label>
+          </div>
+
+          <hr style="margin:1rem 0;border-color:#eee">
+          <p style="color:#555;font-size:.85rem;margin-bottom:.8rem">
+            <strong>Assinatura digital</strong> — confirme sua identidade para garantir o não-repúdio.
+          </p>
+
+          <div style="margin-bottom:.8rem">
+            <label style="display:block;font-weight:600;margin-bottom:.3rem">E-mail</label>
+            <input id="swal-email" type="email" value="${emailUsuario}" readonly
+              style="width:100%;padding:.4rem .5rem;border:1px solid #ccc;border-radius:4px;background:#f8f8f8;font-size:.9rem">
+          </div>
+
+          <div>
+            <label style="display:block;font-weight:600;margin-bottom:.3rem">
+              Senha <span style="color:#e74c3c">*</span>
+            </label>
+            <input id="swal-senha" type="password"
+              style="width:100%;padding:.4rem .5rem;border:1px solid #ccc;border-radius:4px;font-size:.9rem"
+              placeholder="Digite sua senha para assinar">
+          </div>
+
+        </div>
       `,
-      icon: 'question',
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Finalizar',
+      confirmButtonText: 'Assinar e Finalizar',
       cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#c0392b',
+      width: '520px',
       preConfirm: () => {
-        const el = document.getElementById('saiuCheck') as HTMLInputElement;
-        return { saiu_da_custodia: el?.checked ?? false };
+        const motivo = (document.getElementById('swal-motivo') as HTMLTextAreaElement)?.value?.trim();
+        const saiu   = (document.getElementById('swal-saiu')   as HTMLInputElement)?.checked ?? false;
+        const email  = (document.getElementById('swal-email')  as HTMLInputElement)?.value?.trim();
+        const senha  = (document.getElementById('swal-senha')  as HTMLInputElement)?.value;
+
+        if (!motivo) {
+          Swal.showValidationMessage('O motivo da finalização é obrigatório.');
+          return false;
+        }
+        if (!senha) {
+          Swal.showValidationMessage('A senha é obrigatória para assinar.');
+          return false;
+        }
+        return { saiu_da_custodia: saiu, motivo_finalizacao: motivo, assinatura_email: email, assinatura_senha: senha };
       }
     }).then(result => {
       if (result.isConfirmed && this.vestigio) {
         this.custodiaService.finalizarVestigio(this.vestigio.id, result.value).subscribe({
           next: (v) => {
             this.vestigio = v;
-            this.showMessage('Vestígio finalizado com sucesso.', 'success');
+            this.carregarMovimentacoes(v.id);
+            Swal.fire({ title: 'Vestígio finalizado!', icon: 'success', timer: 1800, showConfirmButton: false });
           },
-          error: () => this.showMessage('Erro ao finalizar vestígio.', 'error')
+          error: (err) => {
+            const msg = err?.error?.detail || 'Erro ao finalizar vestígio.';
+            Swal.fire('Erro', msg, 'error');
+          }
         });
       }
     });

@@ -37,6 +37,13 @@ export class CustodiaVestigiosFormComponent implements OnInit {
   isSearchingOcorrencia = false;
   ocorrenciaErro        = '';
 
+  // ── Contraprova ───────────────────────────────────────────────────────────
+  contraProvaSelecionada: any = null;
+  searchContraProvaTermo  = '';
+  isSearchingContraProva  = false;
+  resultadosContraProva: any[] = [];
+  contraProvaErro         = '';
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -74,17 +81,26 @@ export class CustodiaVestigiosFormComponent implements OnInit {
           this.autoridades = autoridades as any[];
 
           this.form.patchValue({
-            lacre:                 vestigio.lacre                 ?? '',
-            num_processo_sei:      vestigio.num_processo_sei      ?? '',
-            ocorrencia:            vestigio.ocorrencia            ?? '',
-            ano_ocorrencia:        vestigio.ano_ocorrencia        ?? null,
-            descricao:             vestigio.descricao             ?? '',
-            conformidade:          vestigio.conformidade          ?? false,
-            biologico:             vestigio.biologico             ?? false,
-            unidade_demandante_id: vestigio.unidade_demandante?.id ?? null,
-            servico_pericial_id:   vestigio.servico_pericial?.id   ?? null,
-            autoridade_id:         vestigio.autoridade?.id         ?? null,
+            lacre:                    vestigio.lacre                 ?? '',
+            num_processo_sei:         vestigio.num_processo_sei      ?? '',
+            ocorrencia:               vestigio.ocorrencia            ?? '',
+            ano_ocorrencia:           vestigio.ano_ocorrencia        ?? null,
+            descricao:                vestigio.descricao             ?? '',
+            conformidade:             vestigio.conformidade          ?? false,
+            biologico:                vestigio.biologico             ?? false,
+            unidade_demandante_id:    vestigio.unidade_demandante?.id ?? null,
+            servico_pericial_id:      vestigio.servico_pericial?.id   ?? null,
+            autoridade_id:            vestigio.autoridade?.id         ?? null,
+            vestigio_contra_prova_id: vestigio.vestigio_contra_prova  ?? null,
           });
+
+          // Pré-preencher label da contraprova em modo edição
+          if (vestigio.vestigio_contra_prova) {
+            this.contraProvaSelecionada = {
+              id: vestigio.vestigio_contra_prova,
+              lacre: vestigio.vestigio_contra_prova_lacre ?? `#${vestigio.vestigio_contra_prova}`,
+            };
+          }
 
           this.isLoading = false;
         },
@@ -103,16 +119,17 @@ export class CustodiaVestigiosFormComponent implements OnInit {
 
   initForm(): void {
     this.form = this.fb.group({
-      lacre:                 ['', Validators.maxLength(255)],
-      num_processo_sei:      ['', Validators.maxLength(255)],
-      ocorrencia:            ['', Validators.maxLength(255)],
-      ano_ocorrencia:        [null],
-      descricao:             [''],
-      conformidade:          [false],
-      biologico:             [false],
-      unidade_demandante_id: [null, Validators.required],
-      servico_pericial_id:   [null, Validators.required],
-      autoridade_id:         [null],
+      lacre:                      ['', Validators.maxLength(255)],
+      num_processo_sei:           ['', Validators.maxLength(255)],
+      ocorrencia:                 ['', Validators.maxLength(255)],
+      ano_ocorrencia:             [null],
+      descricao:                  [''],
+      conformidade:               [false],
+      biologico:                  [false],
+      unidade_demandante_id:      [null, Validators.required],
+      servico_pericial_id:        [null, Validators.required],
+      autoridade_id:              [null],
+      vestigio_contra_prova_id:   [null],
     });
   }
 
@@ -186,6 +203,49 @@ export class CustodiaVestigiosFormComponent implements OnInit {
         this.isSaving    = false;
       },
     });
+  }
+
+  // ── Busca inline de contraprova ──────────────────────────────────────────
+
+  buscarContraProva(): void {
+    const termo = this.searchContraProvaTermo.trim();
+    if (!termo) return;
+
+    this.isSearchingContraProva = true;
+    this.contraProvaErro = '';
+    this.resultadosContraProva = [];
+
+    this.custodiaService.getVestigios({ search: termo, page_size: 10 }).subscribe({
+      next: (resp) => {
+        this.isSearchingContraProva = false;
+        const lista = resp.results.filter(v => v.id !== this.vestigioId);
+        if (lista.length === 0) {
+          this.contraProvaErro = `Nenhum vestígio encontrado para "${termo}".`;
+        } else {
+          this.resultadosContraProva = lista;
+        }
+      },
+      error: () => {
+        this.isSearchingContraProva = false;
+        this.contraProvaErro = 'Erro ao buscar. Tente novamente.';
+      },
+    });
+  }
+
+  selecionarContraProva(v: any): void {
+    this.contraProvaSelecionada = v;
+    this.form.patchValue({ vestigio_contra_prova_id: v.id });
+    this.resultadosContraProva = [];
+    this.searchContraProvaTermo = '';
+    this.contraProvaErro = '';
+  }
+
+  removerContraProva(): void {
+    this.contraProvaSelecionada = null;
+    this.form.patchValue({ vestigio_contra_prova_id: null });
+    this.searchContraProvaTermo = '';
+    this.contraProvaErro = '';
+    this.resultadosContraProva = [];
   }
 
   // ── Busca inline de ocorrência no formulário ────────────────────────────

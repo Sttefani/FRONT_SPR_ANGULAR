@@ -453,7 +453,7 @@
   .timeline::before { display: none; }
 }
 
-// ── Ocorrências Vinculadas — cards estilo mobile ─────────────────────────────
+// ── Ocorrências Vinculadas — cards estilo app mobile ─────────────────────────
 
 .oc-section {
   background: var(--card-background-color);
@@ -487,24 +487,6 @@
   flex-wrap: wrap;
 }
 
-.btn-toggle-grafo {
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0.35rem 0.8rem;
-  border-radius: 20px;
-  border: 1.5px solid var(--border-color);
-  background: transparent;
-  color: var(--text-color-light);
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover, &.ativo {
-    background: var(--text-color-dark);
-    color: #fff;
-    border-color: var(--text-color-dark);
-  }
-}
-
 .btn-oc-vincular {
   font-size: 0.78rem;
   font-weight: 700;
@@ -527,37 +509,46 @@
   padding: 0.5rem 0;
 }
 
-// Card de ocorrência — moldura completa (border em todos os lados)
+// ── Card de ocorrência — moldura de app mobile ────────────────────────────────
+// Uma única moldura contém a ocorrência + procedimento vinculado.
+// O separador entre eles é uma linha interna (border-top), não um segundo card.
+
 .oc-card {
   background: var(--card-background-color);
   border: 1.5px solid var(--border-color);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-  margin-bottom: 0.7rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  border-radius: 12px;
+  overflow: hidden;          // garante que proc-row não "vaze" fora do arredondado
+  margin-bottom: 0.75rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  transition: box-shadow 0.2s, border-color 0.2s;
 
+  &:hover { box-shadow: 0 4px 14px rgba(0,0,0,.1); border-color: #cbd5e0; }
   &:last-child { margin-bottom: 0; }
 }
 
+// Linha da ocorrência — área principal
 .oc-card-row {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  padding: 0.9rem 1rem;
 
+  // Linha do procedimento — fundo acinzentado + separador no topo
   &.oc-proc-row {
-    margin-top: 0.5rem;
-    padding-left: 0.5rem;
+    background: #f8fafc;
+    border-top: 1.5px solid var(--border-color);
+    padding: 0.65rem 1rem 0.65rem 1.2rem;
   }
 }
 
 .oc-card-icon {
-  font-size: 1.5rem;
   flex-shrink: 0;
-  width: 2rem;
+  width: 1.8rem;
   text-align: center;
+  font-size: 1.25rem;
+  line-height: 1;
 
-  &.oc   { font-size: 1.4rem; }
-  &.proc { font-size: 1.2rem; opacity: 0.8; }
+  &.proc { font-size: 1.1rem; opacity: 0.75; }
 }
 
 .oc-card-body {
@@ -577,7 +568,7 @@
 .oc-card-sub {
   font-size: 0.75rem;
   color: var(--text-color-light);
-  margin-top: 0.1rem;
+  margin-top: 0.15rem;
 }
 
 .oc-card-right {
@@ -588,44 +579,58 @@
 }
 
 .oc-badge {
-  font-size: 0.65rem;
+  font-size: 0.63rem;
   font-weight: 700;
-  padding: 0.2rem 0.55rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 20px;
   text-transform: uppercase;
+  letter-spacing: 0.03em;
   white-space: nowrap;
 
-  &.oc-st-aguardando_perito { background: #fef3c7; color: #92400e; }
-  &.oc-st-em_analise        { background: #dbeafe; color: #1e40af; }
-  &.oc-st-laudo_entregue    { background: #d1fae5; color: #065f46; }
-  &.oc-st-finalizada        { background: #e5e7eb; color: #374151; }
+  &.oc-st-aguardando_perito,
+  &.oc-st-aguardando_atribuicao_de_perito { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+  &.oc-st-em_analise                      { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+  &.oc-st-laudo_entregue                  { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+  &.oc-st-finalizada                      { background: #e5e7eb; color: #374151; border: 1px solid #d1d5db; }
 }
 
 .oc-btn-remover {
   font-size: 0.85rem;
-  font-weight: 700;
   color: #dc2626;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0.2rem 0.35rem;
-  border-radius: 4px;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  line-height: 1;
   transition: background 0.15s;
   &:hover { background: #fee2e2; }
 }
 
-.oc-proc-seta {
-  font-size: 0.85rem;
-  color: var(--text-color-light);
-  margin: 0.4rem 0 0.3rem 0.75rem;
+// ── Card de finalização (motivo + assinatura) ─────────────────────────────────
+
+.finalizacao-card {
+  border-left: 4px solid #2e7d32;
+  background: #f0fdf4;
+  border-color: #a5d6a7;
+
+  h4 { color: #1b5e20; border-bottom-color: #2e7d32; }
 }
 
-.oc-proc-row {
-  background: var(--background-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 0.55rem 0.75rem;
-  margin-top: 0;
+.motivo-texto {
+  font-size: 0.9rem;
+  color: #1a202c;
+  line-height: 1.65;
+  margin: 0 0 0.6rem;
+  white-space: pre-wrap;
+}
+
+.motivo-meta {
+  font-size: 0.78rem;
+  color: #4a5568;
+  display: block;
+  padding-top: 0.5rem;
+  border-top: 1px solid #c6f6d5;
 }
 
 

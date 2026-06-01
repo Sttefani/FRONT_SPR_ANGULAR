@@ -374,3 +374,68 @@
   .container { padding: 1rem; }
   .form-actions { flex-direction: column-reverse; button { width: 100%; justify-content: center; } }
 }
+
+// ── Dica de seção ─────────────────────────────────────────────────────────────
+.section-hint {
+  font-size: 0.82rem;
+  color: var(--text-color-light);
+  margin: -0.4rem 0 0.9rem;
+  line-height: 1.5;
+}
+
+// ── Contraprova — resultados de busca ─────────────────────────────────────────
+.cp-resultados {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  border: 1.5px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,.07);
+}
+
+.cp-resultado-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--card-background-color);
+  transition: background 0.15s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: #fffbeb; }
+
+  strong {
+    font-size: 0.9rem;
+    color: var(--text-color-dark);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+}
+
+.cp-meta {
+  flex: 1;
+  font-size: 0.78rem;
+  color: var(--text-color-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Badges de status nos resultados de contraprova
+.badge-status-mini {
+  flex-shrink: 0;
+  font-size: 0.63rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+
+  &.badge-inicial    { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+  &.badge-andamento  { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+  &.badge-finalizado { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+}

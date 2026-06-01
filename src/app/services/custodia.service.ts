@@ -55,6 +55,7 @@ export interface OcorrenciaVinculada {
 
 export interface VestigioDetalhe extends VestigioList {
   descricao: string | null;
+  motivo_finalizacao: string | null;
   autoridade: { id: number; nome: string; cargo_nome: string } | null;
   user_destino: UsuarioSimples | null;
   procedimentos: { id: number; numero: string; ano: number; numero_completo: string }[];
@@ -145,9 +146,11 @@ export interface VestigioFiltros {
   servico_pericial?: number;
   unidade_demandante?: number;
   biologico?: boolean;
+  conformidade?: boolean;
   lacre?: string;
   num_processo_sei?: string;
   ocorrencia?: string;
+  search?: string;
   page?: number;
   page_size?: number;
 }
@@ -243,7 +246,12 @@ export class CustodiaService {
     return this.http.delete<void>(`${this.base}/custodia/vestigios/${id}/`);
   }
 
-  finalizarVestigio(id: number, data: { saiu_da_custodia: boolean; descricao?: string }): Observable<VestigioDetalhe> {
+  finalizarVestigio(id: number, data: {
+    saiu_da_custodia: boolean;
+    motivo_finalizacao: string;
+    assinatura_email: string;
+    assinatura_senha: string;
+  }): Observable<VestigioDetalhe> {
     return this.http.post<VestigioDetalhe>(`${this.base}/custodia/vestigios/${id}/finalizar/`, data);
   }
 

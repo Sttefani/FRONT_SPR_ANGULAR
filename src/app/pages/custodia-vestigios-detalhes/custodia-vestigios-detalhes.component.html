@@ -7,7 +7,7 @@
     </button>
     @if (vestigio) {
       <span class="separator">/</span>
-      <span class="current">{{ vestigio.lacre || '#' + vestigio.id }}</span>
+      <span class="current">{{ vestigio.lacre || 'Vestígio ' + vestigio.id }}</span>
     }
   </div>
 
@@ -29,7 +29,7 @@
     <!-- Header do vestígio -->
     <div class="vestigio-header">
       <div class="vestigio-title">
-        <h1>🔒 Vestígio #{{ vestigio.id }}</h1>
+        <h1>🔒 Vestígio {{ vestigio.id }}</h1>
         <span class="badge-status" [ngClass]="badgeStatus(vestigio.status)">
           {{ vestigio.status_display }}
         </span>
@@ -117,6 +117,18 @@
       </div>
     }
 
+    <!-- Motivo de finalização (não-repúdio) -->
+    @if (vestigio.status === 'FINALIZADO' && vestigio.motivo_finalizacao) {
+      <div class="descricao-card finalizacao-card">
+        <h4>🔒 Motivo da Finalização</h4>
+        <p class="motivo-texto">{{ vestigio.motivo_finalizacao }}</p>
+        <small class="motivo-meta">
+          Finalizado por <strong>{{ vestigio.atualizado_por || vestigio.registrado_por || '—' }}</strong>
+          em {{ vestigio.updated_at | date:'dd/MM/yyyy HH:mm' }}
+        </small>
+      </div>
+    }
+
     <!-- ── Ocorrências Vinculadas (cards) ───────────────────────────────── -->
     <div class="oc-section">
       <div class="oc-section-header">
@@ -152,9 +164,8 @@
               </div>
             </div>
 
-            <!-- Card: Procedimento (se existir) -->
+            <!-- Procedimento vinculado — separador interno do card -->
             @if (oc.procedimento) {
-              <div class="oc-proc-seta">↳</div>
               <div class="oc-card-row oc-proc-row">
                 <div class="oc-card-icon proc">📁</div>
                 <div class="oc-card-body">

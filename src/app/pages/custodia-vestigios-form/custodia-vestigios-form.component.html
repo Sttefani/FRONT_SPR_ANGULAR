@@ -173,6 +173,67 @@
         }
       </div>
 
+      <!-- Seção opcional: contraprova -->
+      <div class="form-section">
+        <h3 class="section-title">🔁 Contraprova <span class="optional-tag">opcional</span></h3>
+        <p class="section-hint">
+          Se este vestígio é uma contraprova de outro, vincule o vestígio original abaixo.
+        </p>
+
+        @if (!contraProvaSelecionada) {
+          <div class="oc-search-row">
+            <input
+              type="text"
+              class="oc-search-input"
+              [value]="searchContraProvaTermo"
+              (input)="searchContraProvaTermo = $any($event.target).value"
+              placeholder="Buscar por lacre, nº SEI ou ocorrência..."
+              (keyup.enter)="buscarContraProva()"
+              [disabled]="isSearchingContraProva">
+            <button
+              type="button"
+              class="btn-buscar-oc"
+              (click)="buscarContraProva()"
+              [disabled]="isSearchingContraProva || !searchContraProvaTermo.trim()">
+              @if (isSearchingContraProva) { <i class="bi bi-hourglass-split"></i> Buscando… }
+              @else { <i class="bi bi-search"></i> Buscar }
+            </button>
+          </div>
+
+          @if (contraProvaErro) {
+            <p class="oc-erro">{{ contraProvaErro }}</p>
+          }
+
+          @if (resultadosContraProva.length > 0) {
+            <ul class="cp-resultados">
+              @for (v of resultadosContraProva; track v.id) {
+                <li class="cp-resultado-item" (click)="selecionarContraProva(v)">
+                  <strong>{{ v.lacre || '#' + v.id }}</strong>
+                  <span class="cp-meta">
+                    {{ v.servico_pericial?.sigla || '—' }} · {{ v.unidade_demandante?.sigla || '—' }}
+                    @if (v.ocorrencia) { · Oc. {{ v.ocorrencia }} }
+                  </span>
+                  <span class="badge-status-mini" [ngClass]="'badge-' + v.status.toLowerCase()">
+                    {{ v.status }}
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+        }
+
+        @if (contraProvaSelecionada) {
+          <div class="oc-card-selecionada">
+            <div class="oc-card-info">
+              <strong>Vestígio original: {{ contraProvaSelecionada.lacre || '#' + contraProvaSelecionada.id }}</strong>
+            </div>
+            <button type="button" class="btn-remover-oc" (click)="removerContraProva()" title="Remover vínculo">
+              <i class="bi bi-x-circle"></i>
+            </button>
+          </div>
+        }
+      </div>
+
       <div class="form-actions">
         <button type="button" class="btn-cancelar" (click)="cancelar()">
           <i class="bi bi-x-circle"></i> Cancelar
