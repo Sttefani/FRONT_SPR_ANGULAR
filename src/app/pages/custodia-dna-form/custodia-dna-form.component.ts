@@ -1,17 +1,17 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import Swal from 'sweetalert2';
 
-import { CustodiaService } from '../../services/custodia.service';
+import { CustodiaService, VestigioList } from '../../services/custodia.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-custodia-dna-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './custodia-dna-form.component.html',
   styleUrls: ['./custodia-dna-form.component.scss']
 })
@@ -36,6 +36,12 @@ export class CustodiaDnaFormComponent implements OnInit {
   // Perfil
   isExterno = false;
 
+  // ── Busca e seleção de vestígio ──────────────────────────────────────────
+  buscaVestigio = '';
+  vestigiosBuscados: VestigioList[] = [];
+  vestigioSelecionado: VestigioList | null = null;
+  buscandoVestigio = false;
+
   readonly UFS = [
     'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG',
     'PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'
@@ -57,9 +63,11 @@ export class CustodiaDnaFormComponent implements OnInit {
     this.isExterno = user?.perfil === 'EXTERNO';
 
     // Regra de negócio SPR-Custódia: EXTERNO só registra não apenados
+    // e o flag "registrado por usuário externo" é automático e não pode ser desmarcado
     if (this.isExterno) {
       this.form.patchValue({ situacao: 'NAO_APENADO', registrado_por_usuario_externo: true });
       this.form.get('situacao')?.disable();
+      this.form.get('registrado_por_usuario_externo')?.disable();
     }
 
     // vestigio_id pode vir como query param (?vestigio=123)
@@ -67,6 +75,8 @@ export class CustodiaDnaFormComponent implements OnInit {
     if (qv) {
       this.vestigioId = Number(qv);
       this.form.patchValue({ vestigio_id: this.vestigioId });
+      // Pré-carrega o card do vestígio para exibição visual
+      this.carregarVestigioPreSelecionado(this.vestigioId);
     }
 
     const id = this.route.snapshot.paramMap.get('id');
@@ -149,6 +159,17 @@ export class CustodiaDnaFormComponent implements OnInit {
     });
   }
 
+  /**
+   * Normaliza valores legados 'NAO'/'SIM' (nomes do enum Python) para
+   * 'NO'/'YES' (valores do TextChoices gravados no banco).
+   * Causa: o script de migração MySQL gravou os nomes em vez dos valores.
+   */
+  private normSimNao(v: string | null | undefined): string {
+    if (v === 'NAO') return 'NO';
+    if (v === 'SIM') return 'YES';
+    return v ?? 'NO';
+  }
+
   carregarDna(id: number): void {
     this.isLoading = true;
     this.custodiaService.getDna(id).subscribe({
@@ -164,10 +185,10 @@ export class CustodiaDnaFormComponent implements OnInit {
           pai: d.pai,
           cpf: d.cpf,
           rg: d.rg,
-          gemeo: d.gemeo,
-          transfusao: d.transfusao,
-          transplante: d.transplante,
-          processado_banco_perfis_genetico: d.processado_banco_perfis_genetico,
+          gemeo: this.normSimNao(d.gemeo),
+          transfusao: this.normSimNao(d.transfusao),
+          transplante: this.normSimNao(d.transplante),
+          processado_banco_perfis_genetico: this.normSimNao(d.processado_banco_perfis_genetico),
           situacao: d.situacao,
           unidade_prisional: d.unidade_prisional,
           tipo_penal: d.tipo_penal,
@@ -186,6 +207,10 @@ export class CustodiaDnaFormComponent implements OnInit {
           notas: d.notas,
           registrado_por_usuario_externo: d.registrado_por_usuario_externo,
         });
+        // Pré-seleciona o vestígio vinculado para exibição do card
+        if (d.vestigio) {
+          this.vestigioSelecionado = d.vestigio as VestigioList;
+        }
         // Carrega URL da foto existente para pré-visualização
         if (d.foto_url) {
           this.fotoAtualUrl = d.foto_url;
@@ -289,14 +314,63 @@ export class CustodiaDnaFormComponent implements OnInit {
         });
       },
       error: (err: any) => {
-        const msgs = Object.entries(err.error ?? {})
-          .map(([k, v]: any) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
-          .join(' | ');
-        this.message = msgs || 'Erro ao salvar DNA.';
-        this.messageType = 'error';
         this.isSaving = false;
+        // Extrai mensagens de validação do DRF
+        const erros = err.error ?? {};
+        const linhas = Object.entries(erros)
+          .map(([campo, msgs]: any) => {
+            const lista = Array.isArray(msgs) ? msgs.join(', ') : String(msgs);
+            return `<b>${campo}:</b> ${lista}`;
+          });
+        const corpo = linhas.length
+          ? linhas.join('<br>')
+          : 'Erro inesperado ao salvar o DNA.';
+        Swal.fire({
+          title: 'Erro ao salvar',
+          html: corpo,
+          icon: 'error',
+          confirmButtonText: 'Fechar',
+        });
       }
     });
+  }
+
+  // ── Busca e seleção de vestígio ──────────────────────────────────────────
+
+  buscarVestigios(): void {
+    if (!this.buscaVestigio.trim()) return;
+    this.buscandoVestigio = true;
+    this.vestigiosBuscados = [];
+    this.custodiaService.getVestigios({ search: this.buscaVestigio.trim(), page_size: 10 }).subscribe({
+      next: (res) => { this.vestigiosBuscados = res.results; this.buscandoVestigio = false; },
+      error: () => { this.buscandoVestigio = false; }
+    });
+  }
+
+  selecionarVestigio(v: VestigioList): void {
+    this.vestigioSelecionado = v;
+    this.form.patchValue({ vestigio_id: v.id });
+    this.vestigiosBuscados = [];
+    this.buscaVestigio = '';
+  }
+
+  removerVestigio(): void {
+    this.vestigioSelecionado = null;
+    this.form.patchValue({ vestigio_id: null });
+  }
+
+  carregarVestigioPreSelecionado(id: number): void {
+    this.custodiaService.getVestigio(id).subscribe({
+      next: (v) => { this.vestigioSelecionado = v as unknown as VestigioList; },
+      error: () => {}
+    });
+  }
+
+  badgeStatus(status: string): string {
+    return (
+      { INICIAL: 'badge-inicial', ANDAMENTO: 'badge-andamento', FINALIZADO: 'badge-finalizado' }[status]
+      ?? 'badge-inicial'
+    );
   }
 
   cancelar(): void {

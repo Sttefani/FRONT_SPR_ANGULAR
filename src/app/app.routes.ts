@@ -7,9 +7,6 @@ import { superAdminGuard } from './guards/super-admin.guard';
 import { perfilGuard } from './guards/perfil.guard';
 import { TiposDocumentoListComponent } from './pages/tipos-documento-list/tipos-documento-list.component';
 import { TiposDocumentoFormComponent } from './pages/tipos-documento-form/tipos-documento-form.component';
-import { GerarLaudoThcComponent } from './pages/gerar-laudo-thc/gerar-laudo-thc.component';
-import { GerarLaudoThcListaComponent } from './pages/gerar-laudo-thc-lista/gerar-laudo-thc-lista.component';
-import { GerarLaudoThcDetalhesComponent } from './pages/gerar-laudo-thc-detalhes/gerar-laudo-thc-detalhes.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -42,32 +39,6 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () => import('./pages/dashboard-inicial/dashboard-inicial.component').then(m => m.DashboardInicialComponent)
-      },
-      // ✅ CORREÇÃO APLICADA AQUI
-      // ✅ ROTA PRINCIPAL: Agora aponta para a LISTA.
-      // Corresponde ao link do menu: /gabinete-virtual/gerar-laudo-thc
-      {
-        path: 'gerar-laudo-thc',
-        component: GerarLaudoThcListaComponent,
-        canActivate: [AuthGuard]
-      },
-
-      // ✅ NOVA ROTA: Rota específica para o FORMULÁRIO de criação.
-      {
-        path: 'gerar-laudo-thc/novo',
-        component: GerarLaudoThcComponent,
-        canActivate: [AuthGuard]
-      },
-      {
-        path: 'gerar-laudo-thc/editar/:id',
-        component: GerarLaudoThcComponent,
-        canActivate: [AuthGuard]
-      },
-
-      {
-        path: 'laudo/:id',
-        component: GerarLaudoThcDetalhesComponent,
-        canActivate: [AuthGuard]
       },
 
       // =====================================================================

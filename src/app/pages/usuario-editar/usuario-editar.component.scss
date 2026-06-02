@@ -153,6 +153,58 @@ form {
   }
 }
 
+// ── Hint do perfil selecionado ────────────────────────────────────────────
+.perfil-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--text-color-light);
+  line-height: 1.4;
+
+  i { color: var(--primary-color); flex-shrink: 0; margin-top: 0.1rem; }
+}
+
+// ── Bloco de alerta + campo unidade para EXTERNO ──────────────────────────
+.perfil-externo-alert {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.externo-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-left: 4px solid #e65100;
+  border-radius: 6px;
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.87rem;
+  color: #5a3a00;
+
+  i { color: #e65100; flex-shrink: 0; font-size: 1rem; margin-top: 0.1rem; }
+}
+
+.required-star { color: var(--danger-color); font-weight: 700; margin-left: 0.15rem; }
+
+// ── Aviso de unidade ausente nos detalhes ────────────────────────────────
+.aviso-sem-unidade {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #c05c00;
+  font-size: 0.85rem;
+  font-weight: 500;
+  i { color: #e65100; }
+}
+
 .form-actions {
   display: flex;
   gap: 1rem;

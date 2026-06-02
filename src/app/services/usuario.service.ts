@@ -4,6 +4,12 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
+export interface UnidadeDemandanteNested {
+  id: number;
+  sigla: string;
+  nome: string;
+}
+
 export interface User {
   id: number;
   nome_completo: string;
@@ -16,6 +22,7 @@ export interface User {
   created_at: string;
   updated_at: string;
   servicos_periciais?: ServicoPericialNested[];
+  unidade_demandante?: UnidadeDemandanteNested | null;
 }
 
 export interface ServicoPericialNested {

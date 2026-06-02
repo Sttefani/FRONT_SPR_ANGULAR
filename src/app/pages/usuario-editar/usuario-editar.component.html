@@ -64,7 +64,35 @@
               <option [value]="option.value">{{ option.label }}</option>
             }
           </select>
+          @if (perfilHint) {
+            <small class="perfil-hint">
+              <i class="bi bi-info-circle"></i> {{ perfilHint }}
+            </small>
+          }
         </div>
+
+        <!-- Campo obrigatório apenas para o perfil EXTERNO -->
+        @if (isExterno) {
+          <div class="form-group perfil-externo-alert">
+            <div class="externo-aviso">
+              <i class="bi bi-shield-exclamation"></i>
+              <span>
+                Perfil <strong>Externo</strong> requer uma unidade demandante.
+                Sem ela, o usuário não conseguirá visualizar nenhum registro.
+              </span>
+            </div>
+            <label for="unidade_demandante_id">
+              <i class="bi bi-building"></i>
+              Unidade Demandante <span class="required-star">*</span>
+            </label>
+            <select id="unidade_demandante_id" formControlName="unidade_demandante_id" class="form-control">
+              <option [ngValue]="null">Selecione a unidade...</option>
+              @for (u of unidades; track u.id) {
+                <option [ngValue]="u.id">{{ u.sigla }} — {{ u.nome }}</option>
+              }
+            </select>
+          </div>
+        }
 
         <div class="form-actions">
           <button type="button" class="btn-secondary" (click)="cancelar()" [disabled]="isSaving">

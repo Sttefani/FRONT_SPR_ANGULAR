@@ -253,16 +253,92 @@
           <input type="text" formControlName="processo_judicial" placeholder="Nº do processo judicial">
         </div>
 
-        <div class="form-group">
-          <label>Vestígio vinculado (ID)</label>
-          <input type="number" formControlName="vestigio_id" placeholder="ID do vestígio">
+        <!-- ── Vestígio vinculado — busca e seleção ── -->
+        <div class="form-group full">
+          <label>Vestígio vinculado</label>
+          <p class="section-hint">
+            Pesquise o vestígio que contém o material biológico coletado desta pessoa
+            (lacre, nº SEI ou ocorrência)
+          </p>
+
+          @if (!vestigioSelecionado) {
+            <div class="oc-search-row">
+              <input
+                type="text"
+                [(ngModel)]="buscaVestigio"
+                [ngModelOptions]="{ standalone: true }"
+                class="oc-search-input"
+                placeholder="Digite o lacre, SEI ou ocorrência..."
+                (keydown.enter)="$event.preventDefault(); buscarVestigios()"
+              >
+              <button
+                type="button"
+                class="btn-buscar-oc"
+                (click)="buscarVestigios()"
+                [disabled]="buscandoVestigio || !buscaVestigio.trim()"
+              >
+                <i class="bi" [ngClass]="buscandoVestigio ? 'bi-hourglass-split' : 'bi-search'"></i>
+                {{ buscandoVestigio ? 'Buscando...' : 'Buscar' }}
+              </button>
+            </div>
+
+            @if (vestigiosBuscados.length > 0) {
+              <ul class="cp-resultados">
+                @for (v of vestigiosBuscados; track v.id) {
+                  <li class="cp-resultado-item" (click)="selecionarVestigio(v)">
+                    <strong>{{ v.lacre || 'Vestígio #' + v.id }}</strong>
+                    <span class="cp-meta">
+                      {{ v.ocorrencia || '—' }}
+                      @if (v.unidade_demandante?.sigla) {
+                        &nbsp;·&nbsp; {{ v.unidade_demandante!.sigla }}
+                      }
+                    </span>
+                    <span class="badge-status-mini" [ngClass]="badgeStatus(v.status)">
+                      {{ v.status_display }}
+                    </span>
+                  </li>
+                }
+              </ul>
+            }
+
+            @if (buscaVestigio && vestigiosBuscados.length === 0 && !buscandoVestigio) {
+              <p class="oc-erro">
+                Nenhum vestígio encontrado para "{{ buscaVestigio }}".
+              </p>
+            }
+
+          } @else {
+            <!-- Card do vestígio selecionado -->
+            <div class="oc-card-selecionada">
+              <div class="oc-card-info">
+                <strong>{{ vestigioSelecionado.lacre || 'Vestígio #' + vestigioSelecionado.id }}</strong>
+                <span class="badge-status-mini" [ngClass]="badgeStatus(vestigioSelecionado.status)">
+                  {{ vestigioSelecionado.status_display }}
+                </span>
+                <span class="oc-meta">
+                  OC: {{ vestigioSelecionado.ocorrencia || '—' }}
+                  @if (vestigioSelecionado.unidade_demandante?.nome) {
+                    &nbsp;·&nbsp; {{ vestigioSelecionado.unidade_demandante!.nome }}
+                  }
+                </span>
+              </div>
+              <button type="button" class="btn-remover-oc" (click)="removerVestigio()" title="Remover vínculo">
+                <i class="bi bi-x-circle-fill"></i>
+              </button>
+            </div>
+          }
         </div>
 
         <div class="form-group checkbox-inline">
-          <label class="checkbox-label">
+          <label class="checkbox-label" [class.disabled-label]="isExterno">
             <input type="checkbox" formControlName="registrado_por_usuario_externo">
             <span>Registrado por usuário externo</span>
           </label>
+          @if (isExterno) {
+            <span class="field-info">
+              <i class="bi bi-lock-fill"></i> Marcado automaticamente para o seu perfil
+            </span>
+          }
         </div>
 
       </div>

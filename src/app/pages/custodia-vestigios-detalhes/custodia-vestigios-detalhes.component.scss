@@ -12,146 +12,156 @@
 
 .container { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
 
-// ── Breadcrumb ────────────────────────────────────────────────────────────────
+// ── Navegação de retorno ─────────────────────────────────────────────────────
 
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.4rem;
-  font-size: 0.9rem;
-  color: var(--text-color-light);
-
-  .separator { color: var(--border-color); }
-  .current { font-weight: 600; color: var(--text-color-dark); }
+.nav-top {
+  margin-bottom: 1.2rem;
 }
 
 .btn-back {
-  background: transparent;
-  border: 2px solid var(--border-color);
-  color: var(--text-color-light);
-  padding: 0.4rem 0.9rem;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #1e293b;
+  border: none;
+  color: #fff;
+  padding: 0.5rem 1.1rem;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
   transition: all 0.2s;
 
-  &:hover { border-color: var(--primary-color); color: var(--primary-color); }
+  i { font-size: 0.9rem; }
+
+  &:hover {
+    background: #334155;
+    transform: translateX(-2px);
+  }
 }
 
-// ── Header do vestígio ────────────────────────────────────────────────────────
+// ── Hero do vestígio ──────────────────────────────────────────────────────────
 
-.vestigio-header {
+.v-hero {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.4rem;
-  gap: 1rem;
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,.07);
+  gap: 1.2rem;
   flex-wrap: wrap;
+  border-left: 5px solid var(--primary-color);
 }
 
-.vestigio-title {
+.v-hero-left { display: flex; flex-direction: column; gap: 0.7rem; }
+
+.v-hero-lacre {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  flex-wrap: wrap;
-
-  h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-color-dark); margin: 0; }
+  gap: 0.9rem;
 }
 
-.vestigio-actions {
-  display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
+.v-hero-icon {
+  font-size: 2.2rem;
+  color: var(--primary-color);
+  flex-shrink: 0;
 }
 
-.btn-outline {
-  background: transparent;
-  border: 2px solid var(--border-color);
+.v-hero-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-color-light);
+  display: block;
+  margin-bottom: 0.1rem;
+}
+
+.v-hero-lacre-text {
+  font-size: 1.75rem;
+  font-weight: 800;
   color: var(--text-color-dark);
-  padding: 0.55rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.87rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s;
-
-  &:hover { border-color: var(--primary-color); color: var(--primary-color); }
+  margin: 0;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
-.btn-finalizar {
-  background: var(--success-color);
-  border: 2px solid var(--success-color);
-  color: #fff;
-  padding: 0.55rem 1.1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.87rem;
-  font-weight: 700;
+.v-hero-badges {
   display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s;
-
-  &:hover { background: #218838; border-color: #218838; transform: translateY(-2px); }
 }
 
-.btn-reabrir {
-  background: #fd7e14;
-  border: 2px solid #fd7e14;
-  color: #fff;
-  padding: 0.55rem 1.1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.87rem;
-  font-weight: 700;
-  display: flex;
+// Badge de status (reutiliza as cores existentes, agora com pills maiores)
+.badge-status {
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s;
+  padding: 0.3rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 
-  &:hover { background: #e96b0a; border-color: #e96b0a; transform: translateY(-2px); }
+  &.badge-inicial    { background: #dbeafe; color: #1d4ed8; border: 1.5px solid #93c5fd; }
+  &.badge-andamento  { background: #fff3e0; color: #c2410c; border: 1.5px solid #fdba74; }
+  &.badge-finalizado { background: #dcfce7; color: #15803d; border: 1.5px solid #86efac; }
 }
 
-.btn-pdf {
-  background: transparent;
-  border: 2px solid #dc3545;
-  color: #dc3545;
-  padding: 0.55rem 1.1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.87rem;
-  font-weight: 700;
-  display: flex;
+.v-badge {
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.73rem;
+  font-weight: 700;
 
-  &:hover { background: #dc3545; color: #fff; transform: translateY(-2px); }
+  &--bio  { background: #faf5ff; color: #7e22ce; border: 1.5px solid #d8b4fe; }
+  &--saiu { background: #eff6ff; color: #1e40af; border: 1.5px solid #bfdbfe; }
+  &--conf { background: #f0fdf4; color: #166534; border: 1.5px solid #bbf7d0; }
 }
 
-.btn-dna {
-  background: transparent;
-  border: 2px solid #6a1b9a;
-  color: #6a1b9a;
-  padding: 0.55rem 1.1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.87rem;
-  font-weight: 700;
+// ── Botões de ação (todos sólidos) ────────────────────────────────────────────
+
+.v-hero-actions {
   display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+// Base comum para todos os botões de ação
+.v-btn {
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
   transition: all 0.2s;
+  white-space: nowrap;
 
-  &:hover { background: #6a1b9a; color: #fff; transform: translateY(-2px); }
+  &:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+
+  &--pdf      { background: #dc3545; color: #fff;
+                &:hover { background: #b91c1c; } }
+  &--edit     { background: #475569; color: #fff;
+                &:hover { background: #334155; } }
+  &--dna      { background: #7c3aed; color: #fff;
+                &:hover { background: #6d28d9; } }
+  &--finalizar{ background: #16a34a; color: #fff;
+                &:hover { background: #15803d; } }
+  &--reabrir  { background: #ea580c; color: #fff;
+                &:hover { background: #c2410c; } }
 }
 
 // ── Badges ────────────────────────────────────────────────────────────────────
@@ -215,47 +225,114 @@
 
 @keyframes pulse { 0%,100% { opacity:.7; } 50% { opacity:.3; } }
 
-// ── Info cards ────────────────────────────────────────────────────────────────
+// ── Detail cards (Identificação · Origem · Auditoria · Descrição) ─────────────
 
-.info-grid {
+.detail-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin-bottom: 1rem;
 
-  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 960px) { grid-template-columns: repeat(2, 1fr); }
   @media (max-width: 600px) { grid-template-columns: 1fr; }
 }
 
-.info-card {
-  background: var(--card-background-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1.1rem 1.2rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,.05);
+// Cor de acento por seção
+$accent-id:    #1d4ed8;   // azul   — Identificação
+$accent-orig:  #15803d;   // verde  — Origem
+$accent-audit: #7c3aed;   // roxo   — Auditoria
+$accent-desc:  #92400e;   // âmbar  — Descrição
+$accent-fin:   #15803d;   // verde  — Finalização
 
-  h4 {
-    font-size: 0.82rem; font-weight: 700; color: var(--text-color-light);
-    text-transform: uppercase; letter-spacing: 0.05em;
-    margin: 0 0 0.8rem 0; padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--primary-color);
+.detail-card {
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  transition: box-shadow 0.2s;
+
+  &:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+
+  // cards que ocupam largura total
+  &--desc, &--finalizacao {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
   }
 
-  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 0.7rem; }
-
-  dt { font-size: 0.78rem; font-weight: 600; color: var(--text-color-light); white-space: nowrap; align-self: start; padding-top: 0.1rem; }
-  dd { font-size: 0.87rem; color: var(--text-color-dark); font-weight: 500; margin: 0; word-break: break-word; }
+  &--id       .detail-card-header { background: $accent-id;    }
+  &--origem   .detail-card-header { background: $accent-orig;  }
+  &--audit    .detail-card-header { background: $accent-audit; }
+  &--desc     .detail-card-header { background: $accent-desc;  }
+  &--finalizacao .detail-card-header { background: #166534;    }
 }
 
-.descricao-card {
-  background: var(--card-background-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1.1rem 1.3rem;
-  margin-bottom: 1rem;
+.detail-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1rem;
+  color: #fff;
 
-  h4 { font-size: 0.85rem; font-weight: 700; color: var(--text-color-light); text-transform: uppercase; margin: 0 0 0.6rem 0; }
-  p  { font-size: 0.9rem; color: var(--text-color-dark); line-height: 1.6; margin: 0; white-space: pre-wrap; }
+  i   { font-size: 1rem; }
+  span {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+}
+
+.detail-card-body {
+  padding: 0.9rem 1rem;
+}
+
+.detail-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid #f1f5f9;
+
+  &:last-child { border-bottom: none; }
+}
+
+.detail-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-color-light);
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  i { font-size: 0.8rem; opacity: 0.7; }
+}
+
+.detail-value {
+  font-size: 0.87rem;
+  font-weight: 500;
+  color: var(--text-color-dark);
+  text-align: right;
+  word-break: break-word;
+
+  &--highlight {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1d4ed8;
+    letter-spacing: 0.02em;
+  }
+}
+
+// Descrição e motivo de finalização
+.desc-texto {
+  font-size: 0.92rem;
+  color: var(--text-color-dark);
+  line-height: 1.7;
+  margin: 0;
+  white-space: pre-wrap;
 }
 
 // ── Tabs ─────────────────────────────────────────────────────────────────────
@@ -448,35 +525,47 @@
 
 @media (max-width: 768px) {
   .container { padding: 1rem; }
-  .info-grid { grid-template-columns: 1fr; }
-  .vestigio-header { flex-direction: column; }
+  .detail-grid { grid-template-columns: 1fr; }
+  .v-hero { flex-direction: column; align-items: flex-start; }
+  .v-hero-actions { width: 100%; flex-wrap: wrap; }
+  .v-hero-lacre-text { font-size: 1.4rem; }
   .timeline::before { display: none; }
 }
 
-// ── Ocorrências Vinculadas — cards estilo app mobile ─────────────────────────
+// ── Ocorrências Vinculadas ────────────────────────────────────────────────────
 
 .oc-section {
-  background: var(--card-background-color);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1rem 1.2rem;
+  background: #fff;
+  border-radius: 10px;
   margin-top: 1rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,.08);
+  border: 1px solid #e2e8f0;
 }
 
+// Header com identidade visual própria (coral/vermelho)
 .oc-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  background: #b91c1c;
+  padding: 0.75rem 1.1rem;
 
   h4 {
-    font-size: 0.9rem;
+    font-size: 0.78rem;
     font-weight: 700;
-    color: var(--text-color-dark);
+    color: #fff;
     margin: 0;
     text-transform: uppercase;
-    letter-spacing: .04em;
+    letter-spacing: .07em;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+
+    &::before {
+      content: '📋';
+      font-size: 0.9rem;
+    }
   }
 }
 
@@ -484,20 +573,42 @@
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  flex-wrap: wrap;
+}
+
+// Corpo da seção com padding
+.oc-section > *:not(.oc-section-header) {
+  padding-left: 1.1rem;
+  padding-right: 1.1rem;
+}
+
+.oc-section > .oc-vazia {
+  padding-top: 1.2rem;
+  padding-bottom: 1.2rem;
+}
+
+.oc-section > .oc-card:first-of-type {
+  margin-top: 0.9rem;
+}
+
+.oc-section > .oc-card:last-of-type {
+  margin-bottom: 0.9rem;
 }
 
 .btn-oc-vincular {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 700;
-  padding: 0.35rem 0.85rem;
+  padding: 0.3rem 0.8rem;
   border-radius: 20px;
-  border: none;
-  background: var(--primary-color);
-  color: #000;
+  border: 1.5px solid rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
   cursor: pointer;
-  transition: background 0.2s;
-  &:hover { background: var(--primary-color-dark); }
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(255,255,255,0.3);
+    border-color: #fff;
+  }
 }
 
 .oc-vazia {
@@ -506,7 +617,6 @@
   font-style: italic;
   margin: 0;
   text-align: center;
-  padding: 0.5rem 0;
 }
 
 // ── Card de ocorrência — moldura de app mobile ────────────────────────────────
@@ -631,6 +741,280 @@
   display: block;
   padding-top: 0.5rem;
   border-top: 1px solid #c6f6d5;
+}
+
+// ── Vincular DNA existente ao vestígio ───────────────────────────────────────
+
+.btn-vincular-dna {
+  background: transparent;
+  border: 2px solid #0369a1;
+  color: #0369a1;
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.87rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s;
+
+  &:hover { background: #0369a1; color: #fff; }
+}
+
+// ── Search row genérico (reutilizado na busca de DNA) ────────────────────────
+.oc-search-row {
+  display: flex; gap: 0.6rem; align-items: center;
+}
+
+.oc-search-input {
+  flex: 1; padding: 0.55rem 0.85rem;
+  border: 2px solid var(--border-color); border-radius: 6px;
+  font-size: 0.9rem; color: var(--text-color-dark); font-family: inherit;
+  transition: border-color 0.2s;
+
+  &:focus { outline: none; border-color: #0369a1; box-shadow: 0 0 0 3px rgba(3,105,161,.1); }
+  &::placeholder { color: #a0aec0; font-style: italic; }
+}
+
+.btn-buscar-oc {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: #0369a1; color: #fff; border: none; border-radius: 6px;
+  padding: 0.55rem 1.1rem; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; white-space: nowrap; transition: background 0.2s;
+
+  &:hover:not(:disabled) { background: #0284c7; }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+.oc-erro {
+  margin-top: 0.5rem; font-size: 0.82rem;
+  color: var(--danger-color); font-weight: 500;
+}
+
+.dna-search-box {
+  background: #f0f9ff;
+  border: 1.5px solid #bae6fd;
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  animation: slideIn 0.2s ease-out;
+}
+
+.dna-search-hint {
+  font-size: 0.82rem;
+  color: #0369a1;
+  margin: 0 0 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dna-resultados {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  border: 1.5px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,.07);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.dna-resultado-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--card-background-color);
+  transition: background 0.15s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: #f0f9ff; }
+}
+
+.dna-res-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+
+  strong {
+    font-size: 0.9rem;
+    color: var(--text-color-dark);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.dna-res-cpf {
+  font-size: 0.75rem;
+  color: var(--text-color-light);
+}
+
+.dna-res-vinculo {
+  font-size: 0.73rem;
+  color: #c05c00;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.btn-vincular-item {
+  flex-shrink: 0;
+  background: #0369a1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: background 0.2s;
+
+  &:hover { background: #0284c7; }
+}
+
+.btn-desvincular-dna {
+  background: transparent;
+  border: 1.5px solid #dc2626;
+  color: #dc2626;
+  border-radius: 5px;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+  line-height: 1;
+
+  &:hover { background: #dc2626; color: #fff; }
+}
+
+// ── Card "Vestígio Original" (navegação bidirecional) ─────────────────────────
+
+.original-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  background: #fffbeb;
+  border: 1.5px solid #fcd34d;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.original-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #78350f;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  i { color: #d97706; }
+}
+
+.btn-original {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fff;
+  border: 1.5px solid #fbbf24;
+  color: #92400e;
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #fef3c7;
+    border-color: #d97706;
+    transform: translateX(2px);
+  }
+}
+
+// ── Lista de contraprovas (tab) ───────────────────────────────────────────────
+
+.cp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.cp-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: var(--card-background-color);
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  transition: all 0.18s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+
+  &:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 3px 10px rgba(0,0,0,.1);
+    transform: translateX(3px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
+.cp-card-icon {
+  flex-shrink: 0;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.cp-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.cp-card-titulo {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-color-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cp-card-sub {
+  font-size: 0.76rem;
+  color: var(--text-color-light);
+  margin-top: 0.15rem;
+}
+
+.cp-card-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.cp-chevron {
+  font-size: 0.8rem;
+  color: var(--border-color);
+  transition: color 0.18s;
+
+  .cp-card:hover & { color: var(--primary-color); }
 }
 
 

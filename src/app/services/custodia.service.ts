@@ -130,6 +130,7 @@ export interface DNAFiltros {
   registrado_por_usuario_externo?: boolean;
   data_de?: string;
   data_ate?: string;
+  search?: string;   // SearchFilter: busca em nome, cpf, codigo_barras
   page?: number;
   page_size?: number;
 }
@@ -334,9 +335,18 @@ export class CustodiaService {
   }
 
   editarDna(id: number, data: FormData | Record<string, any>): Observable<DNA> {
-    // PATCH com FormData precisa de PUT no DRF quando há arquivo
-    // Usa PATCH que aceita atualização parcial
     return this.http.patch<DNA>(`${this.base}/custodia/dnas/${id}/`, data);
+  }
+
+  /**
+   * Vincula ou desvincula um DNA a um vestígio.
+   * @param vestigioId  ID do vestígio a vincular; null para desvincular.
+   */
+  vincularDnaAoVestigio(dnaId: number, vestigioId: number | null): Observable<any> {
+    return this.http.patch<any>(
+      `${this.base}/custodia/dnas/${dnaId}/`,
+      { vestigio_id: vestigioId }
+    );
   }
 
   getDna(id: number): Observable<any> {

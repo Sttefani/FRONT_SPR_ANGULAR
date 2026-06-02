@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import {
   CustodiaService,
   VestigioDetalhe,
+  VestigioList,
   VestigioMovimentacao,
   OcorrenciaVinculada,
   DNA
@@ -16,7 +17,7 @@ import { ServicoPericialService } from '../../services/servico-pericial.service'
 import { UnidadeDemandanteService } from '../../services/unidade-demandante.service';
 import { AutoridadeService } from '../../services/autoridade.service';
 
-type Tab = 'movimentacoes' | 'dnas';
+type Tab = 'movimentacoes' | 'dnas' | 'contra-provas';
 
 @Component({
   selector: 'app-custodia-vestigios-detalhes',
@@ -30,11 +31,19 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
   vestigio: VestigioDetalhe | null = null;
   movimentacoes: VestigioMovimentacao[] = [];
   dnas: DNA[] = [];
+  contraProvas: VestigioList[] = [];
 
   isLoading = true;
   isLoadingMovs = false;
   isLoadingDnas = false;
+  isLoadingContraProvas = false;
   isSaving = false;
+
+  // ── Vincular DNA existente ao vestígio ───────────────────────────────────
+  showDnaSearch = false;
+  buscaDna = '';
+  dnasBuscados: DNA[] = [];
+  buscandoDna = false;
 
   tabAtiva: Tab = 'movimentacoes';
   message = '';
@@ -77,6 +86,7 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.carregarVestigio(id);
     this.carregarMovimentacoes(id);
+    this.carregarContraProvas(id);
     this.carregarDropdowns();
   }
 
@@ -101,6 +111,14 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
     this.custodiaService.getDnas(id).subscribe({
       next: (data) => { this.dnas = data; this.isLoadingDnas = false; },
       error: () => { this.isLoadingDnas = false; }
+    });
+  }
+
+  carregarContraProvas(id: number): void {
+    this.isLoadingContraProvas = true;
+    this.custodiaService.getContraProvas(id).subscribe({
+      next: (data) => { this.contraProvas = data; this.isLoadingContraProvas = false; },
+      error: () => { this.isLoadingContraProvas = false; }
     });
   }
 
@@ -269,7 +287,17 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
             if (idx >= 0) this.movimentacoes[idx] = m;
             this.showMessage('Recebimento confirmado.', 'success');
           },
-          error: () => this.showMessage('Erro ao confirmar recebimento.', 'error')
+          error: (err) => {
+            if (err.status === 403) {
+              this.showMessage(
+                'Sem permissão para aceitar esta movimentação. Apenas o destinatário pode confirmar o recebimento.',
+                'error'
+              );
+            } else {
+              const msg = err?.error?.detail || 'Erro ao confirmar recebimento.';
+              this.showMessage(msg, 'error');
+            }
+          }
         });
       }
     });
@@ -421,6 +449,93 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
       },
       error: () => this.showMessage('Erro ao gerar ficha PDF.', 'error')
     });
+  }
+
+  // ── Busca e vínculo de DNA existente ─────────────────────────────────────
+
+  toggleDnaSearch(): void {
+    this.showDnaSearch = !this.showDnaSearch;
+    if (!this.showDnaSearch) {
+      this.buscaDna = '';
+      this.dnasBuscados = [];
+    }
+  }
+
+  buscarDnas(): void {
+    if (!this.buscaDna.trim()) return;
+    this.buscandoDna = true;
+    this.dnasBuscados = [];
+    this.custodiaService.getDnasPaginado({ search: this.buscaDna.trim(), page_size: 10 }).subscribe({
+      next: (res) => { this.dnasBuscados = res.results; this.buscandoDna = false; },
+      error: () => { this.buscandoDna = false; }
+    });
+  }
+
+  vincularDna(dna: DNA): void {
+    if (!this.vestigio) return;
+    const jaVinculado = this.dnas.some(d => d.id === dna.id);
+    if (jaVinculado) {
+      this.showMessage('Este DNA já está vinculado a este vestígio.', 'error');
+      return;
+    }
+    const aviso = dna.vestigio_lacre
+      ? `<p style="color:#c05c00;font-size:.85rem;margin-top:.5rem">
+           ⚠️ Este cadastro já está vinculado ao lacre <strong>${dna.vestigio_lacre}</strong>.
+           O vínculo atual será substituído.
+         </p>`
+      : '';
+    Swal.fire({
+      title: 'Vincular DNA ao vestígio?',
+      html: `<p>Vincular o cadastro de <strong>${dna.nome}</strong> (CPF: ${dna.cpf || '—'}) a este vestígio?</p>${aviso}`,
+      icon: dna.vestigio_lacre ? 'warning' : 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, vincular',
+      cancelButtonText: 'Cancelar'
+    }).then(result => {
+      if (result.isConfirmed && this.vestigio) {
+        this.custodiaService.vincularDnaAoVestigio(dna.id, this.vestigio.id).subscribe({
+          next: () => {
+            this.carregarDnas(this.vestigio!.id);
+            this.showDnaSearch = false;
+            this.buscaDna = '';
+            this.dnasBuscados = [];
+            this.showMessage('DNA vinculado ao vestígio com sucesso.', 'success');
+          },
+          error: () => this.showMessage('Erro ao vincular DNA.', 'error')
+        });
+      }
+    });
+  }
+
+  desvincularDnaDoVestigio(dna: DNA): void {
+    Swal.fire({
+      title: 'Desvincular DNA?',
+      html: `Remover o vínculo de <strong>${dna.nome}</strong> com este vestígio?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, desvincular',
+      cancelButtonText: 'Cancelar'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.custodiaService.vincularDnaAoVestigio(dna.id, null).subscribe({
+          next: () => {
+            this.carregarDnas(this.vestigio!.id);
+            this.showMessage('DNA desvinculado do vestígio.', 'success');
+          },
+          error: () => this.showMessage('Erro ao desvincular DNA.', 'error')
+        });
+      }
+    });
+  }
+
+  irParaOriginal(): void {
+    if (this.vestigio?.vestigio_contra_prova) {
+      this.router.navigate(['/gabinete-virtual/custodia/vestigios', this.vestigio.vestigio_contra_prova]);
+    }
+  }
+
+  irParaVestigio(id: number): void {
+    this.router.navigate(['/gabinete-virtual/custodia/vestigios', id]);
   }
 
   voltar(): void {

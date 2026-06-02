@@ -74,6 +74,25 @@
             </div>
             <div class="info-value">{{ user.perfil || 'Não definido' }}</div>
           </div>
+
+          @if (user.perfil === 'EXTERNO' || user.unidade_demandante) {
+            <div class="info-row">
+              <div class="info-label">
+                <i class="bi bi-building"></i>
+                Unidade Demandante
+              </div>
+              <div class="info-value">
+                @if (user.unidade_demandante) {
+                  {{ user.unidade_demandante.sigla }} — {{ user.unidade_demandante.nome }}
+                } @else {
+                  <span class="aviso-sem-unidade">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    Não definida — usuário EXTERNO sem unidade não acessa registros
+                  </span>
+                }
+              </div>
+            </div>
+          }
        @if (user.servicos_periciais && user.servicos_periciais.length > 0) {
             <div class="info-row">
               <div class="info-label">
