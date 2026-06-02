@@ -528,6 +528,10 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
     });
   }
 
+  verMovimentacao(id: number): void {
+    this.router.navigate(['/gabinete-virtual/custodia/movimentacoes', id]);
+  }
+
   irParaOriginal(): void {
     if (this.vestigio?.vestigio_contra_prova) {
       this.router.navigate(['/gabinete-virtual/custodia/vestigios', this.vestigio.vestigio_contra_prova]);

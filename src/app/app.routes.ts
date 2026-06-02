@@ -223,6 +223,18 @@ export const routes: Routes = [
         data: { requiredPerfis: ['PERITO', 'OPERACIONAL', 'ADMINISTRATIVO', 'CUSTODIANTE'] }
       },
       {
+        path: 'custodia/movimentacoes',
+        loadComponent: () => import('./pages/custodia-movimentacoes-list/custodia-movimentacoes-list.component')
+          .then(m => m.CustodiaMovimentacoesListComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'custodia/movimentacoes/:id',
+        loadComponent: () => import('./pages/custodia-movimentacao-detalhes/custodia-movimentacao-detalhes.component')
+          .then(m => m.CustodiaMovimentacaoDetalhesComponent),
+        canActivate: [AuthGuard]
+      },
+      {
         path: 'custodia/dnas',
         loadComponent: () => import('./pages/custodia-dna-list/custodia-dna-list.component').then(m => m.CustodiaDnaListComponent),
         canActivate: [AuthGuard]

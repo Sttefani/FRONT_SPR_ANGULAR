@@ -485,6 +485,24 @@ $accent-fin:   #15803d;   // verde  — Finalização
   &:hover { background: var(--success-color); color: #fff; }
 }
 
+.btn-ver-mov {
+  background: transparent;
+  border: 1.5px solid #1d4ed8;
+  color: #1d4ed8;
+  padding: 0.2rem 0.65rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.18s;
+  flex-shrink: 0;
+
+  &:hover { background: #1d4ed8; color: #fff; }
+}
+
 .timeline-body {
   p { font-size: 0.85rem; color: var(--text-color-light); margin: 0.2rem 0; }
   strong { color: var(--text-color-dark); }

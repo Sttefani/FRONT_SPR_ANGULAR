@@ -5,14 +5,21 @@
       <h1>🔒 Custódia de Vestígios</h1>
       <p class="subtitle">Gerenciamento de vestígios e cadeia de custódia.</p>
     </div>
-    @if (isCustodiante) {
-      <div class="actions-header">
+    <div class="actions-header">
+      <button class="btn-relatorio" (click)="gerarRelatorio()" [disabled]="gerandoRelatorio"
+              title="Gerar relatório PDF com os filtros ativos">
+        @if (gerandoRelatorio) {
+          <i class="bi bi-hourglass-split spin"></i> Gerando...
+        } @else {
+          <i class="bi bi-file-earmark-pdf"></i> Relatório PDF
+        }
+      </button>
+      @if (isCustodiante) {
         <button class="btn-primary" (click)="novoVestigio()">
-          <i class="bi bi-plus-circle"></i>
-          Novo Vestígio
+          <i class="bi bi-plus-circle"></i> Novo Vestígio
         </button>
-      </div>
-    }
+      }
+    </div>
   </div>
 
   <div class="filtros-card">

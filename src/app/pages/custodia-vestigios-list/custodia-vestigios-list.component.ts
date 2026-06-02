@@ -51,6 +51,7 @@ export class CustodiaVestigiosListComponent implements OnInit {
   // Permissões
   isCustodiante = false;
   isSuperAdmin = false;
+  gerandoRelatorio = false;
 
   constructor(
     private custodiaService: CustodiaService,
@@ -168,6 +169,27 @@ export class CustodiaVestigiosListComponent implements OnInit {
             this.messageType = 'error';
           }
         });
+      }
+    });
+  }
+
+  gerarRelatorio(): void {
+    this.gerandoRelatorio = true;
+    const { page, page_size, ...filtrosSemPag } = this.filtros as any;
+    this.custodiaService.getRelatorioPdfVestigios(filtrosSemPag).subscribe({
+      next: (blob) => {
+        this.gerandoRelatorio = false;
+        const url = URL.createObjectURL(blob);
+        const aba = window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        if (!aba) {
+          const a = document.createElement('a');
+          a.href = url; a.download = 'relatorio_vestigios.pdf'; a.click();
+        }
+      },
+      error: () => {
+        this.gerandoRelatorio = false;
+        Swal.fire('Erro', 'Não foi possível gerar o relatório.', 'error');
       }
     });
   }

@@ -1,0 +1,164 @@
+<div class="container">
+
+  <div class="header-row">
+    <div>
+      <h1>↔ Movimentações de Custódia</h1>
+      <p class="subtitle">Histórico global de transferências e cadeia de custódia.</p>
+    </div>
+  </div>
+
+  <!-- ── Filtros ──────────────────────────────────────────────────────────── -->
+  <div class="filtros-card">
+    <div class="filtros-grid">
+      <div class="filtro-group filtro-group--search">
+        <label>Busca livre</label>
+        <input type="text" [(ngModel)]="filtroSearch" placeholder="Lacre, SEI, descrição..."
+               (keyup.enter)="buscar()" class="filtro-input">
+      </div>
+      <div class="filtro-group">
+        <label>Serviço Pericial</label>
+        <select [(ngModel)]="filtroServico" class="filtro-input">
+          <option value="">Todos</option>
+          @for (s of servicos; track s.id) {
+            <option [value]="s.id">{{ s.sigla }} — {{ s.nome }}</option>
+          }
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Unidade Demandante</label>
+        <select [(ngModel)]="filtroUnidade" class="filtro-input">
+          <option value="">Todas</option>
+          @for (u of unidades; track u.id) {
+            <option [value]="u.id">{{ u.sigla }} — {{ u.nome }}</option>
+          }
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Período — de</label>
+        <input type="date" [(ngModel)]="filtroDataDe" class="filtro-input">
+      </div>
+      <div class="filtro-group">
+        <label>Período — até</label>
+        <input type="date" [(ngModel)]="filtroDataAte" class="filtro-input">
+      </div>
+    </div>
+    <div class="filtros-actions">
+      <button class="btn-search" (click)="buscar()">
+        <i class="bi bi-search"></i> Buscar
+      </button>
+      <button class="btn-limpar" (click)="limparFiltros()">
+        <i class="bi bi-x-circle"></i> Limpar
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Tabs ─────────────────────────────────────────────────────────────── -->
+  <div class="tabs">
+    <button class="tab" [class.active]="tabAtiva === ''" (click)="mudarTab('')">
+      <i class="bi bi-collection"></i> Todas
+    </button>
+    <button class="tab tab--pendente" [class.active]="tabAtiva === 'pendentes'" (click)="mudarTab('pendentes')">
+      <i class="bi bi-hourglass-split"></i> Pendentes
+    </button>
+    <button class="tab tab--aceita" [class.active]="tabAtiva === 'aceitas'" (click)="mudarTab('aceitas')">
+      <i class="bi bi-check-circle"></i> Aceitas
+    </button>
+  </div>
+
+  @if (message) {
+    <div class="message" [ngClass]="{'success': messageType === 'success', 'error': messageType === 'error'}">
+      {{ message }}
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="loading-indicator">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando movimentações...</p>
+    </div>
+  }
+
+  @if (!isLoading && movimentacoes.length > 0) {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Vestígio</th>
+            <th>Lacre Mov.</th>
+            <th>SEI</th>
+            <th>Unidade</th>
+            <th>Serviço</th>
+            <th>Registrado por</th>
+            <th>Data</th>
+            <th class="text-center">Status</th>
+            <th class="actions-col">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (mov of movimentacoes; track mov.id) {
+            <tr class="row-clickable" [class.row--pendente]="!mov.aceito" (click)="verDetalhes(mov.id)">
+              <td data-label="#">{{ mov.id }}</td>
+              <td data-label="Vestígio">
+                <button class="link-vestigio" (click)="verVestigio(mov.vestigio, $event)"
+                        title="Ver vestígio #{{ mov.vestigio }}">
+                  #{{ mov.vestigio }}
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </button>
+              </td>
+              <td data-label="Lacre Mov.">{{ mov.lacre || '—' }}</td>
+              <td data-label="SEI">{{ mov.num_processo_sei || '—' }}</td>
+              <td data-label="Unidade">{{ mov.unidade_demandante?.sigla || '—' }}</td>
+              <td data-label="Serviço">{{ mov.servico_pericial?.sigla || '—' }}</td>
+              <td data-label="Registrado por">{{ mov.criado_por || '—' }}</td>
+              <td data-label="Data">{{ mov.created_at | date:'dd/MM/yyyy' }}</td>
+              <td data-label="Status" class="text-center">
+                @if (mov.aceito) {
+                  <span class="badge-mov badge-aceita">
+                    <i class="bi bi-check-circle-fill"></i> Aceita
+                  </span>
+                } @else {
+                  <span class="badge-mov badge-pendente">
+                    <i class="bi bi-hourglass-split"></i> Pendente
+                  </span>
+                }
+              </td>
+              <td class="actions-cell" data-label="Ações" (click)="$event.stopPropagation()">
+                <button class="icon-btn view" title="Ver detalhes" (click)="verDetalhes(mov.id)">
+                  <i class="bi bi-eye"></i>
+                </button>
+                @if (!mov.aceito && isCustodiante) {
+                  <button class="icon-btn accept" title="Confirmar recebimento"
+                          [disabled]="aceitandoId === mov.id"
+                          (click)="aceitar(mov, $event)">
+                    @if (aceitandoId === mov.id) {
+                      <i class="bi bi-hourglass-split"></i>
+                    } @else {
+                      <i class="bi bi-check2"></i>
+                    }
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginador
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      [totalItems]="totalCount"
+      itemName="movimentações"
+      (pageChange)="mudarPagina($event)">
+    </app-paginador>
+  }
+
+  @if (!isLoading && movimentacoes.length === 0) {
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <p>Nenhuma movimentação encontrada</p>
+    </div>
+  }
+
+</div>

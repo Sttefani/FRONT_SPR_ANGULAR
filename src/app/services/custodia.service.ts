@@ -142,6 +142,29 @@ export interface PaginatedDNAs {
   results: DNA[];
 }
 
+export interface VestigioMovimentacaoFiltros {
+  vestigio?: number;
+  servico_pericial?: number;
+  unidade_demandante?: number;
+  user_destino?: number;
+  aceito?: boolean;
+  lacre?: string;
+  num_processo_sei?: string;
+  data_de?: string;
+  data_ate?: string;
+  search?: string;
+  ordering?: string;
+  page?: number;
+  page_size?: number;
+}
+
+export interface PaginatedMovimentacoes {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: VestigioMovimentacao[];
+}
+
 export interface VestigioFiltros {
   status?: string;
   servico_pericial?: number;
@@ -301,6 +324,18 @@ export class CustodiaService {
   }
 
   // Movimentações
+  getMovimentacoesPaginado(filtros: VestigioMovimentacaoFiltros = {}): Observable<PaginatedMovimentacoes> {
+    let params = new HttpParams();
+    Object.entries(filtros).forEach(([k, v]) => {
+      if (v !== null && v !== undefined && v !== '') params = params.set(k, String(v));
+    });
+    return this.http.get<PaginatedMovimentacoes>(`${this.base}/custodia/movimentacoes/`, { params });
+  }
+
+  getMovimentacaoById(id: number): Observable<VestigioMovimentacao> {
+    return this.http.get<VestigioMovimentacao>(`${this.base}/custodia/movimentacoes/${id}/`);
+  }
+
   getMovimentacoes(vestigioId: number): Observable<VestigioMovimentacao[]> {
     return this.http.get<VestigioMovimentacao[]>(`${this.base}/custodia/vestigios/${vestigioId}/movimentacoes/`);
   }
@@ -366,6 +401,31 @@ export class CustodiaService {
     return this.http.get(
       `${this.base}/custodia/vestigios/${vestigioId}/ficha-pdf/`,
       { responseType: 'blob' }
+    );
+  }
+
+  // Relatórios em lote PDF (passa filtros sem paginação, recebe Blob)
+  getRelatorioPdfVestigios(filtros: VestigioFiltros = {}): Observable<Blob> {
+    let params = new HttpParams();
+    const { page, page_size, ...rest } = filtros as any;
+    Object.entries(rest).forEach(([k, v]) => {
+      if (v !== null && v !== undefined && v !== '') params = params.set(k, String(v));
+    });
+    return this.http.get(
+      `${this.base}/custodia/vestigios/relatorio-pdf/`,
+      { params, responseType: 'blob' }
+    );
+  }
+
+  getRelatorioPdfDnas(filtros: DNAFiltros = {}): Observable<Blob> {
+    let params = new HttpParams();
+    const { page, page_size, ...rest } = filtros as any;
+    Object.entries(rest).forEach(([k, v]) => {
+      if (v !== null && v !== undefined && v !== '') params = params.set(k, String(v));
+    });
+    return this.http.get(
+      `${this.base}/custodia/dnas/relatorio-pdf/`,
+      { params, responseType: 'blob' }
     );
   }
 

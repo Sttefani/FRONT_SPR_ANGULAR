@@ -10,6 +10,14 @@
       </p>
     </div>
     <div class="actions-header">
+      <button class="btn-relatorio" (click)="gerarRelatorio()" [disabled]="gerandoRelatorio"
+              title="Gerar relatório PDF com os filtros ativos">
+        @if (gerandoRelatorio) {
+          <i class="bi bi-hourglass-split spin"></i> Gerando...
+        } @else {
+          <i class="bi bi-file-earmark-pdf"></i> Relatório PDF
+        }
+      </button>
       <button class="btn-certidao" (click)="abrirCertidaoAusencia()" [disabled]="gerandoCertidao"
               [title]="isExterno ? 'Emitir Comprovante de Consulta' : 'Emitir Certidão de Ausência de Registro'">
         @if (gerandoCertidao) {

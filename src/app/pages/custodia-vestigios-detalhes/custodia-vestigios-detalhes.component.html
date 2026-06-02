@@ -358,6 +358,9 @@
                         <i class="bi bi-check2"></i> Confirmar recebimento
                       </button>
                     }
+                    <button class="btn-ver-mov" (click)="verMovimentacao(mov.id)">
+                      <i class="bi bi-eye"></i> Detalhes
+                    </button>
                   </div>
                   <div class="timeline-body">
                     @if (mov.lacre) { <p><strong>Lacre:</strong> {{ mov.lacre }}</p> }

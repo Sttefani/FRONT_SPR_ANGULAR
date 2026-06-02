@@ -43,6 +43,7 @@ export class CustodiaDnaListComponent implements OnInit {
   podeEditar = false;
 
   gerandoCertidao = false;
+  gerandoRelatorio = false;
 
   readonly UFS = [
     'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG',
@@ -150,6 +151,29 @@ export class CustodiaDnaListComponent implements OnInit {
 
   badgeFinalidade(f: string): string {
     return f === 'LEI' ? 'badge-lei' : 'badge-dj';
+  }
+
+  // ── Relatório em lote PDF ───────────────────────────────────────────────
+
+  gerarRelatorio(): void {
+    this.gerandoRelatorio = true;
+    const { page, page_size, ...filtrosSemPag } = this.filtros as any;
+    this.custodiaService.getRelatorioPdfDnas(filtrosSemPag).subscribe({
+      next: (blob) => {
+        this.gerandoRelatorio = false;
+        const url = URL.createObjectURL(blob);
+        const aba = window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        if (!aba) {
+          const a = document.createElement('a');
+          a.href = url; a.download = 'relatorio_dnas.pdf'; a.click();
+        }
+      },
+      error: () => {
+        this.gerandoRelatorio = false;
+        Swal.fire('Erro', 'Não foi possível gerar o relatório.', 'error');
+      }
+    });
   }
 
   // ── Certidão / Comprovante de Ausência ──────────────────────────────────

@@ -1,0 +1,238 @@
+:host {
+  --primary: #DAA520;
+  --primary-dark: #B8860B;
+  --slate-dark: #1e293b;
+  --slate-med: #475569;
+  --slate-light: #f8fafc;
+  --border: #e2e8f0;
+  --green-dark: #14532d;
+  --green-light: #f0fdf4;
+  --amber-dark: #92400e;
+  --amber-light: #fffbeb;
+}
+
+.container { padding: 1.5rem; max-width: 100%; }
+
+// ── Cabeçalho ─────────────────────────────────────────────────────────────────
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+
+  h1 { font-size: 1.75rem; font-weight: 600; color: var(--slate-dark); margin-bottom: 0.4rem; }
+  .subtitle { color: var(--slate-med); font-size: 0.875rem; margin: 0; font-style: italic; }
+}
+
+// ── Filtros ───────────────────────────────────────────────────────────────────
+.filtros-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  padding: 1.2rem 1.4rem;
+  margin-bottom: 1rem;
+}
+
+.filtros-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1.5fr 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.filtro-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  label { font-size: 0.78rem; font-weight: 600; color: var(--slate-med); }
+}
+
+.filtro-input {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.88rem;
+  color: var(--slate-dark);
+  background: var(--slate-light);
+  &:focus { outline: none; border-color: var(--primary); }
+}
+
+.filtros-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-search, .btn-limpar {
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s;
+}
+
+.btn-search  { background: var(--primary); color: #000; &:hover { background: var(--primary-dark); } }
+.btn-limpar  { background: #e2e8f0; color: var(--slate-dark); &:hover { background: #cbd5e1; } }
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0;
+}
+
+.tab {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--slate-med);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.15s;
+
+  &:hover { color: var(--slate-dark); }
+  &.active { color: var(--slate-dark); border-bottom-color: var(--primary); }
+
+  &.tab--pendente.active { border-bottom-color: var(--amber-dark); color: var(--amber-dark); }
+  &.tab--aceita.active   { border-bottom-color: var(--green-dark);  color: var(--green-dark);  }
+}
+
+// ── Tabela ────────────────────────────────────────────────────────────────────
+.table-container {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    background: var(--slate-dark);
+    color: #fff;
+    padding: 0.65rem 0.8rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  td {
+    padding: 0.65rem 0.8rem;
+    font-size: 0.875rem;
+    color: var(--slate-dark);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+}
+
+.row-clickable {
+  cursor: pointer;
+  transition: background 0.12s;
+  &:hover { background: #f1f5f9; }
+  &.row--pendente { background: #fffbeb; &:hover { background: #fef3c7; } }
+}
+
+.actions-col { width: 80px; text-align: center; }
+.text-center { text-align: center; }
+
+// ── Badges de status ──────────────────────────────────────────────────────────
+.badge-mov {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &.badge-aceita  { background: var(--green-light); color: var(--green-dark); border: 1px solid #bbf7d0; }
+  &.badge-pendente{ background: var(--amber-light); color: var(--amber-dark); border: 1px solid #fde68a; }
+}
+
+// ── Link para o vestígio ──────────────────────────────────────────────────────
+.link-vestigio {
+  background: none;
+  border: none;
+  color: #1d4ed8;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  &:hover { text-decoration: underline; }
+  i { font-size: 0.7rem; opacity: 0.7; }
+}
+
+// ── Botões de ação ────────────────────────────────────────────────────────────
+.actions-cell { text-align: center; white-space: nowrap; }
+
+.icon-btn {
+  background: none;
+  border: 1.5px solid;
+  border-radius: 5px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+  margin: 0 2px;
+
+  &.view   { border-color: #94a3b8; color: #64748b; &:hover { border-color: #1d4ed8; color: #1d4ed8; background: #eff6ff; } }
+  &.accept { border-color: #86efac; color: var(--green-dark); &:hover { background: var(--green-light); } }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ── Mensagem ──────────────────────────────────────────────────────────────────
+.message {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  &.success { background: var(--green-light); color: var(--green-dark); border: 1px solid #bbf7d0; }
+  &.error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+}
+
+// ── Loading / Empty ───────────────────────────────────────────────────────────
+.loading-indicator, .empty-state {
+  text-align: center;
+  padding: 3.5rem;
+  background: #fff;
+  border-radius: 8px;
+  color: var(--slate-med);
+  i { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+  p { font-size: 1rem; font-weight: 500; margin: 0; }
+}
+
+// ── Responsivo ────────────────────────────────────────────────────────────────
+@media (max-width: 900px) {
+  .filtros-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .filtros-grid { grid-template-columns: 1fr; }
+}
