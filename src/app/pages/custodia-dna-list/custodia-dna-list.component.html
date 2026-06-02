@@ -10,9 +10,20 @@
       </p>
     </div>
     <div class="actions-header">
-      <button class="btn-primary" (click)="novoDna()">
-        <i class="bi bi-plus-circle"></i> Nova Coleta
+      <button class="btn-certidao" (click)="abrirCertidaoAusencia()" [disabled]="gerandoCertidao"
+              [title]="isExterno ? 'Emitir Comprovante de Consulta' : 'Emitir Certidão de Ausência de Registro'">
+        @if (gerandoCertidao) {
+          <i class="bi bi-hourglass-split spin"></i> Gerando...
+        } @else {
+          <i class="bi bi-file-earmark-text"></i>
+          {{ isExterno ? 'Comprovante de Consulta' : 'Certidão de Ausência' }}
+        }
       </button>
+      @if (!isExterno) {
+        <button class="btn-primary" (click)="novoDna()">
+          <i class="bi bi-plus-circle"></i> Nova Coleta
+        </button>
+      }
     </div>
   </div>
 
@@ -162,20 +173,13 @@
         </tbody>
       </table>
 
-      <!-- Paginação -->
-      <div class="pagination">
-        <div class="page-info">
-          Página {{ currentPage }} de {{ totalPages }} | Total: {{ totalCount }} registros
-        </div>
-        <div class="pagination-controls">
-          <button (click)="previousPage()" [disabled]="!previousUrl">
-            <i class="bi bi-chevron-left"></i> Anterior
-          </button>
-          <button (click)="nextPage()" [disabled]="!nextUrl">
-            Próxima <i class="bi bi-chevron-right"></i>
-          </button>
-        </div>
-      </div>
+      <app-paginador
+        [currentPage]="currentPage"
+        [totalPages]="totalPages"
+        [totalItems]="totalCount"
+        itemName="registros DNA"
+        (pageChange)="mudarPagina($event)">
+      </app-paginador>
     </div>
   }
 

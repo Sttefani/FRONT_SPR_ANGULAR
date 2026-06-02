@@ -10,13 +10,20 @@
   --danger-color: #dc3545;
 }
 
-.container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+.container { padding: 1.5rem; max-width: 100%; }
 
 .header-row {
   display: flex; justify-content: space-between; align-items: flex-start;
   margin-bottom: 1.4rem; gap: 1.5rem;
   h1 { font-size: 1.75rem; font-weight: 600; color: var(--text-color-dark); margin-bottom: 0.3rem; }
   .subtitle { color: var(--text-color-light); font-size: 0.87rem; margin: 0; font-style: italic; }
+}
+
+.actions-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .actions-header .btn-primary {
@@ -26,6 +33,42 @@
   text-transform: uppercase;
   &:hover { background: var(--primary-color-dark); border-color: var(--primary-color-dark); transform: translateY(-2px); }
 }
+
+// Botão de Certidão / Comprovante de Ausência
+.btn-certidao {
+  background: #78350f;
+  color: #fef3c7;
+  border: 2px solid #92400e;
+  padding: 0.65rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: #92400e;
+    border-color: #78350f;
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+// Animação de loading no botão
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.spin { display: inline-block; animation: spin 1s linear infinite; }
 
 // Aviso EXTERNO
 .aviso-externo {

@@ -368,4 +368,17 @@ export class CustodiaService {
       { responseType: 'blob' }
     );
   }
+
+  // Certidão / Comprovante de Ausência de Registro de DNA
+  // Retorna Blob (PDF) quando não há registro, ou lança erro 409 se encontrado.
+  getCertidaoAusenciaDna(params: { nome?: string; cpf?: string; rg?: string }): Observable<Blob> {
+    let httpParams = new HttpParams();
+    if (params.nome) httpParams = httpParams.set('nome', params.nome);
+    if (params.cpf)  httpParams = httpParams.set('cpf',  params.cpf);
+    if (params.rg)   httpParams = httpParams.set('rg',   params.rg);
+    return this.http.get(
+      `${this.base}/custodia/dnas/certidao-ausencia/`,
+      { params: httpParams, responseType: 'blob' }
+    );
+  }
 }
