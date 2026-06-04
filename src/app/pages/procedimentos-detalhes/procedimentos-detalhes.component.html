@@ -4,6 +4,11 @@
       <i class="bi bi-arrow-left"></i> Voltar
     </button>
     <h1>Detalhes do Procedimento</h1>
+    @if (podeVerTeia && procedimentoId) {
+      <button class="btn-teia" (click)="showTeia = true" title="Visualizar teia de relações">
+        <i class="bi bi-diagram-3-fill"></i> Teia
+      </button>
+    }
   </div>
 
   @if (procedimento) {
@@ -13,7 +18,7 @@
     </div>
 
     <div class="ocorrencias-list">
-      <h3>Ocorrências Vinculadas</h3>
+      <h3>Ocorrências Vinculadas <span class="count-badge">{{ totalOcorrencias }}</span></h3>
       @if (ocorrencias.length > 0) {
         <table class="data-table">
           <thead>
@@ -45,5 +50,59 @@
         <p class="text-muted">Nenhuma ocorrência vinculada a este procedimento.</p>
       }
     </div>
+
+    <!-- ── Vestígios Vinculados ──────────────────────────────────────────── -->
+    <div class="ocorrencias-list vestigios-section">
+      <h3><i class="bi bi-shield-lock-fill" style="color:#6d28d9"></i> Vestígios Vinculados <span class="count-badge">{{ totalVestigios }}</span></h3>
+      @if (vestigios.length > 0) {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Lacre</th>
+              <th>SEI</th>
+              <th>Status</th>
+              <th>Unidade</th>
+              <th>Serviço</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of vestigios; track v.id) {
+              <tr>
+                <td><strong>{{ v.lacre || '—' }}</strong></td>
+                <td>{{ v.num_processo_sei || '—' }}</td>
+                <td>
+                  <span class="badge" [ngClass]="badgeStatusVest(v.status)">
+                    {{ v.status_display }}
+                  </span>
+                </td>
+                <td>{{ v.unidade_demandante?.sigla || '—' }}</td>
+                <td>{{ v.servico_pericial?.sigla || '—' }}</td>
+                <td class="td-acoes">
+                  <button class="btn-view" (click)="verVestigio(v.id)" title="Ver detalhes">
+                    <i class="bi bi-eye"></i> Ver
+                  </button>
+                  @if (isCustodiante) {
+                    <button class="btn-desvincular" (click)="desvincularVestigio(v)" title="Desvincular">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="text-muted">Nenhum vestígio vinculado diretamente a este procedimento.</p>
+      }
+    </div>
   }
 </div>
+
+@if (showTeia && procedimentoId) {
+  <app-teia-relacoes
+    tipo="procedimento"
+    [id]="procedimentoId"
+    (fechar)="showTeia = false">
+  </app-teia-relacoes>
+}

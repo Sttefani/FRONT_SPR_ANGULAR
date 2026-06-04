@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
@@ -40,7 +40,8 @@ export interface OcorrenciaProcedimento {
   numero_completo: string;
   numero: string;
   ano: number;
-  tipo: { id: number; sigla: string; nome: string };
+  tipo_sigla: string;  // ProcedimentoResumoSerializer envia campos planos
+  tipo_nome: string;   // não há objeto tipo aninhado
 }
 
 export interface OcorrenciaVinculada {
@@ -51,6 +52,7 @@ export interface OcorrenciaVinculada {
   servico_sigla: string;
   unidade_sigla: string;
   procedimento: OcorrenciaProcedimento | null;
+  ano_fato?: number;
 }
 
 export interface VestigioDetalhe extends VestigioList {
@@ -303,6 +305,21 @@ export class CustodiaService {
     return this.http.get<any>(`${this.base}/ocorrencias/buscar-por-numero/`, { params });
   }
 
+  getOcorrenciaParaVestigio(id: number): Observable<OcorrenciaVinculada> {
+    return this.http.get<any>(`${this.base}/ocorrencias/${id}/`).pipe(
+      map(oc => ({
+        id: oc.id,
+        numero_ocorrencia: oc.numero_ocorrencia,
+        status: oc.status,
+        status_display: oc.status_display ?? oc.status,
+        servico_sigla: oc.servico_pericial?.sigla ?? '',
+        unidade_sigla: oc.unidade_demandante?.sigla ?? '',
+        procedimento: oc.procedimento_cadastrado ?? null,
+        ano_fato: oc.data_fato ? parseInt(oc.data_fato.substring(0, 4), 10) : undefined,
+      }))
+    );
+  }
+
   getDashboard(): Observable<DashboardCustodia> {
     return this.http.get<DashboardCustodia>(`${this.base}/custodia/vestigios/dashboard/`);
   }
@@ -427,6 +444,29 @@ export class CustodiaService {
       `${this.base}/custodia/dnas/relatorio-pdf/`,
       { params, responseType: 'blob' }
     );
+  }
+
+  // Vínculo direto Vestígio ↔ Procedimento
+  vincularProcedimentoAoVestigio(
+    vestigioId: number,
+    procedimentoId: number,
+    acao: 'add' | 'remove',
+  ): Observable<any> {
+    return this.http.post<any>(
+      `${this.base}/custodia/vestigios/${vestigioId}/vincular-procedimento/`,
+      { procedimento_id: procedimentoId, acao },
+    );
+  }
+
+  // Teia de Relações
+  getGrafo(
+    tipo: 'vestigio' | 'ocorrencia' | 'procedimento',
+    id: number,
+    opts: { incluirMovimentacoes?: boolean } = {},
+  ): Observable<any> {
+    let params = new HttpParams().set('tipo', tipo).set('id', String(id));
+    if (opts.incluirMovimentacoes) params = params.set('incluir_movimentacoes', '1');
+    return this.http.get<any>(`${this.base}/custodia/grafo/`, { params });
   }
 
   // Certidão / Comprovante de Ausência de Registro de DNA

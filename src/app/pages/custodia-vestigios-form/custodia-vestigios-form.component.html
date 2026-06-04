@@ -5,8 +5,14 @@
       <button type="button" class="btn-voltar" (click)="voltar()">
         <i class="bi bi-arrow-left"></i> Voltar
       </button>
-      <h1>{{ isEditMode ? '✏️ Editar Vestígio' : '➕ Novo Vestígio' }}</h1>
-      <p class="subtitle">Preencha os dados do vestígio em custódia.</p>
+      <h1>{{ isEditMode ? '✏️ Editar Vestígio' : '📦 Novo Vestígio' }}</h1>
+      <p class="subtitle">
+        @if (!isEditMode && origemOcorrenciaId) {
+          Ocorrência pré-vinculada. Após salvar, você retornará automaticamente para ela.
+        } @else {
+          Preencha os dados do vestígio em custódia.
+        }
+      </p>
     </div>
   </div>
 
@@ -40,14 +46,30 @@
             <input id="sei" type="text" formControlName="num_processo_sei" placeholder="Nº SEI...">
           </div>
 
-          <div class="form-group">
-            <label for="ocorrencia">Ocorrência</label>
+          <div class="form-group" [class.auto-preenchido]="origemOcorrenciaId">
+            <label for="ocorrencia">
+              Ocorrência
+              @if (origemOcorrenciaId) {
+                <i class="bi bi-lock-fill auto-lock-icon"></i>
+              }
+            </label>
             <input id="ocorrencia" type="text" formControlName="ocorrencia" placeholder="Nº da ocorrência...">
+            @if (origemOcorrenciaId) {
+              <small class="hint-auto"><i class="bi bi-link-45deg"></i> preenchido da ocorrência vinculada</small>
+            }
           </div>
 
-          <div class="form-group">
-            <label for="ano">Ano da Ocorrência</label>
+          <div class="form-group" [class.auto-preenchido]="origemOcorrenciaId">
+            <label for="ano">
+              Ano da Ocorrência
+              @if (origemOcorrenciaId) {
+                <i class="bi bi-lock-fill auto-lock-icon"></i>
+              }
+            </label>
             <input id="ano" type="number" formControlName="ano_ocorrencia" placeholder="2025" min="2000" max="2099">
+            @if (origemOcorrenciaId) {
+              <small class="hint-auto"><i class="bi bi-link-45deg"></i> preenchido da ocorrência vinculada</small>
+            }
           </div>
 
         </div>

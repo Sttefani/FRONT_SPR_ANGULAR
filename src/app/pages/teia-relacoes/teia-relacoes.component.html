@@ -1,0 +1,356 @@
+<div class="teia-overlay" (click)="$event.stopPropagation()">
+  <div class="teia-shell">
+
+    <!-- ── Barra de topo ──────────────────────────────────────────────────── -->
+    <header class="teia-header">
+      <div class="teia-header-left">
+        <i class="bi bi-diagram-3-fill teia-icon"></i>
+        <div class="teia-header-text">
+          <span class="teia-title">Teia de Relações</span>
+          @if (grafo) {
+            <span class="teia-subtitle">{{ tituloFocal }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="teia-header-center">
+        @if (grafo) {
+          <span class="teia-stat"><i class="bi bi-circle-fill stat-dot dot-node"></i>{{ totalNos }} nós</span>
+          <span class="teia-stat"><i class="bi bi-dash-lg stat-dash"></i>{{ totalArestas }} ligações</span>
+        }
+      </div>
+
+      <div class="teia-header-right">
+
+        <!-- Toggle cadeia de custódia (só vestígio) -->
+        @if (tipo === 'vestigio') {
+          <button class="teia-ctrl-toggle" [class.active]="mostrarCadeia"
+                  (click)="toggleCadeia()" title="Mostrar cadeia de custódia">
+            <i class="bi bi-link-45deg"></i>
+            <span>Custódia</span>
+          </button>
+        }
+
+        <!-- Seletor de layout -->
+        <div class="teia-layout-bar" title="Escolher layout">
+          <button class="teia-ctrl teia-ctrl--sm" [class.active]="layoutAtual === 'cose'"
+                  (click)="mudarLayout('cose')" title="Força-dirigida">
+            <i class="bi bi-diagram-3"></i>
+          </button>
+          <button class="teia-ctrl teia-ctrl--sm" [class.active]="layoutAtual === 'breadthfirst'"
+                  (click)="mudarLayout('breadthfirst')" title="Hierárquico">
+            <i class="bi bi-list-nested"></i>
+          </button>
+          <button class="teia-ctrl teia-ctrl--sm" [class.active]="layoutAtual === 'concentric'"
+                  (click)="mudarLayout('concentric')" title="Concêntrico">
+            <i class="bi bi-record-circle"></i>
+          </button>
+        </div>
+
+        <!-- Exportar PNG -->
+        <button class="teia-ctrl" title="Exportar como PNG" (click)="exportarPng()">
+          <i class="bi bi-download"></i>
+        </button>
+
+        <!-- Zoom / fit -->
+        <div class="teia-zoom-bar">
+          <button class="teia-ctrl" title="Centralizar foco" (click)="centerFocal()"><i class="bi bi-crosshair"></i></button>
+          <button class="teia-ctrl" title="Ajustar à tela"  (click)="fitGraph()"><i class="bi bi-fullscreen"></i></button>
+          <button class="teia-ctrl" title="Zoom +"          (click)="zoomIn()"><i class="bi bi-plus-lg"></i></button>
+          <button class="teia-ctrl" title="Zoom −"          (click)="zoomOut()"><i class="bi bi-dash-lg"></i></button>
+        </div>
+
+        <button class="teia-close" title="Fechar" (click)="fechar.emit()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Área principal ────────────────────────────────────────────────── -->
+    <div class="teia-body">
+
+      <!-- Grafo -->
+      <div class="teia-graph-wrap">
+
+        @if (isLoading) {
+          <div class="teia-loading">
+            <div class="teia-spinner"></div>
+            <p>Mapeando relações…</p>
+          </div>
+        }
+
+        @if (erro) {
+          <div class="teia-empty">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <p>{{ erro }}</p>
+          </div>
+        }
+
+        @if (!isLoading && !erro && grafo && grafo.nodes.length === 1) {
+          <div class="teia-empty">
+            <i class="bi bi-diagram-3"></i>
+            <p>Nenhuma relação encontrada para esta entidade.</p>
+            <small>Vincule ocorrências, procedimentos ou contraprovas para visualizá-las aqui.</small>
+          </div>
+        }
+
+        <div #cyContainer class="cy-canvas"
+             [class.hidden]="isLoading || !!erro || (grafo?.nodes?.length === 1)">
+        </div>
+
+        <!-- Dica de uso -->
+        @if (!isLoading && !erro && grafo && grafo.nodes.length > 1) {
+          <div class="teia-hint">
+            <i class="bi bi-mouse2"></i> clique para detalhes &nbsp;·&nbsp;
+            <i class="bi bi-mouse2-fill"></i> duplo clique para abrir
+          </div>
+        }
+
+        <!-- Legenda flutuante -->
+        @if (!isLoading && !erro && grafo && grafo.nodes.length > 1) {
+          <div class="teia-legend">
+            <span class="legend-item"><span class="legend-dot" style="background:#6d28d9;border-color:#a78bfa"></span>Vestígio</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#b45309;border-color:#fbbf24"></span>Ocorrência</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#1d4ed8;border-color:#60a5fa"></span>Procedimento</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#be185d;border-color:#f472b6"></span>DNA</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#15803d;border-color:#4ade80;border-radius:50%"></span>Mov. aceita</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#b45309;border-color:#fbbf24;border-radius:50%"></span>Mov. pendente</span>
+            <span class="legend-item"><span class="legend-dot diamond" style="background:#c2410c;border-color:#fb923c"></span>Contraprova</span>
+            <span class="legend-item"><span class="legend-dot focal"></span>Foco atual</span>
+          </div>
+        }
+      </div>
+
+      <!-- ── Painel lateral ──────────────────────────────────────────────── -->
+      <aside class="teia-panel" [class.open]="!!selectedNode">
+        @if (selectedNode) {
+          <div class="panel-header" [style.border-color]="corPorTipo(selectedNode.tipo)">
+            <i class="bi panel-icon" [class]="iconePorTipo(selectedNode.tipo)"
+               [style.color]="corPorTipo(selectedNode.tipo)"></i>
+            <div>
+              <span class="panel-tipo">{{ selectedNode.tipo | titlecase }}</span>
+              <h3 class="panel-label">{{ selectedNode.label }}</h3>
+            </div>
+            @if (selectedNode.focal) {
+              <span class="panel-focal-badge">Foco</span>
+            }
+          </div>
+
+          <div class="panel-body">
+
+            <!-- Vestígio / Contraprova -->
+            @if (selectedNode.tipo === 'vestigio' || selectedNode.tipo === 'contraprova') {
+              @if (selectedNode.status) {
+                <div class="panel-row">
+                  <span class="panel-key">Status</span>
+                  <span class="panel-badge" [class]="statusBadgeClass(selectedNode.status)">
+                    {{ selectedNode.status_display }}
+                  </span>
+                </div>
+              }
+              @if (selectedNode.unidade) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-diagram-3"></i> Unidade</span>
+                  <span class="panel-val">{{ selectedNode.unidade }}</span>
+                </div>
+              }
+              @if (selectedNode.servico) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-briefcase"></i> Serviço</span>
+                  <span class="panel-val">{{ selectedNode.servico }}</span>
+                </div>
+              }
+              @if (selectedNode.responsavel) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-person-check"></i> Responsável</span>
+                  <span class="panel-val">{{ selectedNode.responsavel }}</span>
+                </div>
+              }
+              @if (selectedNode.biologico) {
+                <div class="panel-row">
+                  <span class="panel-badge badge-bio"><i class="bi bi-virus"></i> Material biológico</span>
+                </div>
+              }
+
+              <!-- Procedimentos diretamente vinculados -->
+              <div class="panel-section-title">
+                <i class="bi bi-folder2-open"></i> Procedimentos
+                <button class="btn-vincular-proc" [disabled]="vinculandoProc"
+                        (click)="abrirVincularProcedimento()" title="Vincular procedimento">
+                  @if (vinculandoProc) { <i class="bi bi-hourglass-split"></i> }
+                  @else { <i class="bi bi-plus-lg"></i> }
+                </button>
+              </div>
+              @if (!selectedNode.procedimentos_diretos?.length) {
+                <p class="panel-empty-proc">Nenhum procedimento vinculado diretamente.</p>
+              } @else {
+                @for (p of selectedNode.procedimentos_diretos; track p.id) {
+                  <div class="panel-proc-item">
+                    <span class="panel-proc-label">
+                      <i class="bi bi-folder2"></i> {{ p.label }}
+                    </span>
+                    <button class="btn-remove-proc" (click)="desvincularProcedimento(p.id, p.label)"
+                            title="Desvincular">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </div>
+                }
+              }
+            }
+
+            <!-- DNA -->
+            @if (selectedNode.tipo === 'dna') {
+              @if (selectedNode.situacao) {
+                <div class="panel-row">
+                  <span class="panel-key">Situação</span>
+                  <span class="panel-badge"
+                    [class.badge-vest-andamento]="selectedNode.situacao === 'APENADO'"
+                    [class.badge-vest-inicial]="selectedNode.situacao !== 'APENADO'">
+                    {{ selectedNode.situacao_display }}
+                  </span>
+                </div>
+              }
+              @if (selectedNode.cpf) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-card-text"></i> CPF</span>
+                  <span class="panel-val">{{ selectedNode.cpf }}</span>
+                </div>
+              }
+              @if (selectedNode.finalidade) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-clipboard"></i> Finalidade</span>
+                  <span class="panel-val">{{ selectedNode.finalidade }}</span>
+                </div>
+              }
+              @if (selectedNode.perito) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-person-badge"></i> Perito</span>
+                  <span class="panel-val">{{ selectedNode.perito }}</span>
+                </div>
+              }
+              @if (selectedNode.data_coleta) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-calendar"></i> Coleta</span>
+                  <span class="panel-val">{{ selectedNode.data_coleta }}</span>
+                </div>
+              }
+            }
+
+            <!-- Movimentação -->
+            @if (selectedNode.tipo === 'movimentacao_aceita' || selectedNode.tipo === 'movimentacao_pendente') {
+              <div class="panel-row">
+                <span class="panel-key">Status</span>
+                <span class="panel-badge"
+                  [class.badge-vest-finalizado]="selectedNode.tipo === 'movimentacao_aceita'"
+                  [class.badge-vest-andamento]="selectedNode.tipo === 'movimentacao_pendente'">
+                  {{ selectedNode.tipo === 'movimentacao_aceita' ? 'Aceita' : 'Pendente' }}
+                </span>
+              </div>
+              @if (selectedNode.criado_por) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-person-up"></i> Enviado por</span>
+                  <span class="panel-val">{{ selectedNode.criado_por }}</span>
+                </div>
+              }
+              @if (selectedNode.destinatario) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-person-check"></i> Destinatário</span>
+                  <span class="panel-val">{{ selectedNode.destinatario }}</span>
+                </div>
+              }
+              @if (selectedNode.unidade) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-diagram-3"></i> Unidade</span>
+                  <span class="panel-val">{{ selectedNode.unidade }}</span>
+                </div>
+              }
+              @if (selectedNode.servico) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-briefcase"></i> Serviço</span>
+                  <span class="panel-val">{{ selectedNode.servico }}</span>
+                </div>
+              }
+              @if (selectedNode.data_envio) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-calendar-event"></i> Enviado em</span>
+                  <span class="panel-val">{{ selectedNode.data_envio }}</span>
+                </div>
+              }
+              @if (selectedNode.data_aceite) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-calendar-check"></i> Aceito em</span>
+                  <span class="panel-val">{{ selectedNode.data_aceite }}</span>
+                </div>
+              }
+              @if (selectedNode.descricao) {
+                <div class="panel-row" style="flex-direction:column;align-items:flex-start;gap:.3rem">
+                  <span class="panel-key"><i class="bi bi-chat-text"></i> Descrição</span>
+                  <span class="panel-val" style="font-size:.78rem;line-height:1.5">{{ selectedNode.descricao }}</span>
+                </div>
+              }
+            }
+
+            <!-- Ocorrência -->
+            @if (selectedNode.tipo === 'ocorrencia') {
+              @if (selectedNode.status) {
+                <div class="panel-row">
+                  <span class="panel-key">Status</span>
+                  <span class="panel-badge" [class]="statusBadgeClass(selectedNode.status)">
+                    {{ selectedNode.status_display }}
+                  </span>
+                </div>
+              }
+              @if (selectedNode.perito) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-person-badge"></i> Perito</span>
+                  <span class="panel-val">{{ selectedNode.perito }}</span>
+                </div>
+              }
+              @if (selectedNode.servico) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-briefcase"></i> Serviço</span>
+                  <span class="panel-val">{{ selectedNode.servico }}</span>
+                </div>
+              }
+              @if (selectedNode.unidade) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-diagram-3"></i> Unidade</span>
+                  <span class="panel-val">{{ selectedNode.unidade }}</span>
+                </div>
+              }
+            }
+
+            <!-- Procedimento -->
+            @if (selectedNode.tipo === 'procedimento') {
+              @if (selectedNode.tipo_nome) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-folder2"></i> Tipo</span>
+                  <span class="panel-val">{{ selectedNode.tipo_nome }}</span>
+                </div>
+              }
+              @if (selectedNode.numero) {
+                <div class="panel-row">
+                  <span class="panel-key"><i class="bi bi-hash"></i> Número</span>
+                  <span class="panel-val">{{ selectedNode.numero }}/{{ selectedNode.ano }}</span>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="panel-footer">
+            <button class="btn-navegar" (click)="navegarParaNo()">
+              <i class="bi bi-box-arrow-up-right"></i>
+              Abrir {{ selectedNode.tipo | titlecase }}
+            </button>
+          </div>
+        } @else {
+          <div class="panel-placeholder">
+            <i class="bi bi-cursor-fill"></i>
+            <p>Clique em um nó para ver detalhes</p>
+          </div>
+        }
+      </aside>
+
+    </div><!-- /teia-body -->
+  </div><!-- /teia-shell -->
+</div><!-- /teia-overlay -->

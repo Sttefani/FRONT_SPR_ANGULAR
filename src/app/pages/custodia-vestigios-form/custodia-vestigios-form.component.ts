@@ -37,6 +37,9 @@ export class CustodiaVestigiosFormComponent implements OnInit {
   isSearchingOcorrencia = false;
   ocorrenciaErro        = '';
 
+  // ── Origem: veio dos detalhes de uma ocorrência ──────────────────────────
+  origemOcorrenciaId: number | null = null;
+
   // ── Contraprova ───────────────────────────────────────────────────────────
   contraProvaSelecionada: any = null;
   searchContraProvaTermo  = '';
@@ -114,6 +117,24 @@ export class CustodiaVestigiosFormComponent implements OnInit {
     } else {
       // MODO CRIAÇÃO — carrega dropdowns de forma independente
       this.carregarDropdowns();
+
+      // Pré-vincula ocorrência quando o formulário foi aberto via botão "Cadastrar Vestígio"
+      const ocId = this.route.snapshot.queryParamMap.get('ocorrencia_id');
+      if (ocId) {
+        this.origemOcorrenciaId = Number(ocId);
+        this.custodiaService.getOcorrenciaParaVestigio(this.origemOcorrenciaId).subscribe({
+          next: (oc) => {
+            this.ocorrenciaSelecionada = oc;
+            this.form.patchValue({
+              ocorrencia: oc.numero_ocorrencia,
+              ano_ocorrencia: oc.ano_fato ?? null,
+            });
+            this.form.get('ocorrencia')?.disable();
+            this.form.get('ano_ocorrencia')?.disable();
+          },
+          error: () => { /* usuário pode buscar manualmente se falhar */ },
+        });
+      }
     }
   }
 
@@ -149,6 +170,9 @@ export class CustodiaVestigiosFormComponent implements OnInit {
   }
 
   get voltarUrl(): string {
+    if (this.origemOcorrenciaId) {
+      return `/gabinete-virtual/operacional/ocorrencias/${this.origemOcorrenciaId}`;
+    }
     return this.isEditMode && this.vestigioId
       ? `/gabinete-virtual/custodia/vestigios/${this.vestigioId}`
       : '/gabinete-virtual/custodia/vestigios';
@@ -167,7 +191,7 @@ export class CustodiaVestigiosFormComponent implements OnInit {
     this.isSaving = true;
     this.message  = '';
 
-    const payload: any = { ...this.form.value };
+    const payload: any = { ...this.form.getRawValue() };
 
     // Inclui a ocorrência selecionada no próprio payload de criação/edição.
     // O backend aplica a cascata: se a ocorrência tiver procedimento vinculado,
@@ -190,7 +214,10 @@ export class CustodiaVestigiosFormComponent implements OnInit {
           timerProgressBar: true,
           showConfirmButton: false,
         }).then(() => {
-          this.router.navigate(['/gabinete-virtual/custodia/vestigios', v.id]);
+          const destino = this.origemOcorrenciaId
+            ? ['/gabinete-virtual/operacional/ocorrencias', this.origemOcorrenciaId]
+            : ['/gabinete-virtual/custodia/vestigios', v.id];
+          this.router.navigate(destino);
         });
       },
       error: (err: any) => {

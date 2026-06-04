@@ -51,7 +51,7 @@ export class AutoridadeService {
   }
 
   getAll(search?: string, cargo?: number): Observable<PaginatedResponse> {
-    let params = new HttpParams();
+    let params = new HttpParams().set('page_size', '100');
     if (search) {
       params = params.set('search', search);
     }

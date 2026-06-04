@@ -7,6 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { ProcedimentoService } from '../../services/procedimento.service';
 import { ProcedimentoCadastradoService } from '../../services/procedimento-cadastrado.service';
 import { MovimentacaoTimelineComponent } from '../movimentacoes/movimentacao-timeline/movimentacao-timeline.component';
+import { TeiaRelacoesComponent } from '../teia-relacoes/teia-relacoes.component';
 import Swal from 'sweetalert2';
 import { Location } from '@angular/common';
 
@@ -16,7 +17,8 @@ import { Location } from '@angular/common';
   imports: [
     CommonModule,
     FormsModule,
-    MovimentacaoTimelineComponent
+    MovimentacaoTimelineComponent,
+    TeiaRelacoesComponent,
   ],
   templateUrl: './ocorrencias-detalhes.component.html',
   styleUrls: ['./ocorrencias-detalhes.component.scss']
@@ -33,6 +35,9 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   isPerito = false;
   isOperacional = false;
   currentUserId: number | null = null;
+  showTeia = false;
+  podeVerTeia = false;
+  podeCadastrarVestigio = false;
 
   tiposProcedimento: any[] = [];
 
@@ -57,6 +62,11 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     this.isOperacional = user?.perfil === 'OPERACIONAL';
 
     this.perfilUsuario = user?.perfil || '';
+    const _PERFIS_TEIA = ['PERITO','OPERACIONAL','ADMINISTRATIVO','SUPER_ADMIN'];
+    this.podeVerTeia = _PERFIS_TEIA.includes(user?.perfil) || !!user?.is_superuser;
+
+    const _PERFIS_VESTIGIO = ['PERITO','OPERACIONAL','ADMINISTRATIVO','SUPER_ADMIN','CUSTODIANTE'];
+    this.podeCadastrarVestigio = _PERFIS_VESTIGIO.includes(user?.perfil ?? '') || !!user?.is_superuser;
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -321,6 +331,14 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     }
 
     this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', this.ocorrenciaId, 'editar']);
+  }
+
+  irParaCadastrarVestigio(): void {
+    if (!this.ocorrenciaId) return;
+    this.router.navigate(
+      ['/gabinete-virtual/custodia/vestigios/novo'],
+      { queryParams: { ocorrencia_id: this.ocorrenciaId } }
+    );
   }
 
   onVoltar(): void {

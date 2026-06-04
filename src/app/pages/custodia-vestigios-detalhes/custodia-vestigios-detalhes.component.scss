@@ -162,6 +162,8 @@
                 &:hover { background: #15803d; } }
   &--reabrir  { background: #ea580c; color: #fff;
                 &:hover { background: #c2410c; } }
+  &--teia     { background: #1e293b; color: #818cf8; border: 1px solid #334155;
+                &:hover { background: #334155; color: #a5b4fc; border-color: #818cf8; } }
 }
 
 // ── Badges ────────────────────────────────────────────────────────────────────

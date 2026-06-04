@@ -201,6 +201,35 @@
       }
     }
 
+    .btn-teia {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 0.9rem;
+      background: #1e293b; color: #818cf8;
+      border: 1px solid #334155;
+      border-radius: 8px; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; transition: all 0.18s;
+      i { font-size: 0.85rem; }
+      &:hover { background: #334155; color: #a5b4fc; border-color: #818cf8; }
+    }
+
+    .btn-vestigio {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 0.9rem;
+      background: linear-gradient(135deg, #0891b2, #0e7490);
+      color: #fff;
+      border: 1px solid #0e7490;
+      border-radius: 8px; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; transition: all 0.18s;
+      box-shadow: 0 3px 10px rgba(8, 145, 178, 0.28);
+      i { font-size: 0.85rem; }
+      &:hover {
+        background: linear-gradient(135deg, #0e7490, #155e75);
+        box-shadow: 0 5px 18px rgba(8, 145, 178, 0.45);
+        transform: translateY(-2px);
+      }
+      &:active { transform: translateY(0); }
+    }
+
     .btn-secondary {
       background: var(--card-background-color);
       border-color: var(--border-color);
@@ -377,91 +406,117 @@
 
 .detalhes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
+// ── Cores por seção ──────────────────────────────────────────────────────────
+$c-id:      #1e40af;  // Identificação   — azul
+$c-fato:    #166534;  // Dados do Fato   — verde
+$c-end:     #0e7490;  // Endereço        — teal
+$c-proc:    #6d28d9;  // Procedimento    — roxo
+$c-atrib:   #334155;  // Atribuição      — slate
+$c-crono:   #92400e;  // Cronologia      — âmbar
+$c-laudo:   #5b21b6;  // Laudo entregue  — violeta
+$c-final:   #15803d;  // Finalização     — verde escuro
+$c-alerta:  #b45309;  // Reabertura      — laranja
+$c-exames:  #0f4c75;  // Exames          — azul marinho
+$c-hist:    #1e293b;  // Histórico       — slate escuro
+
 .info-card {
-  background: var(--card-background-color);
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-sm);
-  border: 2px solid var(--border-color);
-  border-left: 4px solid var(--primary-color);
-  transition: var(--transition);
-  animation: fadeIn 0.5s ease-out;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;                 // faz o header respeitar border-radius
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  transition: box-shadow 0.2s;
 
-  &:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-4px);
-    border-left-color: var(--primary-color-dark);
-  }
+  &:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+  &.full-width { grid-column: 1 / -1; }
 
-  &.full-width {
-    grid-column: 1 / -1;
-  }
-
-  &.laudo-entregue {
-    border-left-color: #8B5CF6;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.04), var(--card-background-color));
-  }
-
-  &.finalizado {
-    border-left-color: var(--success-color);
-    background: linear-gradient(135deg, rgba(40, 167, 69, 0.03), var(--card-background-color));
-  }
-
-  &.alerta {
-    border-left-color: var(--warning-color);
-    background: linear-gradient(135deg, rgba(255, 152, 0, 0.03), var(--card-background-color));
-  }
-
-  h3 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-color-dark);
-    margin: 0 0 1rem 0;
+  // ── Faixa header (h3 direto no card) ────────────────────────────────────
+  // Negative margin quebra o padding do card e faz o h3 ocupar a largura total.
+  // overflow:hidden no pai garante que respeita o border-radius superior.
+  > h3 {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
+    gap: 0.6rem;
+    margin: -1.25rem -1.5rem 1rem;
+    padding: 0.65rem 1.5rem;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    padding-bottom: 0.8rem;
-    border-bottom: 2px solid var(--background-color);
+    letter-spacing: 0.07em;
+    border-bottom: none;
+    background: #334155;            // fallback — sobrescrito pelos modificadores
 
-    i {
-      color: var(--primary-color);
-      font-size: 1.3rem;
-      filter: drop-shadow(0 2px 4px rgba(218, 165, 32, 0.2));
+    i { font-size: 0.95rem; color: #fff; filter: none; }
+  }
+
+  // ── Faixa header quando h3 está dentro de .card-header-with-action ──────
+  > .card-header-with-action {
+    margin: -1.25rem -1.5rem 1rem;
+    padding: 0.65rem 1.5rem;
+    background: $c-proc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    h3 {
+      margin: 0; padding: 0;
+      color: #fff;
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      border-bottom: none; background: transparent;
+      i { color: #fff; filter: none; font-size: 0.95rem; }
     }
   }
+
+  // ── Cores por modificador ────────────────────────────────────────────────
+  &--id      > h3 { background: $c-id;     }
+  &--fato    > h3 { background: $c-fato;   }
+  &--endereco > h3 { background: $c-end;   }
+  &--proc    > .card-header-with-action { background: $c-proc; }
+  &--atrib   > h3 { background: $c-atrib;  }
+  &--crono   > h3 { background: $c-crono;  }
+  &--exames  > h3 { background: $c-exames; }
+  &--hist    > h3 { background: $c-hist;   }
+  &.laudo-entregue > h3 { background: $c-laudo;  }
+  &.finalizado     > h3 { background: $c-final;  }
+  &.alerta         > h3 { background: $c-alerta; }
 }
 
 .info-row {
   display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 1rem;
-  padding: 0.7rem 0;
-  border-bottom: 1px solid var(--background-color);
-  font-size: 0.9rem;
+  grid-template-columns: 110px 1fr;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
 
   &:last-child {
     border-bottom: none;
+    padding-bottom: 0;
   }
 
   .label {
-    font-weight: 700;
-    color: var(--text-color-light);
+    font-weight: 600;
+    color: #94a3b8;
     text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    padding-top: 2px;
   }
 
   .value {
-    color: var(--text-color-dark);
+    color: #1e293b;
     font-weight: 500;
     word-break: break-word;
+    line-height: 1.4;
   }
 }
 
@@ -619,16 +674,15 @@
 }
 
 .historico-content {
-  padding: 1.5rem;
-  background: var(--background-color);
-  border-radius: 12px;
-  color: var(--text-color-dark);
-  font-size: 0.9rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  color: #1e293b;
+  font-size: 0.88rem;
   line-height: 1.8;
   white-space: pre-wrap;
   word-break: break-word;
-  border-left: 4px solid var(--info-color);
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .empty-state {

@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 
+import { TeiaRelacoesComponent } from '../teia-relacoes/teia-relacoes.component';
 import {
   CustodiaService,
   VestigioDetalhe,
@@ -16,13 +17,14 @@ import { AuthService } from '../../services/auth.service';
 import { ServicoPericialService } from '../../services/servico-pericial.service';
 import { UnidadeDemandanteService } from '../../services/unidade-demandante.service';
 import { AutoridadeService } from '../../services/autoridade.service';
+import { ProcedimentoCadastradoService } from '../../services/procedimento-cadastrado.service';
 
 type Tab = 'movimentacoes' | 'dnas' | 'contra-provas';
 
 @Component({
   selector: 'app-custodia-vestigios-detalhes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TeiaRelacoesComponent],
   templateUrl: './custodia-vestigios-detalhes.component.html',
   styleUrls: ['./custodia-vestigios-detalhes.component.scss']
 })
@@ -51,6 +53,8 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
 
   isCustodiante = false;
   isSuperAdmin = false;
+  showTeia = false;
+  podeVerTeia = false;
 
   // Form de nova movimentação
   showMovForm = false;
@@ -71,17 +75,21 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private location: Location,
     private custodiaService: CustodiaService,
     private authService: AuthService,
     private servicoPericialService: ServicoPericialService,
     private unidadeDemandanteService: UnidadeDemandanteService,
-    private autoridadeService: AutoridadeService
+    private autoridadeService: AutoridadeService,
+    private procedimentoService: ProcedimentoCadastradoService
   ) {}
 
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     this.isSuperAdmin = this.authService.isSuperAdmin();
     this.isCustodiante = user?.perfil !== 'EXTERNO';
+    const _PERFIS_TEIA = ['PERITO','OPERACIONAL','ADMINISTRATIVO','SUPER_ADMIN'];
+    this.podeVerTeia = _PERFIS_TEIA.includes(user?.perfil) || !!user?.is_superuser;
 
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.carregarVestigio(id);
@@ -94,7 +102,13 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
     this.isLoading = true;
     this.custodiaService.getVestigio(id).subscribe({
       next: (v) => { this.vestigio = v; this.isLoading = false; },
-      error: () => { this.message = 'Erro ao carregar vestígio.'; this.messageType = 'error'; this.isLoading = false; }
+      error: (err: any) => {
+        this.message = err?.status === 404
+          ? 'Vestígio não encontrado ou sem permissão de acesso para este perfil.'
+          : 'Erro ao carregar vestígio. Verifique a conexão e tente novamente.';
+        this.messageType = 'error';
+        this.isLoading = false;
+      }
     });
   }
 
@@ -406,6 +420,88 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
     this.router.navigate(['/gabinete-virtual/operacional/ocorrencias', ocorrenciaId]);
   }
 
+  // ── Procedimentos vinculados ──────────────────────────────────────────────
+
+  abrirModalVincularProcedimento(): void {
+    let resultados: any[] = [];
+
+    Swal.fire({
+      title: 'Vincular Procedimento',
+      html: `
+        <p style="font-size:.88rem;color:#64748b;margin-bottom:.8rem">
+          Digite número ou sigla para buscar (ex: IP 001, BO 123)
+        </p>
+        <input id="swal-proc-search" class="swal2-input" placeholder="Buscar procedimento...">
+        <div id="swal-proc-results" style="margin-top:.5rem;max-height:200px;overflow-y:auto;text-align:left"></div>
+      `,
+      showConfirmButton: false,
+      showCancelButton: true,
+      cancelButtonText: 'Fechar',
+      didOpen: () => {
+        const input = document.getElementById('swal-proc-search') as HTMLInputElement;
+        const container = document.getElementById('swal-proc-results')!;
+        let timer: any;
+        input.addEventListener('input', () => {
+          clearTimeout(timer);
+          const q = input.value.trim();
+          if (!q) { container.innerHTML = ''; return; }
+          container.innerHTML = '<p style="font-size:.8rem;color:#94a3b8;padding:.5rem">Buscando…</p>';
+          timer = setTimeout(() => {
+            this.procedimentoService.getAll(q).subscribe({
+              next: (res) => {
+                resultados = res.results;
+                if (!resultados.length) {
+                  container.innerHTML = '<p style="font-size:.8rem;color:#94a3b8;padding:.5rem">Nenhum resultado.</p>';
+                  return;
+                }
+                container.innerHTML = resultados.map((p, i) => `
+                  <div data-i="${i}" style="padding:.45rem .6rem;cursor:pointer;border-radius:6px;
+                    font-size:.83rem;border:1px solid #e2e8f0;margin-bottom:.3rem;background:#f8fafc">
+                    <strong>${p.tipo_procedimento?.sigla ?? ''} ${p.numero}/${p.ano}</strong>
+                    <span style="color:#64748b;font-size:.78rem"> — ${p.tipo_procedimento?.nome ?? ''}</span>
+                  </div>`).join('');
+                container.querySelectorAll('[data-i]').forEach(el => {
+                  el.addEventListener('click', () => {
+                    const proc = resultados[+(el as HTMLElement).dataset['i']!];
+                    Swal.close();
+                    this.executarVinculoProcedimento(proc.id, `${proc.tipo_procedimento?.sigla} ${proc.numero}/${proc.ano}`, 'add');
+                  });
+                });
+              },
+              error: () => { container.innerHTML = '<p style="font-size:.8rem;color:#ef4444;padding:.5rem">Erro na busca.</p>'; }
+            });
+          }, 350);
+        });
+      }
+    });
+  }
+
+  desvincularProcedimento(proc: { id: number; numero_completo: string }): void {
+    Swal.fire({
+      title: 'Desvincular procedimento?',
+      html: `Remover o vínculo com <strong>${proc.numero_completo}</strong>?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, desvincular',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#dc2626',
+    }).then(r => {
+      if (r.isConfirmed) this.executarVinculoProcedimento(proc.id, proc.numero_completo, 'remove');
+    });
+  }
+
+  private executarVinculoProcedimento(procId: number, label: string, acao: 'add' | 'remove'): void {
+    if (!this.vestigio) return;
+    this.custodiaService.vincularProcedimentoAoVestigio(this.vestigio.id, procId, acao).subscribe({
+      next: () => {
+        const msg = acao === 'add' ? `Procedimento ${label} vinculado.` : `Procedimento ${label} desvinculado.`;
+        this.showMessage(msg, 'success');
+        this.custodiaService.getVestigio(this.vestigio!.id).subscribe(v => this.vestigio = v);
+      },
+      error: (err) => this.showMessage(err?.error?.detail || 'Erro ao alterar vínculo.', 'error')
+    });
+  }
+
   // ── Utilitários ───────────────────────────────────────────────────────────
 
   badgeStatus(status: string): string {
@@ -543,6 +639,6 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
   }
 
   voltar(): void {
-    this.router.navigate(['/gabinete-virtual/custodia/vestigios']);
+    this.location.back();
   }
 }

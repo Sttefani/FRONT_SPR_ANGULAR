@@ -375,6 +375,35 @@
   .form-actions { flex-direction: column-reverse; button { width: 100%; justify-content: center; } }
 }
 
+// ── Campo pré-preenchido a partir da ocorrência vinculada ─────────────────────
+.form-group.auto-preenchido {
+  input:disabled {
+    background: #ecfeff;
+    border-color: #a5f3fc;
+    color: #0e7490;
+    cursor: default;
+    opacity: 1; // sobrescreve o padrão opaco do browser para :disabled
+  }
+
+  .auto-lock-icon {
+    font-size: 0.65rem;
+    color: #0891b2;
+    margin-left: 0.3rem;
+    vertical-align: middle;
+  }
+
+  .hint-auto {
+    font-size: 0.72rem;
+    color: #0891b2;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.1rem;
+
+    i { font-size: 0.7rem; }
+  }
+}
+
 // ── Dica de seção ─────────────────────────────────────────────────────────────
 .section-hint {
   font-size: 0.82rem;

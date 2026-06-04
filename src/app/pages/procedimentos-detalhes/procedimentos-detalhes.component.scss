@@ -38,6 +38,17 @@
   }
 }
 
+.btn-teia {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  background: #1e293b; color: #818cf8;
+  border: 1px solid #334155;
+  border-radius: 8px; font-size: 0.82rem; font-weight: 700;
+  cursor: pointer; transition: all 0.18s;
+  i { font-size: 0.85rem; }
+  &:hover { background: #334155; color: #a5b4fc; border-color: #818cf8; }
+}
+
 // Botão de voltar, usando as cores primárias do padrão
 .btn-back {
   background: var(--primary-color);
@@ -183,6 +194,54 @@
     box-shadow: 0 3px 6px rgba(0,0,0,0.1);
   }
 }
+
+.vestigios-section {
+  margin-top: 1.5rem;
+}
+
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.1rem 0.55rem;
+  border-radius: 20px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.td-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-desvincular {
+  background: transparent;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  transition: all 0.18s;
+
+  &:hover {
+    background: #fee2e2;
+    border-color: #dc2626;
+  }
+}
+
+// badges de status — vestígio
+.badge-vest-inicial   { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.badge-vest-andamento { background: linear-gradient(135deg, #f59e0b, #b45309); }
+.badge-vest-finalizado{ background: linear-gradient(135deg, #22c55e, #15803d); }
 
 // Mensagem de "Nenhuma ocorrência", usando o estilo de "empty-state"
 .text-muted {

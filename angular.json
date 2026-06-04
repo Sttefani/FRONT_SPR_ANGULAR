@@ -42,7 +42,8 @@
           ],
             "scripts": [
               "node_modules/@popperjs/core/dist/umd/popper.min.js",
-              "node_modules/bootstrap/dist/js/bootstrap.min.js"
+              "node_modules/bootstrap/dist/js/bootstrap.min.js",
+              "node_modules/cytoscape/dist/cytoscape.min.js"
             ]
           },
           "configurations": {

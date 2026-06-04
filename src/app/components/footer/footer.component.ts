@@ -9,7 +9,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class FooterComponent implements OnInit {
   systemName: string = 'SPR-CRIMINALÍSTICA'; // Coloque o nome aqui
-  systemVersion: string = '1.0';
+  systemVersion: string = '2.0';
   developer: string = 'Perito Criminal Sttefani Ribeiro - Todos os Direitos Reservados';
   year: number = 2025; // Ano fixo do início ou new Date().getFullYear()
 

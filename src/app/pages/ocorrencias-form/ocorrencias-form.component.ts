@@ -444,16 +444,28 @@ export class OcorrenciasFormComponent implements OnInit {
     this.autoridadeSelecionada = null;
     this.mostrarResultadosAutoridade = false;
     this.ocorrenciaForm.patchValue({ autoridade_id: null });
+    // Carrega todas as autoridades do cargo selecionado imediatamente
+    this.buscarAutoridades();
   }
 
   buscarAutoridades(): void {
-    if (!this.cargoSelecionado || this.autoridadeBusca.length < 2) {
+    if (!this.cargoSelecionado) {
       this.mostrarResultadosAutoridade = false;
       return;
     }
     this.loadingAutoridades = true;
     this.autoridadeService.getAll(this.autoridadeBusca, this.cargoSelecionado).subscribe({
-      next: (response: any) => { this.autoridades = response.results || []; this.mostrarResultadosAutoridade = true; this.loadingAutoridades = false; },
+      next: (response: any) => {
+        this.autoridades = response.results || [];
+        this.loadingAutoridades = false;
+        // Cargo com única autoridade → seleciona automaticamente (ex: CICC)
+        if (this.autoridades.length === 1 && !this.autoridadeBusca) {
+          this.selecionarAutoridade(this.autoridades[0]);
+          this.mostrarResultadosAutoridade = false;
+        } else {
+          this.mostrarResultadosAutoridade = this.autoridades.length > 0;
+        }
+      },
       error: (err: any) => { console.error('Erro:', err); this.loadingAutoridades = false; }
     });
   }

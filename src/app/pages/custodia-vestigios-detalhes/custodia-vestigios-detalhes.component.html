@@ -48,6 +48,11 @@
         </div>
       </div>
       <div class="v-hero-actions">
+        @if (podeVerTeia) {
+          <button class="v-btn v-btn--teia" (click)="showTeia = true" title="Visualizar teia de relações">
+            <i class="bi bi-diagram-3-fill"></i> Teia
+          </button>
+        }
         <button class="v-btn v-btn--pdf" (click)="imprimirFicha()">
           <i class="bi bi-file-earmark-pdf-fill"></i> Ficha PDF
         </button>
@@ -233,10 +238,44 @@
                 <div class="oc-card-icon proc">📁</div>
                 <div class="oc-card-body">
                   <div class="oc-card-titulo">{{ oc.procedimento.numero_completo }}</div>
-                  <div class="oc-card-sub">{{ oc.procedimento.tipo.nome }}</div>
+                  <div class="oc-card-sub">{{ oc.procedimento.tipo_nome }}</div>
                 </div>
               </div>
             }
+          </div>
+        }
+      }
+    </div>
+
+    <!-- ── Procedimentos Vinculados ──────────────────────────────────────── -->
+    <div class="oc-section">
+      <div class="oc-section-header">
+        <h4><i class="bi bi-folder2-open" style="color:#1d4ed8"></i> Procedimentos Vinculados</h4>
+        <div class="oc-section-actions">
+          @if (isCustodiante) {
+            <button class="btn-oc-vincular" (click)="abrirModalVincularProcedimento()">
+              + Vincular
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (!vestigio?.procedimentos?.length) {
+        <p class="oc-vazia">Nenhum procedimento vinculado diretamente a este vestígio.</p>
+      } @else {
+        @for (proc of vestigio!.procedimentos; track proc.id) {
+          <div class="oc-card">
+            <div class="oc-card-row">
+              <div class="oc-card-icon proc">📁</div>
+              <div class="oc-card-body">
+                <div class="oc-card-titulo">{{ proc.numero_completo }}</div>
+              </div>
+              <div class="oc-card-right">
+                @if (isCustodiante) {
+                  <button class="oc-btn-remover" (click)="desvincularProcedimento(proc)" title="Desvincular">✕</button>
+                }
+              </div>
+            </div>
           </div>
         }
       }
@@ -558,3 +597,11 @@
   }
 
 </div>
+
+@if (showTeia && vestigio) {
+  <app-teia-relacoes
+    tipo="vestigio"
+    [id]="vestigio.id"
+    (fechar)="showTeia = false">
+  </app-teia-relacoes>
+}

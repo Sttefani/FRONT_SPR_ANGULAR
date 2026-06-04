@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
@@ -58,7 +58,8 @@ export class CustodiaVestigiosListComponent implements OnInit {
     private authService: AuthService,
     private servicoPericialService: ServicoPericialService,
     private unidadeDemandanteService: UnidadeDemandanteService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
@@ -66,8 +67,11 @@ export class CustodiaVestigiosListComponent implements OnInit {
     this.isSuperAdmin = this.authService.isSuperAdmin();
     this.isCustodiante = user?.perfil !== 'EXTERNO';
 
+    const pageParam = this.route.snapshot.queryParamMap.get('page');
+    if (pageParam) this.currentPage = +pageParam;
+
     this.carregarDropdowns();
-    this.buscarVestigios();
+    this.buscarVestigios(false);
   }
 
   carregarDropdowns(): void {
@@ -94,7 +98,15 @@ export class CustodiaVestigiosListComponent implements OnInit {
   }
 
   buscarVestigios(resetPage = true): void {
-    if (resetPage) this.currentPage = 1;
+    if (resetPage) {
+      this.currentPage = 1;
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { page: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    }
     this.isLoading = true;
 
     this.custodiaService.getVestigios(this.filtros).subscribe({
@@ -114,7 +126,13 @@ export class CustodiaVestigiosListComponent implements OnInit {
   // MÉTODO DO NOVO PAGINADOR
   mudarPagina(novaPagina: number): void {
     this.currentPage = novaPagina;
-    this.buscarVestigios(false); // Busca a API na nova página sem resetar para a 1
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: novaPagina },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+    this.buscarVestigios(false);
   }
 
   mudarTab(tab: '' | 'INICIAL' | 'ANDAMENTO' | 'FINALIZADO'): void {
