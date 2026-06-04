@@ -108,8 +108,56 @@
     </div>
 
     <!-- ── 3. Dados clínicos e legais ── -->
-    <div class="form-section">
+    <div class="form-section" [class.secao-apenado]="isApenado">
       <h3 class="section-title">⚕️ 3. Dados Clínicos e Situação Legal</h3>
+
+      <!-- Situação em destaque — toggle fora do grid para máxima visibilidade -->
+      <div class="situacao-wrapper">
+        <label class="situacao-label-titulo">
+          Situação do Coletado <span class="required-star">*</span>
+        </label>
+        <div class="situacao-toggle" [class.disabled]="isExterno">
+          <button
+            type="button"
+            class="situacao-btn nao-apenado"
+            [class.active]="!isApenado"
+            (click)="setSituacao('NAO_APENADO')"
+            [disabled]="isExterno"
+          >
+            <i class="bi bi-person-check-fill"></i>
+            <span class="situ-label">Não Apenado</span>
+            <span class="situ-sub">Sem privação de liberdade</span>
+          </button>
+          <button
+            type="button"
+            class="situacao-btn apenado"
+            [class.active]="isApenado"
+            (click)="setSituacao('APENADO')"
+            [disabled]="isExterno"
+          >
+            <i class="bi bi-shield-exclamation"></i>
+            <span class="situ-label">Apenado</span>
+            <span class="situ-sub">Cumprindo pena privativa de liberdade</span>
+          </button>
+        </div>
+        @if (isExterno) {
+          <span class="field-info">
+            <i class="bi bi-lock-fill"></i> Fixado como Não Apenado para usuários externos (Lei 12.654/2012, art. 3º)
+          </span>
+        }
+      </div>
+
+      <!-- Banner persistente quando APENADO está ativo -->
+      @if (isApenado) {
+        <div class="apenado-alert">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <div>
+            <strong>Atenção — Coleta em Apenado</strong>
+            <p>Certifique-se de que o indivíduo está de fato cumprindo pena privativa de liberdade. Esta classificação tem valor probatório no registro oficial do banco de perfis genéticos.</p>
+          </div>
+        </div>
+      }
+
       <div class="form-grid cols3">
 
         <div class="form-group">
@@ -142,21 +190,6 @@
             <option value="NO">Não</option>
             <option value="YES">Sim</option>
           </select>
-        </div>
-
-        <div class="form-group">
-          <label>Situação</label>
-          <select formControlName="situacao">
-            <option value="NAO_APENADO">Não Apenado</option>
-            @if (!isExterno) {
-              <option value="APENADO">Apenado</option>
-            }
-          </select>
-          @if (isExterno) {
-            <span class="field-info">
-              <i class="bi bi-lock-fill"></i> Fixado como Não Apenado para usuários externos
-            </span>
-          }
         </div>
 
         <!-- Campos obrigatórios apenas para APENADO -->
@@ -329,17 +362,6 @@
           }
         </div>
 
-        <div class="form-group checkbox-inline">
-          <label class="checkbox-label" [class.disabled-label]="isExterno">
-            <input type="checkbox" formControlName="registrado_por_usuario_externo">
-            <span>Registrado por usuário externo</span>
-          </label>
-          @if (isExterno) {
-            <span class="field-info">
-              <i class="bi bi-lock-fill"></i> Marcado automaticamente para o seu perfil
-            </span>
-          }
-        </div>
 
       </div>
     </div>

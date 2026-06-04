@@ -158,6 +158,14 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dashboard-criminal/dashboard-criminal.component').then(m => m.DashboardCriminalComponent),
         canActivate: [AuthGuard]
       },
+      // =====================================================================
+      // 🆕 ANALYTICS DE CUSTÓDIA
+      // =====================================================================
+      {
+        path: 'custodia/analytics',
+        loadComponent: () => import('./pages/custodia-analytics/custodia-analytics.component').then(m => m.CustodiaAnalyticsComponent),
+        canActivate: [AuthGuard]
+      },
 
 
       // ORDENS DE SERVIÇO

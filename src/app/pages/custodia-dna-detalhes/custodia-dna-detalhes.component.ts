@@ -93,4 +93,16 @@ export class CustodiaDnaDetalhesComponent implements OnInit {
   badgeSituacao(s: string): string {
     return s === 'APENADO' ? 'badge-apenado' : 'badge-nao-apenado';
   }
+
+  perfilLabel(perfil: string | undefined): string {
+    const labels: Record<string, string> = {
+      PERITO:         'Perito Criminal',
+      OPERACIONAL:    'Operacional',
+      ADMINISTRATIVO: 'Administrativo',
+      SUPER_ADMIN:    'Super Administrador',
+      CUSTODIANTE:    'Custodiante',
+      EXTERNO:        'Usuário Externo',
+    };
+    return labels[perfil ?? ''] ?? perfil ?? '—';
+  }
 }

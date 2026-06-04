@@ -15,6 +15,7 @@ export interface UsuarioSimples {
   id: number;
   nome_completo: string;
   email?: string;
+  perfil?: string;
 }
 
 export interface VestigioList {

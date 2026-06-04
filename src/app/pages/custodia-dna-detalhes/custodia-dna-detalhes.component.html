@@ -314,16 +314,32 @@
       <div class="detail-card-body">
         <div class="detail-row">
           <span class="detail-label"><i class="bi bi-person-check"></i> Registrado por</span>
-          <span class="detail-value">{{ dna.created_by?.nome_completo || '—' }}</span>
+          <span class="detail-value audit-user">
+            {{ dna.created_by?.nome_completo || '—' }}
+            @if (dna.created_by?.perfil) {
+              <span class="perfil-badge">{{ perfilLabel(dna.created_by.perfil) }}</span>
+            }
+          </span>
         </div>
         <div class="detail-row">
           <span class="detail-label"><i class="bi bi-calendar-plus"></i> Registrado em</span>
           <span class="detail-value">{{ dna.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>
-        <div class="detail-row">
-          <span class="detail-label"><i class="bi bi-person-badge"></i> Registro externo</span>
-          <span class="detail-value">{{ dna.registrado_por_usuario_externo ? 'Sim' : 'Não' }}</span>
-        </div>
+        @if (dna.updated_by) {
+          <div class="detail-row">
+            <span class="detail-label"><i class="bi bi-pencil-square"></i> Atualizado por</span>
+            <span class="detail-value audit-user">
+              {{ dna.updated_by?.nome_completo || '—' }}
+              @if (dna.updated_by?.perfil) {
+                <span class="perfil-badge">{{ perfilLabel(dna.updated_by.perfil) }}</span>
+              }
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label"><i class="bi bi-calendar-check"></i> Atualizado em</span>
+            <span class="detail-value">{{ dna.updated_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        }
       </div>
     </div>
 

@@ -95,9 +95,38 @@ export class CustodiaDnaFormComponent implements OnInit {
     this.preencherPerito();
   }
 
-  // Mostra campo "Unidade Prisional" e "Tipo Penal" apenas para APENADO
   get isApenado(): boolean {
     return this.form.get('situacao')?.value === 'APENADO';
+  }
+
+  setSituacao(valor: 'APENADO' | 'NAO_APENADO'): void {
+    if (valor === 'APENADO' && !this.isApenado) {
+      Swal.fire({
+        title: 'Confirmar — Coleta em Apenado',
+        html: `
+          <p style="margin:0 0 0.9rem">Você está classificando esta coleta como realizada em pessoa que está
+          <strong>cumprindo pena privativa de liberdade</strong>.</p>
+          <p style="margin:0 0 0.9rem">Esta informação tem <strong>valor probatório</strong> e constará
+          no registro oficial do banco de perfis genéticos.</p>
+          <p style="margin:0;color:#b91c1c;font-weight:600">
+            Confirme apenas se tiver certeza da situação do indivíduo.
+          </p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar — É Apenado',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true,
+      }).then(result => {
+        if (result.isConfirmed) {
+          this.form.patchValue({ situacao: 'APENADO' });
+        }
+      });
+    } else {
+      this.form.patchValue({ situacao: valor });
+    }
   }
 
   initForm(): void {
