@@ -724,12 +724,12 @@ export class DashboardInicialComponent implements OnInit, AfterViewInit, OnDestr
     };
   }
 
-  getTendencia(campo: 'total' | 'concluidas'): { valor: number; direcao: 'up' | 'down' | 'neutral' } {
+  getTendencia(campo: 'total' | 'concluidas'): { valor: number; direcao: 'up' | 'down' | 'neutral' } | null {
     const meses = this.getUltimosDoisMeses();
-    if (!meses) return { valor: 0, direcao: 'neutral' };
+    if (!meses) return null;
     const anterior = meses.anterior[campo] as number;
     const atual = meses.atual[campo] as number;
-    if (anterior === 0) return { valor: 0, direcao: 'neutral' };
+    if (anterior === 0) return null;
     const variacao = Math.round(((atual - anterior) / anterior) * 100);
     return {
       valor: Math.abs(variacao),

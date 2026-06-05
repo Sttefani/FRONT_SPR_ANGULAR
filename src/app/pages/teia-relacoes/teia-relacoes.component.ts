@@ -24,6 +24,7 @@ interface GrafoNode {
     status?: string; status_display?: string;
     unidade?: string; servico?: string; responsavel?: string; biologico?: boolean;
     procedimentos_diretos?: ProcSimples[];
+    acessivel?: boolean;
     // ocorrência
     perito?: string;
     // procedimento
@@ -279,6 +280,15 @@ export class TeiaRelacoesComponent implements OnInit, AfterViewInit, OnDestroy {
           selector: 'node.dimmed, edge.dimmed',
           style: { 'opacity': 0.2 } as any,
         },
+        {
+          selector: 'node.inacessivel',
+          style: {
+            'opacity': 0.4,
+            'border-style': 'dashed',
+            'border-color': '#94a3b8',
+            'border-width': 3,
+          } as any,
+        },
       ],
 
       layout: {
@@ -302,6 +312,11 @@ export class TeiaRelacoesComponent implements OnInit, AfterViewInit, OnDestroy {
     // Fit imediato
     this.cy.resize();
     this.cy.fit(this.cy.elements(), 80);
+
+    // Marcar nós inacessíveis (vestígios de outras unidades)
+    this.cy.nodes().forEach((n: any) => {
+      if (n.data('acessivel') === false) n.addClass('inacessivel');
+    });
 
     } catch (err: any) {
       this.erro = `Erro ao inicializar grafo: ${err?.message ?? err}`;
@@ -515,6 +530,15 @@ export class TeiaRelacoesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   navegarParaNo(): void {
     if (!this.selectedNode?.url) return;
+    if (this.selectedNode.acessivel === false) {
+      Swal.fire({
+        toast: true, position: 'top-end', icon: 'warning',
+        title: 'Sem permissão de acesso para este vestígio',
+        text: 'Pertence a outra unidade ou serviço pericial.',
+        timer: 3000, showConfirmButton: false,
+      });
+      return;
+    }
     const [tipo, idStr] = this.selectedNode.url.split(':');
     const rotas: Record<string, string> = {
       vestigio:     `/gabinete-virtual/custodia/vestigios/${idStr}`,

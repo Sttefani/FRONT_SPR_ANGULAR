@@ -182,7 +182,7 @@ export class CustodiaDnaFormComponent implements OnInit {
   }
 
   carregarUsuarios(): void {
-    this.usuarioService.getAllForDropdown().subscribe({
+    this.usuarioService.getPeritosList().subscribe({
       next: (res: any) => this.usuarios = Array.isArray(res) ? res : (res.results ?? []),
       error: () => {}
     });

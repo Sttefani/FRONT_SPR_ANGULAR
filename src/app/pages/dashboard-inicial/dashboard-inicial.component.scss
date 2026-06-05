@@ -32,9 +32,9 @@
   padding: 1rem;
   background: var(--card-background-color);
   border: 2px solid var(--border-color);
+  border-top: 3px solid var(--primary-color);
   border-radius: 8px;
   box-shadow: var(--shadow-sm);
-  border-left: 4px solid var(--primary-color);
   flex-wrap: wrap;
 
   .welcome-content {
@@ -339,30 +339,31 @@
 
 .grafico-card {
   background: var(--card-background-color);
-  border: 2px solid var(--border-color);
+  border: 1px solid #e2c46a;
   border-radius: 8px;
   padding: 1rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 10px rgba(184, 134, 11, 0.09);
   height: 100%;
   display: flex;
   flex-direction: column;
   transition: all 0.2s ease;
-  border-left: 4px solid var(--primary-color);
+  overflow: hidden;
 
   &:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 12px rgba(218, 165, 32, 0.2);
+    box-shadow: 0 4px 14px rgba(184, 134, 11, 0.18);
   }
 
   h3 {
-    font-size: 0.85rem;
+    background: linear-gradient(120deg, #92640a 0%, #b8860b 45%, #daa520 100%);
+    color: #fff;
+    font-size: 0.82rem;
     font-weight: 700;
-    color: var(--text-color-dark);
-    margin: 0 0 1rem 0;
+    margin: -1rem -1rem 1rem;
+    padding: 0.6rem 1rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 0.5rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    border-bottom: none;
   }
 
   canvas {
@@ -663,40 +664,41 @@
 
 .chart-panel {
   background: var(--card-background-color);
-  border: 2px solid var(--border-color);
+  border: 1px solid #e2c46a;
   border-radius: 8px;
   padding: 1rem;
-  box-shadow: var(--shadow-sm);
-  border-left: 4px solid var(--primary-color);
+  box-shadow: 0 2px 10px rgba(184, 134, 11, 0.09);
   display: flex;
   flex-direction: column;
   transition: all 0.2s ease;
+  overflow: hidden;
 
   &:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 12px rgba(218, 165, 32, 0.2);
+    box-shadow: 0 4px 14px rgba(184, 134, 11, 0.18);
   }
 
   .chart-panel-header {
+    background: linear-gradient(120deg, #92640a 0%, #b8860b 45%, #daa520 100%);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--primary-color);
+    margin: -1rem -1rem 0.75rem;
+    padding: 0.6rem 1rem;
+    border-bottom: none;
 
     h3 {
       font-size: 0.82rem;
       font-weight: 700;
-      color: var(--text-color-dark);
+      color: #fff;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin: 0;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
     }
 
     .chart-subtitle {
       font-size: 0.65rem;
-      color: var(--text-color-light);
+      color: rgba(255, 255, 255, 0.78);
       font-weight: 600;
       text-transform: uppercase;
     }
@@ -719,24 +721,26 @@
 
 .producao-card {
   background: var(--card-background-color);
-  border: 2px solid var(--border-color);
+  border: 1px solid #e2c46a;
   border-radius: 8px;
   padding: 1rem;
-  box-shadow: var(--shadow-sm);
-  border-left: 4px solid var(--primary-color);
+  box-shadow: 0 2px 10px rgba(184, 134, 11, 0.09);
   transition: all 0.2s ease;
+  overflow: hidden;
 
-  &:hover { box-shadow: var(--shadow-md); }
+  &:hover { box-shadow: 0 4px 14px rgba(184, 134, 11, 0.18); }
 
   h3 {
+    background: linear-gradient(120deg, #92640a 0%, #b8860b 45%, #daa520 100%);
+    color: #fff;
     font-size: 0.82rem;
     font-weight: 700;
-    color: var(--text-color-dark);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin: 0 0 0.85rem 0;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--primary-color);
+    margin: -1rem -1rem 0.85rem;
+    padding: 0.6rem 1rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    border-bottom: none;
   }
 }
 
@@ -1009,34 +1013,36 @@
 // ========== PERITO PERFORMANCE SECTION ==========
 .perito-performance-section {
   background: var(--card-background-color);
-  border: 2px solid var(--border-color);
+  border: 1px solid #e2c46a;
   border-radius: 8px;
   padding: 0.85rem 1rem;
   margin-bottom: 1rem;
-  box-shadow: var(--shadow-sm);
-  border-left: 4px solid var(--primary-color);
+  box-shadow: 0 2px 10px rgba(184, 134, 11, 0.09);
+  overflow: hidden;
 }
 
 .perito-performance-header {
+  background: linear-gradient(120deg, #92640a 0%, #b8860b 45%, #daa520 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--primary-color);
+  margin: -0.85rem -1rem 0.75rem;
+  padding: 0.6rem 1rem;
+  border-bottom: none;
 
   .pp-title {
     font-size: 0.82rem;
     font-weight: 700;
-    color: var(--text-color-dark);
+    color: #fff;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   }
 
   .pp-subtitle {
     font-size: 0.65rem;
     font-weight: 600;
-    color: var(--text-color-light);
+    color: rgba(255, 255, 255, 0.78);
     text-transform: uppercase;
   }
 }

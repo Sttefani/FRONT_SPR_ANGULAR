@@ -117,6 +117,7 @@
             <span class="legend-item"><span class="legend-dot" style="background:#b45309;border-color:#fbbf24;border-radius:50%"></span>Mov. pendente</span>
             <span class="legend-item"><span class="legend-dot diamond" style="background:#c2410c;border-color:#fb923c"></span>Contraprova</span>
             <span class="legend-item"><span class="legend-dot focal"></span>Foco atual</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#4c1d95;border-color:#94a3b8;border-style:dashed;opacity:.4"></span>Sem acesso</span>
           </div>
         }
       </div>
@@ -338,10 +339,17 @@
           </div>
 
           <div class="panel-footer">
-            <button class="btn-navegar" (click)="navegarParaNo()">
-              <i class="bi bi-box-arrow-up-right"></i>
-              Abrir {{ selectedNode.tipo | titlecase }}
-            </button>
+            @if (selectedNode.acessivel === false) {
+              <div class="panel-lock-warning">
+                <i class="bi bi-lock-fill"></i>
+                <span>Vestígio de outra unidade — sem permissão de acesso</span>
+              </div>
+            } @else {
+              <button class="btn-navegar" (click)="navegarParaNo()">
+                <i class="bi bi-box-arrow-up-right"></i>
+                Abrir {{ selectedNode.tipo | titlecase }}
+              </button>
+            }
           </div>
         } @else {
           <div class="panel-placeholder">
