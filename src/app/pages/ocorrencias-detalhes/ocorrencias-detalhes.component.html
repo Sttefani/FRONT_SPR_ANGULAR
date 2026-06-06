@@ -375,6 +375,48 @@
     }
   }
 
+  <!-- ── Protocolos de Saída ────────────────────────────────────────────── -->
+  @if (ocorrencia) {
+    <div class="info-card info-card--protocolos full-width">
+      <div class="card-header-with-action">
+        <h3><i class="bi bi-file-earmark-arrow-up-fill"></i> Protocolos de Saída ({{ protocolos.length }})</h3>
+        @if (podeEmitirProtocolo) {
+          <button class="btn-add-small" (click)="emitirProtocoloParaOcorrencia()">
+            <i class="bi bi-plus-lg"></i> Emitir Protocolo
+          </button>
+        }
+      </div>
+
+      @if (isLoadingProtocolos) {
+        <div class="loading-state"><i class="bi bi-hourglass-split"></i> Carregando...</div>
+      }
+
+      @if (!isLoadingProtocolos && protocolos.length === 0) {
+        <p class="empty-proto-msg">Nenhum protocolo de saída emitido para esta ocorrência.</p>
+      }
+
+      @if (!isLoadingProtocolos && protocolos.length > 0) {
+        <div class="proto-tabela">
+          @for (p of protocolos; track p.id) {
+            <div class="proto-row" (click)="verProtocolo(p.id)" role="button">
+              <span class="proto-num">{{ p.numero }}</span>
+              <span class="proto-lacre">{{ p.vestigio_lacre || '—' }}</span>
+              <span class="proto-recebedor">{{ p.recebido_por_nome }}</span>
+              <span class="proto-unidade-s">{{ p.unidade_sigla }}</span>
+              <span class="proto-dt">{{ p.entregue_em | date:'dd/MM/yy' }}</span>
+              <span class="badge-proto"
+                [class.proto-pend]="p.status_recebimento === 'PENDENTE'"
+                [class.proto-ok]="p.status_recebimento !== 'PENDENTE'">
+                {{ p.status_recebimento === 'PENDENTE' ? 'Pendente' : 'Assinado' }}
+              </span>
+              <i class="bi bi-chevron-right proto-arr"></i>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
   <section class="movimentacoes-section" *ngIf="ocorrencia && ocorrenciaId">
     <app-movimentacao-timeline
       [ocorrenciaId]="ocorrenciaId"

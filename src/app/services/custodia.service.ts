@@ -187,7 +187,7 @@ export interface DashboardExterno {
   vestigios: { total: number; inicial: number; andamento: number; finalizado: number; biologicos: number };
   dnas_total: number;
   movimentacoes_recentes: VestigioMovimentacao[];
-  alertas: { transferencias_pendentes: number };
+  alertas: { transferencias_pendentes: number; vestigios_parados: number };
 }
 
 export interface DashboardCustodianteUnidade {

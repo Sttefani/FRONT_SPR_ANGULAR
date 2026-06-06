@@ -8,6 +8,7 @@ import { ProcedimentoService } from '../../services/procedimento.service';
 import { ProcedimentoCadastradoService } from '../../services/procedimento-cadastrado.service';
 import { MovimentacaoTimelineComponent } from '../movimentacoes/movimentacao-timeline/movimentacao-timeline.component';
 import { TeiaRelacoesComponent } from '../teia-relacoes/teia-relacoes.component';
+import { ProtocoloService, ProtocoloList } from '../../services/protocolo.service';
 import Swal from 'sweetalert2';
 import { Location } from '@angular/common';
 
@@ -38,8 +39,11 @@ export class OcorrenciasDetalhesComponent implements OnInit {
   showTeia = false;
   podeVerTeia = false;
   podeCadastrarVestigio = false;
+  podeEmitirProtocolo = false;
 
   tiposProcedimento: any[] = [];
+  protocolos: ProtocoloList[] = [];
+  isLoadingProtocolos = false;
 
   perfilUsuario: string = '';
 
@@ -50,7 +54,8 @@ export class OcorrenciasDetalhesComponent implements OnInit {
     private router: Router,
     private procedimentoService: ProcedimentoService,
     private procedimentoCadastradoService: ProcedimentoCadastradoService,
-    private location: Location
+    private location: Location,
+    private protocoloService: ProtocoloService,
   ) { }
 
   ngOnInit(): void {
@@ -67,12 +72,14 @@ export class OcorrenciasDetalhesComponent implements OnInit {
 
     const _PERFIS_VESTIGIO = ['PERITO','OPERACIONAL','ADMINISTRATIVO','SUPER_ADMIN','CUSTODIANTE'];
     this.podeCadastrarVestigio = _PERFIS_VESTIGIO.includes(user?.perfil ?? '') || !!user?.is_superuser;
+    this.podeEmitirProtocolo = ['CUSTODIANTE', 'ADMINISTRATIVO', 'SUPER_ADMIN'].includes(user?.perfil || '') || !!user?.is_superuser;
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.ocorrenciaId = Number(id);
       this.loadOcorrencia(this.ocorrenciaId);
       this.loadTiposProcedimento();
+      this.carregarProtocolos(Number(id));
     }
   }
 
@@ -99,6 +106,22 @@ export class OcorrenciasDetalhesComponent implements OnInit {
       },
       error: (err) => console.error('Erro ao carregar tipos:', err)
     });
+  }
+
+  carregarProtocolos(ocorrenciaId: number): void {
+    this.isLoadingProtocolos = true;
+    this.protocoloService.getProtocolos({ ocorrencia: ocorrenciaId, page_size: 50 }).subscribe({
+      next: (res) => { this.protocolos = res.results; this.isLoadingProtocolos = false; },
+      error: () => { this.isLoadingProtocolos = false; },
+    });
+  }
+
+  verProtocolo(id: number): void {
+    this.router.navigate(['/gabinete-virtual/custodia/protocolos', id]);
+  }
+
+  emitirProtocoloParaOcorrencia(): void {
+    this.router.navigate(['/gabinete-virtual/custodia/protocolos/novo']);
   }
 
   abrirModalVincularProcedimento(): void {

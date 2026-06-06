@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 
 import { OcorrenciaService } from '../../services/ocorrencia.service';
@@ -44,7 +45,10 @@ interface Exame {
   templateUrl: './ocorrencias-form.component.html',
   styleUrls: ['./ocorrencias-form.component.scss']
 })
-export class OcorrenciasFormComponent implements OnInit {
+export class OcorrenciasFormComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  private autoridadeInput$ = new Subject<string>();
+
   etapaAtual: 'procedimento-check' | 'busca-procedimento' | 'formulario' = 'procedimento-check';
   ocorrenciaForm!: FormGroup;
   buscaProcedimentoForm!: FormGroup;
@@ -173,7 +177,18 @@ export class OcorrenciasFormComponent implements OnInit {
     }
 
 });
-    ;
+
+    // Debounce de 300ms no autocomplete de autoridade (só dispara ao parar de digitar)
+    this.autoridadeInput$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$),
+    ).subscribe(() => this.buscarAutoridades());
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initForms(): void {
@@ -468,6 +483,10 @@ export class OcorrenciasFormComponent implements OnInit {
       },
       error: (err: any) => { console.error('Erro:', err); this.loadingAutoridades = false; }
     });
+  }
+
+  onAutoridadeInput(): void {
+    this.autoridadeInput$.next(this.autoridadeBusca);
   }
 
   selecionarAutoridade(autoridade: Autoridade): void {

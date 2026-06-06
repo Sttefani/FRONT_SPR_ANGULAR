@@ -1,0 +1,384 @@
+:host {
+  --gold: #DAA520;
+  --gold-dark: #B8860B;
+  --slate-dark: #1e293b;
+  --slate-med: #475569;
+  --slate-light: #f8fafc;
+  --border: #e2e8f0;
+  --teal: #0891b2;
+  --teal-dark: #0e7490;
+  --red: #dc2626;
+  --green-dark: #14532d;
+  --green-light: #f0fdf4;
+  --amber-dark: #92400e;
+  --amber-light: #fffbeb;
+  --purple: #6b21a8;
+}
+
+.container {
+  padding: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--slate-med);
+  font-size: 1rem;
+}
+
+// ── Navegação ──────────────────────────────────────────────────────────────
+.nav-top {
+  margin-bottom: 1.2rem;
+}
+
+.btn-back {
+  background: var(--slate-dark);
+  color: #fff;
+  border: none;
+  padding: .55rem 1.1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: .875rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  transition: transform .15s;
+
+  &:hover {
+    transform: translateX(-3px);
+  }
+}
+
+// ── Hero ───────────────────────────────────────────────────────────────────
+.v-hero {
+  background: #fff;
+  border-left: 5px solid var(--slate-med);
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, .08);
+  padding: 1.4rem 1.6rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.4rem;
+
+  &.status--pendente {
+    border-left-color: var(--amber-dark);
+  }
+
+  &.status--assinado-eletronico {
+    border-left-color: var(--green-dark);
+  }
+
+  &.status--assinado-manual {
+    border-left-color: var(--teal-dark);
+  }
+}
+
+.v-hero-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-numero {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--slate-dark);
+  margin-bottom: .5rem;
+
+  .hero-icon {
+    color: var(--gold);
+    font-size: 1.3rem;
+  }
+}
+
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-bottom: .5rem;
+}
+
+.badge-tipo {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .2rem .6rem;
+  border-radius: 20px;
+  background: #dbeafe;
+  color: #1e40af;
+  text-transform: uppercase;
+}
+
+.badge-status {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .2rem .6rem;
+  border-radius: 20px;
+
+  &.status--pendente {
+    background: #fef3c7;
+    color: var(--amber-dark);
+  }
+
+  &.status--assinado-eletronico {
+    background: var(--green-light);
+    color: var(--green-dark);
+  }
+
+  &.status--assinado-manual {
+    background: #e0f2fe;
+    color: var(--teal-dark);
+  }
+}
+
+.badge-finalizado-pelo-proto {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .2rem .6rem;
+  border-radius: 20px;
+  background: #f3e8ff;
+  color: var(--purple);
+}
+
+.hero-lacre {
+  font-size: .9rem;
+  color: var(--slate-med);
+
+  strong {
+    color: var(--slate-dark);
+  }
+}
+
+// ── Botões hero ────────────────────────────────────────────────────────────
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: flex-start;
+}
+
+.v-btn {
+  border: none;
+  border-radius: 6px;
+  padding: .5rem .9rem;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  transition: opacity .15s;
+
+  &:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    opacity: .88;
+  }
+
+  &--pdf {
+    background: #b91c1c;
+    color: #fff;
+  }
+
+  &--vestigio {
+    background: var(--purple);
+    color: #fff;
+  }
+
+  &--oc {
+    background: var(--teal);
+    color: #fff;
+  }
+
+  &--assinar {
+    background: var(--green-dark);
+    color: #fff;
+  }
+
+  &--manual {
+    background: var(--teal-dark);
+    color: #fff;
+  }
+}
+
+// ── Grid de cards ──────────────────────────────────────────────────────────
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.full-width {
+  margin-bottom: 1rem;
+}
+
+// ── Detail cards ───────────────────────────────────────────────────────────
+.detail-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+
+  h3 {
+    color: #fff;
+    font-size: .82rem;
+    font-weight: 700;
+    padding: .6rem 1rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+  }
+
+  &.card--vestigio h3 {
+    background: linear-gradient(120deg, #4c1d95, #6b21a8, #7c3aed);
+  }
+
+  &.card--dest h3 {
+    background: linear-gradient(120deg, #0c4a6e, #0369a1, #0891b2);
+  }
+
+  &.card--entregador h3 {
+    background: linear-gradient(120deg, #14532d, #15803d, #16a34a);
+  }
+
+  &.card--recebedor h3 {
+    background: linear-gradient(120deg, var(--amber-dark), #b45309, #d97706);
+  }
+
+  &.card--desc h3 {
+    background: linear-gradient(120deg, #92400e, #b45309, #d97706);
+  }
+
+  &.card--proc h3 {
+    background: linear-gradient(120deg, #1e3a5f, #1e40af, #2563eb);
+  }
+
+  &.card--obs h3 {
+    background: linear-gradient(120deg, #374151, #4b5563, #6b7280);
+  }
+
+  &.card--auth h3 {
+    background: linear-gradient(120deg, #14532d, #166534, #15803d);
+  }
+
+  &.card--pendente {
+    border-color: #fcd34d;
+  }
+}
+
+.card-body {
+  padding: .8rem 1rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .5rem;
+  padding: .3rem 0;
+  border-bottom: 1px solid var(--border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.lbl {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--slate-med);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.val {
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--slate-dark);
+  text-align: right;
+
+  &.mono {
+    font-family: monospace;
+    font-size: .8rem;
+    letter-spacing: .03em;
+  }
+}
+
+.badge-vestigio-status {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .2rem .55rem;
+  border-radius: 20px;
+  background: #fef9c3;
+  color: #854d0e;
+
+  &.fin {
+    background: var(--green-light);
+    color: var(--green-dark);
+  }
+}
+
+.receb-status {
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .2rem .55rem;
+  border-radius: 20px;
+
+  &.status--pendente {
+    background: #fef3c7;
+    color: var(--amber-dark);
+  }
+
+  &.status--assinado-eletronico {
+    background: var(--green-light);
+    color: var(--green-dark);
+  }
+
+  &.status--assinado-manual {
+    background: #e0f2fe;
+    color: var(--teal-dark);
+  }
+}
+
+.descricao-text {
+  margin: 0;
+  font-size: .9rem;
+  color: var(--slate-dark);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+// ── Spinner ────────────────────────────────────────────────────────────────
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, .4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

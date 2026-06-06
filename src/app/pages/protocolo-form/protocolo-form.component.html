@@ -1,0 +1,274 @@
+<div class="container">
+
+  <!-- Navegação -->
+  <div class="nav-top">
+    <button class="btn-back" (click)="voltar()">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </button>
+  </div>
+
+  <!-- Título -->
+  <div class="page-header">
+    <h2><i class="bi bi-file-earmark-arrow-up-fill"></i> Emitir Protocolo de Saída</h2>
+    <p class="subtitle">Preencha os dados para emitir o Protocolo de Entrega de Material Examinado.</p>
+  </div>
+
+  <!-- ── Seção 1: Vestígio ─────────────────────────────────────────────────── -->
+  <div class="form-section">
+    <h3 class="section-title"><i class="bi bi-shield-fill"></i> Vestígio</h3>
+
+    @if (!vestigio) {
+      <div class="busca-row">
+        <input
+          [(ngModel)]="buscaVestigio"
+          (keyup.enter)="buscarVestigio()"
+          placeholder="Buscar por lacre, SEI ou ocorrência..."
+          class="form-control"
+        />
+        <button class="btn-buscar" (click)="buscarVestigio()" [disabled]="carregandoVestigio">
+          @if (carregandoVestigio) { <span class="spinner"></span> } @else { <i class="bi bi-search"></i> }
+          Buscar
+        </button>
+      </div>
+    }
+
+    @if (vestigio) {
+      <div class="vestigio-card" [class.card-finalizado]="vestigioJaFinalizado">
+        <div class="card-header-row">
+          <span class="lacre-destaque">{{ vestigio.lacre || '(sem lacre)' }}</span>
+          <span class="badge" [class]="statusBadgeClass">{{ vestigio.status }}</span>
+          @if (vestigioJaFinalizado) {
+            <span class="badge-conform">✔ Já Finalizado — emissão como conformidade</span>
+          }
+          <button class="btn-limpar" (click)="limparVestigio()"><i class="bi bi-x-circle"></i></button>
+        </div>
+        <div class="card-info-grid">
+          <div><span class="label">SEI</span><span class="val">{{ vestigio.num_processo_sei || '—' }}</span></div>
+          <div><span class="label">Ocorrência</span><span class="val">{{ vestigio.ocorrencia }}/{{ vestigio.ano_ocorrencia }}</span></div>
+          <div><span class="label">Serviço</span><span class="val">{{ vestigio.servico_pericial?.sigla || '—' }}</span></div>
+          <div><span class="label">Unidade</span><span class="val">{{ vestigio.unidade_demandante?.nome || '—' }}</span></div>
+        </div>
+      </div>
+
+      <!-- Ocorrência vinculada (obrigatória) -->
+      <div class="field-group">
+        <label class="field-label required">Ocorrência vinculada</label>
+        @if (ocorrencias.length === 0) {
+          <div class="alert-warning">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Este vestígio não possui ocorrências vinculadas.
+            Vincule uma ocorrência ao vestígio antes de emitir o protocolo.
+          </div>
+        } @else {
+          <select [(ngModel)]="ocorrenciaId" class="form-control">
+            <option [ngValue]="null">Selecione a ocorrência...</option>
+            @for (oc of ocorrencias; track oc.id) {
+              <option [ngValue]="oc.id">{{ oc.numero_ocorrencia }}</option>
+            }
+          </select>
+        }
+      </div>
+    }
+  </div>
+
+  @if (vestigio && ocorrencias.length > 0) {
+
+    <!-- ── Seção 2: Material ───────────────────────────────────────────────── -->
+    <div class="form-section">
+      <h3 class="section-title"><i class="bi bi-box-seam-fill"></i> Material</h3>
+
+      <div class="fields-row">
+        <div class="field-group">
+          <label class="field-label">Tipo de Entrega</label>
+          <select [(ngModel)]="tipoEntrega" class="form-control">
+            <option value="MATERIAL">Material Examinado</option>
+            <option value="LAUDO">Laudo Pericial</option>
+            <option value="MATERIAL_E_LAUDO">Material e Laudo</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Lacre na Entrega</label>
+          <input [(ngModel)]="lacreEntrega" class="form-control" placeholder="Lacre atual do vestígio" />
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label required">Descrição do Material</label>
+        <textarea [(ngModel)]="descricaoMaterial" class="form-control textarea" rows="3"
+          placeholder="Descreva o material que está sendo entregue..."></textarea>
+      </div>
+
+      <!-- Toggle procedimento -->
+      <div class="toggle-row">
+        <button class="btn-toggle" [class.active]="usarProcedimento" (click)="toggleProcedimento()">
+          <i class="bi" [class.bi-toggle-on]="usarProcedimento" [class.bi-toggle-off]="!usarProcedimento"></i>
+          Vincular a um procedimento cadastrado
+        </button>
+      </div>
+
+      @if (usarProcedimento) {
+        <div class="field-group">
+          <label class="field-label required">Procedimento</label>
+          <div class="busca-row">
+            <input [(ngModel)]="buscaProcedimento" (input)="buscarProcedimento()"
+              placeholder="Buscar por número ou tipo..." class="form-control" />
+          </div>
+          @if (procedimentosBusca.length > 0) {
+            <ul class="busca-lista">
+              @for (p of procedimentosBusca; track p.id) {
+                <li (click)="selecionarProcedimento(p)">{{ p.numero_completo || p.numero }}</li>
+              }
+            </ul>
+          }
+          @if (procedimentoSelecionado) {
+            <div class="chip-selecionado">
+              <i class="bi bi-check-circle-fill"></i>
+              {{ procedimentoSelecionado.numero_completo || procedimentoSelecionado.numero }}
+              <button (click)="procedimentoSelecionado = null; procedimentoId = null">&times;</button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- ── Seção 3: Destinatário ──────────────────────────────────────────── -->
+    <div class="form-section">
+      <h3 class="section-title"><i class="bi bi-person-badge-fill"></i> Destinatário</h3>
+
+      <div class="fields-row">
+        <!-- Autocomplete Híbrido: Cargo -->
+        <div class="field-group">
+          <label class="field-label required">Cargo</label>
+          @if (!cargoSelecionadoObj) {
+            <div class="busca-row">
+              <input [(ngModel)]="buscaCargo" (input)="buscarCargo()"
+                (focus)="focarCargo()" (blur)="desfocarCargo()"
+                placeholder="Clique para ver ou digite para filtrar..." class="form-control" />
+            </div>
+            @if (mostrarListaCargos && cargosBusca.length > 0) {
+              <ul class="busca-lista">
+                @for (c of cargosBusca; track c.id) {
+                  <li (mousedown)="selecionarCargo(c)">{{ c.nome }}</li>
+                }
+              </ul>
+            }
+          } @else {
+            <div class="chip-selecionado">
+              <i class="bi bi-check-circle-fill"></i>
+              {{ cargoSelecionadoObj.nome }}
+              <button (click)="limparCargo()">&times;</button>
+            </div>
+          }
+        </div>
+
+        <!-- Autocomplete Híbrido: Autoridade Demandante -->
+        <div class="field-group">
+          <label class="field-label required">Autoridade Demandante</label>
+          @if (!autoridadeSelecionada) {
+            <div class="busca-row">
+              <input [(ngModel)]="buscaAutoridade" (input)="buscarAutoridadeMetodo()"
+                (focus)="focarAutoridade()" (blur)="desfocarAutoridade()"
+                placeholder="Clique para ver ou digite para filtrar..." class="form-control"
+                [disabled]="!cargoSelecionado" />
+            </div>
+            @if (mostrarListaAutoridades && autoridadesBusca.length > 0) {
+              <ul class="busca-lista">
+                @for (a of autoridadesBusca; track a.id) {
+                  <li (mousedown)="selecionarAutoridade(a)">{{ a.nome }}</li>
+                }
+              </ul>
+            }
+          } @else {
+            <div class="chip-selecionado">
+              <i class="bi bi-check-circle-fill"></i>
+              {{ autoridadeSelecionada.nome }}
+              <button (click)="limparAutoridade()">&times;</button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Autocomplete Híbrido: Unidade Demandante -->
+      <div class="field-group">
+        <label class="field-label required">Unidade Demandante</label>
+        @if (!unidadeSelecionada) {
+          <div class="busca-row">
+            <input [(ngModel)]="buscaUnidade" (input)="buscarUnidade()"
+              (focus)="focarUnidade()" (blur)="desfocarUnidade()"
+              placeholder="Clique para ver ou digite para filtrar..." class="form-control" />
+          </div>
+          @if (mostrarListaUnidades && unidadesBusca.length > 0) {
+            <ul class="busca-lista">
+              @for (u of unidadesBusca; track u.id) {
+                <li (mousedown)="selecionarUnidade(u)">{{ u.sigla }} — {{ u.nome }}</li>
+              }
+            </ul>
+          }
+        } @else {
+          <div class="chip-selecionado">
+            <i class="bi bi-check-circle-fill"></i>
+            {{ unidadeSelecionada.sigla }} — {{ unidadeSelecionada.nome }}
+            <button (click)="limparUnidade()">&times;</button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ── Seção 4: Recebedor ─────────────────────────────────────────────── -->
+    <div class="form-section">
+      <h3 class="section-title"><i class="bi bi-person-check-fill"></i> Dados do Recebedor</h3>
+
+      <div class="fields-row">
+        <div class="field-group">
+          <label class="field-label required">CPF</label>
+          <div class="busca-row">
+            <input [(ngModel)]="recebidoPorCpf" (ngModelChange)="verificarCpfRecebedor()" class="form-control" placeholder="000.000.000-00" />
+            @if (buscandoCpf) {
+              <span class="spinner" style="margin-left: -35px; margin-top: 12px; position: absolute; z-index: 10;"></span>
+            }
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label required">Nome completo</label>
+          <input [(ngModel)]="recebidoPorNome" class="form-control" placeholder="Nome do recebedor" />
+        </div>
+      </div>
+
+      <div class="fields-row">
+        <div class="field-group">
+          <label class="field-label required">Cargo / Função</label>
+          <input [(ngModel)]="recebidoPorCargo" class="form-control" placeholder="Ex: Delegado, Agente" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Matrícula</label>
+          <input [(ngModel)]="recebidoPorMatricula" class="form-control" placeholder="Matrícula funcional" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Seção 5: Observações ───────────────────────────────────────────── -->
+    <div class="form-section">
+      <h3 class="section-title"><i class="bi bi-chat-text"></i> Observações</h3>
+      <textarea [(ngModel)]="observacoes" class="form-control textarea" rows="3"
+        placeholder="Observações adicionais (opcional)..."></textarea>
+    </div>
+
+    <!-- ── Ação ───────────────────────────────────────────────────────────── -->
+    <div class="actions-row">
+      <button class="btn-cancelar" (click)="voltar()">Cancelar</button>
+      <button
+        class="btn-emitir"
+        [disabled]="!formularioValido || emitindo"
+        (click)="emitirProtocolo()"
+      >
+        @if (emitindo) {
+          <span class="spinner"></span> Emitindo...
+        } @else {
+          <i class="bi bi-file-earmark-arrow-up-fill"></i>
+          Emitir Protocolo de Saída
+        }
+      </button>
+    </div>
+
+  }
+</div>

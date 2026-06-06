@@ -38,4 +38,8 @@ export class DashboardExternoComponent implements OnInit {
   get temPendencias(): boolean {
     return (this.dados?.alertas?.transferencias_pendentes ?? 0) > 0;
   }
+
+  get temVestigiosParados(): boolean {
+    return (this.dados?.alertas?.vestigios_parados ?? 0) > 0;
+  }
 }

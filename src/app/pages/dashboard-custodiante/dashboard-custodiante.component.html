@@ -53,6 +53,22 @@
           <span class="alert-action">Visão consolidada global</span>
         </div>
       </div>
+
+      <div class="alert-card"
+           [class.alert-danger]="protocolosPendentes > 0"
+           [class.alert-ok]="protocolosPendentes === 0"
+           [class.alert-pulsing]="protocolosPendentes > 0"
+           (click)="irParaProtocolosPendentes()"
+           style="cursor:pointer">
+        <span class="alert-icon">{{ protocolosPendentes > 0 ? '📋' : '✅' }}</span>
+        <div class="alert-body">
+          <span class="alert-label">Protocolos Pendentes</span>
+          <span class="alert-number">{{ protocolosPendentes }}</span>
+          <span class="alert-action">
+            {{ protocolosPendentes > 0 ? 'Aguardando assinatura do recebedor' : 'Todos assinados' }}
+          </span>
+        </div>
+      </div>
     </div>
 
     <!-- Totais globais -->

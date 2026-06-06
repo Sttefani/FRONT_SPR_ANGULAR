@@ -243,6 +243,25 @@ export const routes: Routes = [
         canActivate: [AuthGuard]
       },
       {
+        path: 'custodia/protocolos',
+        loadComponent: () => import('./pages/protocolo-list/protocolo-list.component')
+          .then(m => m.ProtocoloListComponent),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'custodia/protocolos/novo',
+        loadComponent: () => import('./pages/protocolo-form/protocolo-form.component')
+          .then(m => m.ProtocoloFormComponent),
+        canActivate: [perfilGuard],
+        data: { requiredPerfis: ['CUSTODIANTE', 'ADMINISTRATIVO', 'SUPER_ADMIN'] }
+      },
+      {
+        path: 'custodia/protocolos/:id',
+        loadComponent: () => import('./pages/protocolo-detalhes/protocolo-detalhes.component')
+          .then(m => m.ProtocoloDetalhesComponent),
+        canActivate: [AuthGuard]
+      },
+      {
         path: 'custodia/dnas',
         loadComponent: () => import('./pages/custodia-dna-list/custodia-dna-list.component').then(m => m.CustodiaDnaListComponent),
         canActivate: [AuthGuard]

@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CustodiaService, DashboardCustodiante } from '../../services/custodia.service';
+import { ProtocoloService } from '../../services/protocolo.service';
 
 @Component({
   selector: 'app-dashboard-custodiante',
@@ -16,10 +18,13 @@ export class DashboardCustodianteComponent implements OnInit {
   isLoading = true;
   erro: string | null = null;
   currentUser: any = null;
+  protocolosPendentes = 0;
 
   constructor(
     private authService: AuthService,
     private custodiaService: CustodiaService,
+    private protocoloService: ProtocoloService,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -28,11 +33,21 @@ export class DashboardCustodianteComponent implements OnInit {
       next: (data) => { this.dados = data; this.isLoading = false; },
       error: () => { this.erro = 'Erro ao carregar dados do painel.'; this.isLoading = false; },
     });
+    this.protocoloService.getProtocolos({ status_recebimento: 'PENDENTE', page_size: 1 }).subscribe({
+      next: (res) => { this.protocolosPendentes = res.count; },
+      error: () => {},
+    });
   }
 
   getFirstName(): string {
     const nome = this.currentUser?.nome_completo ?? '';
     return nome.split(' ')[0] || 'Usuário';
+  }
+
+  irParaProtocolosPendentes(): void {
+    this.router.navigate(['/gabinete-virtual/custodia/protocolos'], {
+      queryParams: { status_recebimento: 'PENDENTE' }
+    });
   }
 
   get temPendencias(): boolean {

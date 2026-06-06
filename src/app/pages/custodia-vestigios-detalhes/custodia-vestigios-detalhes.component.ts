@@ -18,8 +18,9 @@ import { ServicoPericialService } from '../../services/servico-pericial.service'
 import { UnidadeDemandanteService } from '../../services/unidade-demandante.service';
 import { AutoridadeService } from '../../services/autoridade.service';
 import { ProcedimentoCadastradoService } from '../../services/procedimento-cadastrado.service';
+import { ProtocoloService, ProtocoloList } from '../../services/protocolo.service';
 
-type Tab = 'movimentacoes' | 'dnas' | 'contra-provas';
+type Tab = 'movimentacoes' | 'dnas' | 'contra-provas' | 'protocolos';
 
 @Component({
   selector: 'app-custodia-vestigios-detalhes',
@@ -34,12 +35,16 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
   movimentacoes: VestigioMovimentacao[] = [];
   dnas: DNA[] = [];
   contraProvas: VestigioList[] = [];
+  protocolos: ProtocoloList[] = [];
 
   isLoading = true;
   isLoadingMovs = false;
   isLoadingDnas = false;
   isLoadingContraProvas = false;
+  isLoadingProtocolos = false;
   isSaving = false;
+
+  podeEmitirProtocolo = false;
 
   // ── Vincular DNA existente ao vestígio ───────────────────────────────────
   showDnaSearch = false;
@@ -81,7 +86,8 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
     private servicoPericialService: ServicoPericialService,
     private unidadeDemandanteService: UnidadeDemandanteService,
     private autoridadeService: AutoridadeService,
-    private procedimentoService: ProcedimentoCadastradoService
+    private procedimentoService: ProcedimentoCadastradoService,
+    private protocoloService: ProtocoloService,
   ) {}
 
   ngOnInit(): void {
@@ -90,6 +96,8 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
     this.isCustodiante = user?.perfil !== 'EXTERNO';
     const _PERFIS_TEIA = ['PERITO','OPERACIONAL','ADMINISTRATIVO','SUPER_ADMIN'];
     this.podeVerTeia = _PERFIS_TEIA.includes(user?.perfil) || !!user?.is_superuser;
+
+    this.podeEmitirProtocolo = ['CUSTODIANTE', 'ADMINISTRATIVO', 'SUPER_ADMIN'].includes(user?.perfil || '') || !!user?.is_superuser;
 
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.carregarVestigio(id);
@@ -136,6 +144,25 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
     });
   }
 
+  carregarProtocolos(vestigioId: number): void {
+    this.isLoadingProtocolos = true;
+    this.protocoloService.getProtocolos({ vestigio: vestigioId, page_size: 50 }).subscribe({
+      next: (res) => { this.protocolos = res.results; this.isLoadingProtocolos = false; },
+      error: () => { this.isLoadingProtocolos = false; },
+    });
+  }
+
+  emitirProtocolo(): void {
+    if (!this.vestigio) return;
+    this.router.navigate(['/gabinete-virtual/custodia/protocolos/novo'], {
+      queryParams: { vestigio: this.vestigio.id }
+    });
+  }
+
+  verProtocolo(id: number): void {
+    this.router.navigate(['/gabinete-virtual/custodia/protocolos', id]);
+  }
+
   carregarDropdowns(): void {
     this.servicoPericialService.getAll().subscribe({ next: (r: any) => this.servicos = r.results ?? r, error: () => {} });
     this.unidadeDemandanteService.getAll().subscribe({ next: (r: any) => this.unidades = r.results ?? r, error: () => {} });
@@ -146,6 +173,9 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
     this.tabAtiva = tab;
     if (tab === 'dnas' && this.dnas.length === 0 && this.vestigio) {
       this.carregarDnas(this.vestigio.id);
+    }
+    if (tab === 'protocolos' && this.protocolos.length === 0 && this.vestigio) {
+      this.carregarProtocolos(this.vestigio.id);
     }
   }
 

@@ -1,0 +1,141 @@
+<div class="container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h2><i class="bi bi-file-earmark-arrow-up-fill"></i> Protocolos de Saída</h2>
+      <span class="total-count">{{ totalCount }} registros</span>
+    </div>
+    @if (podeEmitir) {
+      <button class="btn-novo" (click)="novoProtocolo()">
+        <i class="bi bi-plus-lg"></i> Novo Protocolo
+      </button>
+    }
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros-card">
+    <div class="filtros-row">
+      <div class="filtro-field filtro-busca">
+        <label class="filtro-label">Buscar</label>
+        <div class="input-with-icon">
+          <i class="bi bi-search"></i>
+          <input
+            [(ngModel)]="busca"
+            (keyup.enter)="buscar()"
+            placeholder="Número, lacre, SEI, ocorrência, recebedor..."
+            class="form-control"
+          />
+        </div>
+      </div>
+
+      <div class="filtro-field">
+        <label class="filtro-label">Status</label>
+        <select [(ngModel)]="statusFiltro" class="form-control">
+          <option value="">Todos</option>
+          <option value="PENDENTE">Pendente</option>
+          <option value="ASSINADO_ELETRONICAMENTE">Assinado Eletronicamente</option>
+          <option value="ASSINADO_MANUAL">Assinado Manualmente</option>
+        </select>
+      </div>
+
+      <div class="filtro-field">
+        <label class="filtro-label">Tipo</label>
+        <select [(ngModel)]="tipoFiltro" class="form-control">
+          <option value="">Todos</option>
+          <option value="MATERIAL">Material</option>
+          <option value="LAUDO">Laudo</option>
+          <option value="MATERIAL_E_LAUDO">Material e Laudo</option>
+        </select>
+      </div>
+
+      <div class="filtro-field">
+        <label class="filtro-label">De</label>
+        <input type="date" [(ngModel)]="dataInicio" class="form-control" />
+      </div>
+
+      <div class="filtro-field">
+        <label class="filtro-label">Até</label>
+        <input type="date" [(ngModel)]="dataFim" class="form-control" />
+      </div>
+    </div>
+
+    <div class="filtros-actions">
+      <button class="btn-filtrar" (click)="buscar()">
+        <i class="bi bi-funnel-fill"></i> Filtrar
+      </button>
+      <button class="btn-limpar" (click)="limparFiltros()">
+        <i class="bi bi-x-circle"></i> Limpar
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabela -->
+  <div class="table-card">
+    @if (isLoading) {
+      <div class="loading-row">
+        <span class="spinner"></span> Carregando...
+      </div>
+    } @else if (protocolos.length === 0) {
+      <div class="empty-row">
+        <i class="bi bi-inbox"></i>
+        <span>Nenhum protocolo encontrado.</span>
+      </div>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Tipo</th>
+              <th>Vestígio</th>
+              <th>Ocorrência</th>
+              <th>Recebedor</th>
+              <th>Unidade</th>
+              <th>Emitido em</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of protocolos; track p.id) {
+              <tr [class.row--pendente]="p.status_recebimento === 'PENDENTE'">
+                <td class="col-numero">{{ p.numero }}</td>
+                <td>
+                  <span class="badge badge--tipo">{{ tipoLabel(p.tipo_entrega) }}</span>
+                </td>
+                <td>
+                  <span class="lacre">{{ p.vestigio_lacre || '#' + p.vestigio_id }}</span>
+                </td>
+                <td>{{ p.ocorrencia_numero }}</td>
+                <td class="col-recebedor">{{ p.recebido_por_nome }}</td>
+                <td>{{ p.unidade_sigla }}</td>
+                <td class="col-data">{{ p.entregue_em | date:'dd/MM/yy HH:mm' }}</td>
+                <td>
+                  <span class="badge" [class]="statusClass(p.status_recebimento)">
+                    {{ statusLabel(p.status_recebimento) }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn-ver" (click)="verDetalhes(p.id)">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- Paginação -->
+  @if (totalPages > 1) {
+    <app-paginador
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      (pageChange)="mudarPagina($event)"
+    />
+  }
+
+</div>

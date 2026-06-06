@@ -47,6 +47,20 @@
           </span>
         </div>
       </div>
+
+      <div class="alert-card"
+           [class.alert-danger]="temVestigiosParados"
+           [class.alert-ok]="!temVestigiosParados"
+           [class.alert-pulsing]="temVestigiosParados">
+        <span class="alert-icon">{{ temVestigiosParados ? '🕐' : '✅' }}</span>
+        <div class="alert-body">
+          <span class="alert-label">Vestígios sem movimentação (+30 dias)</span>
+          <span class="alert-number">{{ dados.alertas.vestigios_parados }}</span>
+          <span class="alert-action">
+            {{ temVestigiosParados ? 'Verificar vestígios com prazo vencido' : 'Todos em dia' }}
+          </span>
+        </div>
+      </div>
     </div>
 
     <!-- Vestígios -->

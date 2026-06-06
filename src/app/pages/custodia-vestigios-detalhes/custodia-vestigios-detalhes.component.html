@@ -63,6 +63,11 @@
           <button class="v-btn v-btn--dna" (click)="registrarDna()">
             <i class="bi bi-dna"></i> Registrar DNA
           </button>
+          @if (podeEmitirProtocolo) {
+            <button class="v-btn v-btn--protocolo" (click)="emitirProtocolo()">
+              <i class="bi bi-file-earmark-arrow-up-fill"></i> Protocolo de Saída
+            </button>
+          }
           @if (vestigio.status !== 'FINALIZADO') {
             <button class="v-btn v-btn--finalizar" (click)="finalizar()">
               <i class="bi bi-check-circle-fill"></i> Finalizar
@@ -300,6 +305,15 @@
           <span class="tab-count">…</span>
         } @else {
           <span class="tab-count">{{ contraProvas.length }}</span>
+        }
+      </button>
+      <button class="tab" [class.active]="tabAtiva === 'protocolos'" (click)="mudarTab('protocolos')">
+        <i class="bi bi-file-earmark-arrow-up"></i>
+        Protocolos
+        @if (isLoadingProtocolos) {
+          <span class="tab-count">…</span>
+        } @else {
+          <span class="tab-count">{{ protocolos.length }}</span>
         }
       </button>
     </div>
@@ -587,6 +601,53 @@
                   </span>
                   <i class="bi bi-chevron-right cp-chevron"></i>
                 </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Tab: Protocolos de Saída -->
+    @if (tabAtiva === 'protocolos') {
+      <div class="tab-content">
+        @if (podeEmitirProtocolo) {
+          <div class="tab-actions">
+            <button class="btn-primary" (click)="emitirProtocolo()">
+              <i class="bi bi-file-earmark-arrow-up-fill"></i> Emitir Protocolo de Saída
+            </button>
+          </div>
+        }
+        @if (isLoadingProtocolos) {
+          <div class="loading-indicator"><i class="bi bi-hourglass-split"></i><p>Carregando...</p></div>
+        }
+        @if (!isLoadingProtocolos && protocolos.length === 0) {
+          <div class="empty-state">
+            <i class="bi bi-file-earmark-arrow-up"></i>
+            <p>Nenhum protocolo de saída emitido para este vestígio</p>
+          </div>
+        }
+        @if (!isLoadingProtocolos && protocolos.length > 0) {
+          <div class="proto-list">
+            @for (p of protocolos; track p.id) {
+              <div class="proto-item" (click)="verProtocolo(p.id)" role="button">
+                <div class="proto-item-left">
+                  <span class="proto-numero">{{ p.numero }}</span>
+                  <span class="proto-tipo">{{ p.tipo_entrega === 'MATERIAL' ? 'Material' : p.tipo_entrega === 'LAUDO' ? 'Laudo' : 'Mat. + Laudo' }}</span>
+                </div>
+                <div class="proto-item-mid">
+                  <span class="proto-dest">{{ p.recebido_por_nome }}</span>
+                  <span class="proto-unidade">{{ p.unidade_sigla }} — {{ p.unidade_nome }}</span>
+                </div>
+                <div class="proto-item-right">
+                  <span class="proto-data">{{ p.entregue_em | date:'dd/MM/yy HH:mm' }}</span>
+                  <span class="badge-proto-status"
+                    [class.proto-pendente]="p.status_recebimento === 'PENDENTE'"
+                    [class.proto-assinado]="p.status_recebimento !== 'PENDENTE'">
+                    {{ p.status_recebimento === 'PENDENTE' ? '⏳ Pendente' : p.status_recebimento === 'ASSINADO_ELETRONICAMENTE' ? '✔ Assinado' : '✔ Manual' }}
+                  </span>
+                </div>
+                <i class="bi bi-chevron-right proto-chevron"></i>
               </div>
             }
           </div>

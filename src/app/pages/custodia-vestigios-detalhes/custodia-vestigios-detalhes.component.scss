@@ -162,8 +162,10 @@
                 &:hover { background: #15803d; } }
   &--reabrir  { background: #ea580c; color: #fff;
                 &:hover { background: #c2410c; } }
-  &--teia     { background: #1e293b; color: #818cf8; border: 1px solid #334155;
-                &:hover { background: #334155; color: #a5b4fc; border-color: #818cf8; } }
+  &--teia      { background: #1e293b; color: #818cf8; border: 1px solid #334155;
+                 &:hover { background: #334155; color: #a5b4fc; border-color: #818cf8; } }
+  &--protocolo { background: #0891b2; color: #fff;
+                 &:hover { background: #0e7490; } }
 }
 
 // ── Badges ────────────────────────────────────────────────────────────────────
@@ -1037,4 +1039,103 @@ $accent-fin:   #15803d;   // verde  — Finalização
   .cp-card:hover & { color: var(--primary-color); }
 }
 
+// ── Lista de Protocolos de Saída (tab) ────────────────────────────────────────
+
+.proto-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.proto-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: .75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: background .12s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: #f8fafc; }
+}
+
+.proto-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 130px;
+}
+
+.proto-numero {
+  font-family: monospace;
+  font-size: .82rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.proto-tipo {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .15rem .45rem;
+  border-radius: 20px;
+  background: #dbeafe;
+  color: #1e40af;
+  align-self: flex-start;
+}
+
+.proto-item-mid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.proto-dest {
+  font-size: .875rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.proto-unidade {
+  font-size: .78rem;
+  color: #64748b;
+}
+
+.proto-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.proto-data {
+  font-size: .78rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.badge-proto-status {
+  font-size: .7rem;
+  font-weight: 700;
+  padding: .15rem .45rem;
+  border-radius: 20px;
+  white-space: nowrap;
+
+  &.proto-pendente { background: #fef3c7; color: #92400e; }
+  &.proto-assinado { background: #dcfce7; color: #14532d; }
+}
+
+.proto-chevron {
+  color: #94a3b8;
+  font-size: .85rem;
+  flex-shrink: 0;
+  transition: color .15s;
+  .proto-item:hover & { color: #0891b2; }
+}
 

@@ -488,6 +488,70 @@ $c-hist:    #1e293b;  // Histórico       — slate escuro
   &.laudo-entregue > h3 { background: $c-laudo;  }
   &.finalizado     > h3 { background: $c-final;  }
   &.alerta         > h3 { background: $c-alerta; }
+  &--protocolos > .card-header-with-action { background: #0e7490; }
+}
+
+// ── Protocolos de Saída (seção na ocorrência) ─────────────────────────────────
+
+.loading-state {
+  padding: .6rem 0;
+  color: #64748b;
+  font-size: .875rem;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.empty-proto-msg {
+  color: #64748b;
+  font-size: .875rem;
+  padding: .4rem 0;
+  margin: 0;
+}
+
+.proto-tabela { display: flex; flex-direction: column; gap: 0; }
+
+.proto-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .55rem .25rem;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background .1s;
+  border-radius: 4px;
+  &:last-child { border-bottom: none; }
+  &:hover { background: #f8fafc; }
+}
+
+.proto-num   { font-family: monospace; font-size: .8rem; font-weight: 700; color: #1e293b; min-width: 110px; }
+.proto-lacre { font-family: monospace; font-size: .78rem; background: #f1f5f9; padding: .1rem .35rem; border-radius: 4px; min-width: 80px; }
+.proto-recebedor { flex: 1; font-size: .875rem; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.proto-unidade-s { font-size: .78rem; color: #64748b; min-width: 60px; }
+.proto-dt    { font-size: .78rem; color: #64748b; white-space: nowrap; min-width: 70px; }
+
+.badge-proto {
+  font-size: .7rem; font-weight: 700; padding: .15rem .4rem; border-radius: 20px; white-space: nowrap;
+  &.proto-pend { background: #fef3c7; color: #92400e; }
+  &.proto-ok   { background: #dcfce7; color: #14532d; }
+}
+
+.proto-arr { color: #94a3b8; font-size: .8rem; flex-shrink: 0; }
+
+.btn-add-small {
+  background: rgba(255,255,255,.2);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.4);
+  padding: .3rem .75rem;
+  border-radius: 6px;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  transition: background .15s;
+  &:hover { background: rgba(255,255,255,.35); }
 }
 
 .info-row {

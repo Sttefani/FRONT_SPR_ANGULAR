@@ -1,0 +1,166 @@
+<div class="container">
+
+  <div class="nav-top">
+    <button class="btn-back" (click)="voltar()">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </button>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading">Carregando protocolo...</div>
+  }
+
+  @if (!isLoading && protocolo) {
+
+    <!-- ── Hero ─────────────────────────────────────────────────────────── -->
+    <div class="v-hero" [class]="statusClass">
+      <div class="v-hero-left">
+        <div class="hero-numero">
+          <i class="bi bi-file-earmark-text-fill hero-icon"></i>
+          <span>Protocolo {{ protocolo.numero }}</span>
+        </div>
+        <div class="hero-badges">
+          <span class="badge-tipo">{{ protocolo.tipo_entrega === 'MATERIAL' ? 'Material' : protocolo.tipo_entrega === 'LAUDO' ? 'Laudo' : 'Material e Laudo' }}</span>
+          <span class="badge-status" [class]="statusClass">{{ statusLabel }}</span>
+          @if (protocolo.vestigio_foi_finalizado) {
+            <span class="badge-finalizado-pelo-proto">🔒 Vestígio finalizado por este protocolo</span>
+          }
+        </div>
+        <div class="hero-lacre">
+          Vestígio: <strong>{{ protocolo.vestigio.lacre || '#' + protocolo.vestigio.id }}</strong>
+          &nbsp;|&nbsp; Ocorrência: <strong>{{ protocolo.ocorrencia.numero_ocorrencia }}</strong>
+        </div>
+      </div>
+
+      <!-- Botões -->
+      <div class="hero-actions">
+        <button class="v-btn v-btn--pdf" (click)="baixarPdf()" [disabled]="baixandoPdf">
+          @if (baixandoPdf) { <span class="spinner"></span> } @else { <i class="bi bi-file-pdf-fill"></i> }
+          PDF
+        </button>
+        <button class="v-btn v-btn--vestigio" (click)="irParaVestigio()">
+          <i class="bi bi-shield-fill"></i> Vestígio
+        </button>
+        <button class="v-btn v-btn--oc" (click)="irParaOcorrencia()">
+          <i class="bi bi-folder2-open"></i> Ocorrência
+        </button>
+
+        @if (isPendente) {
+          <!-- Recebedor pode assinar eletronicamente -->
+          <button class="v-btn v-btn--assinar" (click)="assinarEletronicamente()" [disabled]="assinando">
+            @if (assinando) { <span class="spinner"></span> } @else { <i class="bi bi-pen-fill"></i> }
+            Assinar
+          </button>
+          <!-- Custodiante pode confirmar assinatura manual -->
+          @if (podeEmitir) {
+            <button class="v-btn v-btn--manual" (click)="confirmarManual()" [disabled]="confirmando">
+              @if (confirmando) { <span class="spinner"></span> } @else { <i class="bi bi-check2-square"></i> }
+              Confirmar Manual
+            </button>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- ── Cards ─────────────────────────────────────────────────────────── -->
+    <div class="cards-grid">
+
+      <!-- Vestígio -->
+      <div class="detail-card card--vestigio" (click)="irParaVestigio()" style="cursor:pointer">
+        <h3><i class="bi bi-shield-fill"></i> Vestígio</h3>
+        <div class="card-body">
+          <div class="info-row"><span class="lbl">Lacre</span><span class="val">{{ protocolo.vestigio.lacre || '—' }}</span></div>
+          <div class="info-row"><span class="lbl">SEI</span><span class="val">{{ protocolo.vestigio.num_processo_sei || '—' }}</span></div>
+          <div class="info-row"><span class="lbl">Ocorrência</span><span class="val">{{ protocolo.vestigio.ocorrencia }}/{{ protocolo.vestigio.ano_ocorrencia }}</span></div>
+          <div class="info-row"><span class="lbl">Lacre na Entrega</span><span class="val">{{ protocolo.lacre_na_entrega || '—' }}</span></div>
+          <div class="info-row"><span class="lbl">Status Atual</span>
+            <span class="badge-vestigio-status" [class.fin]="protocolo.vestigio.status === 'FINALIZADO'">
+              {{ protocolo.vestigio.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Destinatário -->
+      <div class="detail-card card--dest">
+        <h3><i class="bi bi-person-badge-fill"></i> Destinatário</h3>
+        <div class="card-body">
+          <div class="info-row"><span class="lbl">Autoridade</span><span class="val">{{ protocolo.autoridade.nome }}</span></div>
+          <div class="info-row"><span class="lbl">Cargo</span><span class="val">{{ protocolo.autoridade.cargo_nome || '—' }}</span></div>
+          <div class="info-row"><span class="lbl">Unidade</span><span class="val">{{ protocolo.unidade_demandante.sigla }} — {{ protocolo.unidade_demandante.nome }}</span></div>
+        </div>
+      </div>
+
+      <!-- Entregador -->
+      <div class="detail-card card--entregador">
+        <h3><i class="bi bi-person-check-fill"></i> Entregue Por</h3>
+        <div class="card-body">
+          <div class="info-row"><span class="lbl">Nome</span><span class="val">{{ protocolo.entregue_por_nome }}</span></div>
+          <div class="info-row"><span class="lbl">Cargo</span><span class="val">{{ protocolo.entregue_por_cargo }}</span></div>
+          <div class="info-row"><span class="lbl">CPF</span><span class="val">{{ protocolo.entregue_por_cpf || '—' }}</span></div>
+          <div class="info-row"><span class="lbl">Data/Hora</span><span class="val">{{ protocolo.entregue_em | date:'dd/MM/yyyy HH:mm' }}</span></div>
+        </div>
+      </div>
+
+      <!-- Recebedor -->
+      <div class="detail-card card--recebedor" [class.card--pendente]="isPendente">
+        <h3><i class="bi bi-person-fill-check"></i> Recebedor</h3>
+        <div class="card-body">
+          <div class="info-row"><span class="lbl">Nome</span><span class="val">{{ protocolo.recebido_por_nome }}</span></div>
+          <div class="info-row"><span class="lbl">Cargo</span><span class="val">{{ protocolo.recebido_por_cargo }}</span></div>
+          @if (protocolo.recebido_por_cpf) {
+            <div class="info-row"><span class="lbl">CPF</span><span class="val">{{ protocolo.recebido_por_cpf }}</span></div>
+          }
+          @if (protocolo.recebido_por_matricula) {
+            <div class="info-row"><span class="lbl">Matrícula</span><span class="val">{{ protocolo.recebido_por_matricula }}</span></div>
+          }
+          <div class="info-row"><span class="lbl">Status</span>
+            <span class="receb-status" [class]="statusClass">{{ statusLabel }}</span>
+          </div>
+          @if (protocolo.recebido_em) {
+            <div class="info-row"><span class="lbl">Recebido em</span><span class="val">{{ protocolo.recebido_em | date:'dd/MM/yyyy HH:mm' }}</span></div>
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Descrição (full-width) -->
+    <div class="detail-card card--desc full-width">
+      <h3><i class="bi bi-text-paragraph"></i> Descrição do Material</h3>
+      <div class="card-body">
+        <p class="descricao-text">{{ protocolo.descricao_material }}</p>
+      </div>
+    </div>
+
+    <!-- Procedimento (se houver) -->
+    @if (protocolo.procedimento) {
+      <div class="detail-card card--proc full-width">
+        <h3><i class="bi bi-clipboard2-data-fill"></i> Procedimento Vinculado</h3>
+        <div class="card-body">
+          <span class="val">{{ protocolo.procedimento.descricao }}</span>
+        </div>
+      </div>
+    }
+
+    <!-- Observações (se houver) -->
+    @if (protocolo.observacoes) {
+      <div class="detail-card card--obs full-width">
+        <h3><i class="bi bi-chat-text-fill"></i> Observações</h3>
+        <div class="card-body">
+          <p class="descricao-text">{{ protocolo.observacoes }}</p>
+        </div>
+      </div>
+    }
+
+    <!-- Autenticidade -->
+    <div class="detail-card card--auth full-width">
+      <h3><i class="bi bi-shield-check-fill"></i> Autenticidade</h3>
+      <div class="card-body">
+        <div class="info-row"><span class="lbl">Hash</span><span class="val mono">{{ protocolo.protocolo_hash }}</span></div>
+        <div class="info-row"><span class="lbl">Emitido em</span><span class="val">{{ protocolo.created_at | date:'dd/MM/yyyy HH:mm' }}</span></div>
+      </div>
+    </div>
+
+  }
+</div>
