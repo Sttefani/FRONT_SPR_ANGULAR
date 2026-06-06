@@ -1,68 +1,57 @@
 <div class="container">
 
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-left">
-      <h2><i class="bi bi-file-earmark-arrow-up-fill"></i> Protocolos de Saída</h2>
-      <span class="total-count">{{ totalCount }} registros</span>
+  <div class="header-row">
+    <div>
+      <h1>📄 Protocolos de Saída</h1>
+      <p class="subtitle">Registros de entrega de material pericial com controle de assinatura.</p>
     </div>
-    @if (podeEmitir) {
-      <button class="btn-novo" (click)="novoProtocolo()">
-        <i class="bi bi-plus-lg"></i> Novo Protocolo
-      </button>
-    }
+    <div class="actions-header">
+      @if (podeEmitir) {
+        <button class="btn-primary" (click)="novoProtocolo()">
+          <i class="bi bi-plus-circle"></i> Novo Protocolo
+        </button>
+      }
+    </div>
   </div>
 
-  <!-- Filtros -->
   <div class="filtros-card">
-    <div class="filtros-row">
-      <div class="filtro-field filtro-busca">
-        <label class="filtro-label">Buscar</label>
-        <div class="input-with-icon">
-          <i class="bi bi-search"></i>
-          <input
-            [(ngModel)]="busca"
-            (keyup.enter)="buscar()"
-            placeholder="Número, lacre, SEI, ocorrência, recebedor..."
-            class="form-control"
-          />
-        </div>
+    <div class="filtros-grid">
+      <div class="filtro-group">
+        <label>Buscar</label>
+        <input type="text" [(ngModel)]="busca" (keyup.enter)="buscar()"
+               placeholder="Número, lacre, SEI, ocorrência, recebedor..."
+               class="filtro-input">
       </div>
-
-      <div class="filtro-field">
-        <label class="filtro-label">Status</label>
-        <select [(ngModel)]="statusFiltro" class="form-control">
+      <div class="filtro-group">
+        <label>Status</label>
+        <select [(ngModel)]="statusFiltro" class="filtro-input">
           <option value="">Todos</option>
           <option value="PENDENTE">Pendente</option>
           <option value="ASSINADO_ELETRONICAMENTE">Assinado Eletronicamente</option>
           <option value="ASSINADO_MANUAL">Assinado Manualmente</option>
         </select>
       </div>
-
-      <div class="filtro-field">
-        <label class="filtro-label">Tipo</label>
-        <select [(ngModel)]="tipoFiltro" class="form-control">
+      <div class="filtro-group">
+        <label>Tipo</label>
+        <select [(ngModel)]="tipoFiltro" class="filtro-input">
           <option value="">Todos</option>
           <option value="MATERIAL">Material</option>
           <option value="LAUDO">Laudo</option>
           <option value="MATERIAL_E_LAUDO">Material e Laudo</option>
         </select>
       </div>
-
-      <div class="filtro-field">
-        <label class="filtro-label">De</label>
-        <input type="date" [(ngModel)]="dataInicio" class="form-control" />
+      <div class="filtro-group">
+        <label>De</label>
+        <input type="date" [(ngModel)]="dataInicio" class="filtro-input">
       </div>
-
-      <div class="filtro-field">
-        <label class="filtro-label">Até</label>
-        <input type="date" [(ngModel)]="dataFim" class="form-control" />
+      <div class="filtro-group">
+        <label>Até</label>
+        <input type="date" [(ngModel)]="dataFim" class="filtro-input">
       </div>
     </div>
-
     <div class="filtros-actions">
-      <button class="btn-filtrar" (click)="buscar()">
-        <i class="bi bi-funnel-fill"></i> Filtrar
+      <button class="btn-search" (click)="buscar()">
+        <i class="bi bi-search"></i> Buscar
       </button>
       <button class="btn-limpar" (click)="limparFiltros()">
         <i class="bi bi-x-circle"></i> Limpar
@@ -70,72 +59,73 @@
     </div>
   </div>
 
-  <!-- Tabela -->
-  <div class="table-card">
-    @if (isLoading) {
-      <div class="loading-row">
-        <span class="spinner"></span> Carregando...
-      </div>
-    } @else if (protocolos.length === 0) {
-      <div class="empty-row">
-        <i class="bi bi-inbox"></i>
-        <span>Nenhum protocolo encontrado.</span>
-      </div>
-    } @else {
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Número</th>
-              <th>Tipo</th>
-              <th>Vestígio</th>
-              <th>Ocorrência</th>
-              <th>Recebedor</th>
-              <th>Unidade</th>
-              <th>Emitido em</th>
-              <th>Status</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (p of protocolos; track p.id) {
-              <tr [class.row--pendente]="p.status_recebimento === 'PENDENTE'">
-                <td class="col-numero">{{ p.numero }}</td>
-                <td>
-                  <span class="badge badge--tipo">{{ tipoLabel(p.tipo_entrega) }}</span>
-                </td>
-                <td>
-                  <span class="lacre">{{ p.vestigio_lacre || '#' + p.vestigio_id }}</span>
-                </td>
-                <td>{{ p.ocorrencia_numero }}</td>
-                <td class="col-recebedor">{{ p.recebido_por_nome }}</td>
-                <td>{{ p.unidade_sigla }}</td>
-                <td class="col-data">{{ p.entregue_em | date:'dd/MM/yy HH:mm' }}</td>
-                <td>
-                  <span class="badge" [class]="statusClass(p.status_recebimento)">
-                    {{ statusLabel(p.status_recebimento) }}
-                  </span>
-                </td>
-                <td>
-                  <button class="btn-ver" (click)="verDetalhes(p.id)">
-                    <i class="bi bi-eye"></i>
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
-  </div>
+  @if (isLoading) {
+    <div class="loading-indicator">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Carregando protocolos...</p>
+    </div>
+  }
 
-  <!-- Paginação -->
-  @if (totalPages > 1) {
+  @if (!isLoading && protocolos.length > 0) {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Tipo</th>
+            <th>Vestígio</th>
+            <th>Ocorrência</th>
+            <th>Recebedor</th>
+            <th>Unidade</th>
+            <th>Emitido em</th>
+            <th>Status</th>
+            <th class="actions-header">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of protocolos; track p.id) {
+            <tr [class.row--pendente]="p.status_recebimento === 'PENDENTE'">
+              <td data-label="Número" class="nome-cell col-numero">{{ p.numero }}</td>
+              <td data-label="Tipo">
+                <span class="badge-status badge-tipo">{{ tipoLabel(p.tipo_entrega) }}</span>
+              </td>
+              <td data-label="Vestígio">
+                <span class="lacre-mono">{{ p.vestigio_lacre || '#' + p.vestigio_id }}</span>
+              </td>
+              <td data-label="Ocorrência">{{ p.ocorrencia_numero || '—' }}</td>
+              <td data-label="Recebedor" class="col-recebedor">{{ p.recebido_por_nome }}</td>
+              <td data-label="Unidade">{{ p.unidade_sigla }}</td>
+              <td data-label="Emitido em">{{ p.entregue_em | date:'dd/MM/yy HH:mm' }}</td>
+              <td data-label="Status">
+                <span class="badge-status" [ngClass]="statusClass(p.status_recebimento)">
+                  {{ statusLabel(p.status_recebimento) }}
+                </span>
+              </td>
+              <td class="actions-cell" data-label="Ações">
+                <button class="icon-btn view" title="Ver detalhes" (click)="verDetalhes(p.id)">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
     <app-paginador
       [currentPage]="currentPage"
       [totalPages]="totalPages"
-      (pageChange)="mudarPagina($event)"
-    />
+      [totalItems]="totalCount"
+      itemName="protocolos"
+      (pageChange)="mudarPagina($event)">
+    </app-paginador>
+  }
+
+  @if (!isLoading && protocolos.length === 0) {
+    <div class="empty-state">
+      <i class="bi bi-file-earmark-arrow-up"></i>
+      <p>Nenhum protocolo encontrado</p>
+    </div>
   }
 
 </div>
