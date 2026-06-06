@@ -27,11 +27,10 @@
           {{ isExterno ? 'Comprovante de Consulta' : 'Certidão de Ausência' }}
         }
       </button>
-      @if (!isExterno) {
-        <button class="btn-primary" (click)="novoDna()">
-          <i class="bi bi-plus-circle"></i> Nova Coleta
-        </button>
-      }
+      <button class="btn-primary" (click)="novoDna()">
+        <i class="bi bi-plus-circle"></i>
+        {{ isExterno ? 'Novo Cadastro' : 'Nova Coleta' }}
+      </button>
     </div>
   </div>
 
@@ -39,9 +38,10 @@
     <div class="aviso-externo">
       <i class="bi bi-info-circle"></i>
       <span>
-        Perfil <strong>Externo</strong>: você visualiza apenas as coletas vinculadas
-        à sua unidade demandante. Novos registros são automaticamente marcados como
-        <em>Não Apenado</em> e identificados como registro externo.
+        Perfil <strong>Externo</strong>: o registro será identificado como coleta externa
+        e a situação do coletado é automaticamente definida como <em>Não Apenado</em>
+        (Lei 12.654/2012, art. 3º; Lei 12.037/2009; Lei 15.295/2025 —
+        coleta por solicitação de autoridade competente homologada pela Justiça).
       </span>
     </div>
   }

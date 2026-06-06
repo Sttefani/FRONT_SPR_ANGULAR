@@ -39,7 +39,8 @@
 // ── Hero ─────────────────────────────────────────────────────────────────────
 .v-hero {
   background: #fff;
-  border-left: 5px solid var(--slate-med);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--slate-med);
   border-radius: 10px;
   box-shadow: 0 2px 12px rgba(0,0,0,.08);
   padding: 1.4rem 1.6rem;
@@ -50,8 +51,8 @@
   flex-wrap: wrap;
   margin-bottom: 1.4rem;
 
-  &.v-hero--aceita { border-left-color: var(--green-dark); }
-  &.v-hero--pendente { border-left-color: var(--amber-dark); }
+  &.v-hero--aceita { border-top-color: var(--green-dark); }
+  &.v-hero--pendente { border-top-color: var(--amber-dark); }
 }
 
 .v-hero-left { flex: 1; min-width: 0; }

@@ -217,7 +217,7 @@ export const routes: Routes = [
         path: 'custodia/vestigios/novo',
         loadComponent: () => import('./pages/custodia-vestigios-form/custodia-vestigios-form.component').then(m => m.CustodiaVestigiosFormComponent),
         canActivate: [perfilGuard],
-        data: { requiredPerfis: ['PERITO', 'OPERACIONAL', 'ADMINISTRATIVO', 'CUSTODIANTE'] }
+        data: { requiredPerfis: ['PERITO', 'OPERACIONAL', 'ADMINISTRATIVO', 'CUSTODIANTE', 'EXTERNO'] }
       },
       {
         path: 'custodia/vestigios/:id',

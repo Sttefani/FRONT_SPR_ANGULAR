@@ -124,39 +124,21 @@ export class ProtocoloFormComponent implements OnInit {
 
   carregarUnidadesIniciais(): void {
     const params = { page_size: '100' };
-    const unidadesUrl = (this.unidadeService as any).apiUrl || `${environment.apiUrl}/unidades-demandantes/`;
-    this.http.get<any>(unidadesUrl, { params }).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/unidades-demandantes/`, { params }).subscribe({
       next: (r: any) => {
         this.todasUnidades = r.results || r;
         this.unidadesBusca = [...this.todasUnidades];
       },
-      error: () => {
-        this.unidadeService.getAll().subscribe({
-          next: (r: any) => {
-            this.todasUnidades = r.results || r;
-            this.unidadesBusca = [...this.todasUnidades];
-          }
-        });
-      }
     });
   }
 
   carregarCargosIniciais(): void {
     const params = { page_size: '100' };
-    const cargosUrl = (this.cargoService as any).apiUrl || `${environment.apiUrl}/cargos/`;
-    this.http.get<any>(cargosUrl, { params }).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/cargos/`, { params }).subscribe({
       next: (r: any) => {
         this.todasCargos = r.results || r;
         this.cargosBusca = [...this.todasCargos];
       },
-      error: () => {
-        this.cargoService.getAll().subscribe({
-          next: (r: any) => {
-            this.todasCargos = r.results || r;
-            this.cargosBusca = [...this.todasCargos];
-          }
-        });
-      }
     });
   }
 
@@ -314,8 +296,7 @@ export class ProtocoloFormComponent implements OnInit {
     }
     this.timerCargo = setTimeout(() => {
       const params = { search: termo, page_size: '100' };
-      const cargosUrl = (this.cargoService as any).apiUrl || `${environment.apiUrl}/cargos/`;
-      this.http.get<any>(cargosUrl, { params }).subscribe({
+      this.http.get<any>(`${environment.apiUrl}/cargos/`, { params }).subscribe({
         next: (r: any) => {
           this.cargosBusca = r.results || r;
         },
@@ -430,8 +411,7 @@ export class ProtocoloFormComponent implements OnInit {
     }
     this.timerUnidade = setTimeout(() => {
       const params = { search: termo, page_size: '100' };
-      const unidadesUrl = (this.unidadeService as any).apiUrl || `${environment.apiUrl}/unidades-demandantes/`;
-      this.http.get<any>(unidadesUrl, { params }).subscribe({
+      this.http.get<any>(`${environment.apiUrl}/unidades-demandantes/`, { params }).subscribe({
         next: (r: any) => {
           this.unidadesBusca = r.results || r;
         },

@@ -55,7 +55,8 @@
 // ── Hero ───────────────────────────────────────────────────────────────────
 .v-hero {
   background: #fff;
-  border-left: 5px solid var(--slate-med);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--slate-med);
   border-radius: 10px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, .08);
   padding: 1.4rem 1.6rem;
@@ -67,15 +68,15 @@
   margin-bottom: 1.4rem;
 
   &.status--pendente {
-    border-left-color: var(--amber-dark);
+    border-top-color: var(--amber-dark);
   }
 
   &.status--assinado-eletronico {
-    border-left-color: var(--green-dark);
+    border-top-color: var(--green-dark);
   }
 
   &.status--assinado-manual {
-    border-left-color: var(--teal-dark);
+    border-top-color: var(--teal-dark);
   }
 }
 
