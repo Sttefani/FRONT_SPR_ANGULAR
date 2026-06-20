@@ -121,7 +121,7 @@
         </thead>
         <tbody>
           @for (v of vestigios; track v.id) {
-            <tr>
+            <tr [class.row--nao-conforme]="!v.conformidade">
               <td data-label="Lacre" class="nome-cell">{{ v.lacre || '—' }}</td>
               <td data-label="SEI">{{ v.num_processo_sei || '—' }}</td>
               <td data-label="Ocorrência">
@@ -148,7 +148,7 @@
                 @if (v.conformidade) {
                   <i class="bi bi-check-circle-fill text-success" title="Em conformidade"></i>
                 } @else {
-                  <i class="bi bi-exclamation-circle text-warning" title="Não conformidade"></i>
+                  <i class="bi bi-exclamation-triangle-fill icon-nao-conforme" title="Não conforme — recebido sem padrão de acondicionamento"></i>
                 }
               </td>
               <td data-label="Registrado em">{{ v.created_at | date:'dd/MM/yyyy' }}</td>

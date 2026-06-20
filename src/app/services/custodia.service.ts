@@ -70,6 +70,7 @@ export interface VestigioDetalhe extends VestigioList {
   registrado_por: string | null;
   atualizado_por: string | null;
   updated_at: string;
+  pode_movimentar?: boolean;
 }
 
 export interface VestigioMovimentacao {
@@ -86,6 +87,8 @@ export interface VestigioMovimentacao {
   user_destino: UsuarioSimples | null;
   criado_por: string | null;
   created_at: string;
+  pode_aceitar?: boolean;
+  sou_o_emissor?: boolean;
 }
 
 export interface DNA {

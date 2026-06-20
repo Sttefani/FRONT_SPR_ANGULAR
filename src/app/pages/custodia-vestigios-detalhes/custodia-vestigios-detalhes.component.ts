@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 
 import { TeiaRelacoesComponent } from '../teia-relacoes/teia-relacoes.component';
@@ -29,7 +31,7 @@ type Tab = 'movimentacoes' | 'dnas' | 'contra-provas' | 'protocolos';
   templateUrl: './custodia-vestigios-detalhes.component.html',
   styleUrls: ['./custodia-vestigios-detalhes.component.scss']
 })
-export class CustodiaVestigiosDetalhesComponent implements OnInit {
+export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
 
   vestigio: VestigioDetalhe | null = null;
   movimentacoes: VestigioMovimentacao[] = [];
@@ -63,6 +65,7 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
 
   // Form de nova movimentação
   showMovForm = false;
+  tipoMovimentacao: 'interna' | 'externa' | 'protocolo' | null = null;
   movForm = {
     lacre: '',
     num_processo_sei: '',
@@ -73,8 +76,21 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
   };
 
   servicos: any[] = [];
-  unidades: any[] = [];
-  autoridades: any[] = [];
+
+  // Autocomplete — Unidade Demandante
+  unidadeBusca = '';
+  todasUnidades: any[] = [];     // cache local (page_size=100)
+  unidadesBuscadas: any[] = [];
+  showUnidadeDropdown = false;
+  private unidadeSubject$ = new Subject<string>();
+
+  // Autocomplete — Autoridade
+  autoritadeBusca = '';
+  autoridadesBuscadas: any[] = [];
+  showAutoridadeDropdown = false;
+  private autoridadeSubject$ = new Subject<string>();
+
+  private destroy$ = new Subject<void>();
 
 
   constructor(
@@ -104,6 +120,34 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
     this.carregarMovimentacoes(id);
     this.carregarContraProvas(id);
     this.carregarDropdowns();
+    this.configurarAutocompletes();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private configurarAutocompletes(): void {
+    this.unidadeSubject$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(q => this.unidadeDemandanteService.getAll(q || undefined)),
+      takeUntil(this.destroy$)
+    ).subscribe(res => {
+      this.unidadesBuscadas = res.results ?? [];
+      this.showUnidadeDropdown = this.unidadesBuscadas.length > 0;
+    });
+
+    this.autoridadeSubject$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(q => this.autoridadeService.getAll(q || undefined)),
+      takeUntil(this.destroy$)
+    ).subscribe(res => {
+      this.autoridadesBuscadas = res.results ?? [];
+      this.showAutoridadeDropdown = this.autoridadesBuscadas.length > 0;
+    });
   }
 
   carregarVestigio(id: number): void {
@@ -164,9 +208,101 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
   }
 
   carregarDropdowns(): void {
-    this.servicoPericialService.getAll().subscribe({ next: (r: any) => this.servicos = r.results ?? r, error: () => {} });
-    this.unidadeDemandanteService.getAll().subscribe({ next: (r: any) => this.unidades = r.results ?? r, error: () => {} });
-    this.autoridadeService.getAll().subscribe({ next: (r: any) => this.autoridades = r.results ?? r, error: () => {} });
+    this.servicoPericialService.getAll(undefined, 50).subscribe({
+      next: (r: any) => this.servicos = r.results ?? r,
+      error: () => {}
+    });
+
+    // Pré-carrega todas as unidades para filtro local imediato
+    this.unidadeDemandanteService.getAllForDropdown().subscribe({
+      next: (r: any) => this.todasUnidades = Array.isArray(r) ? r : (r.results ?? []),
+      error: () => {}
+    });
+  }
+
+  // ── Autocomplete — Unidade Demandante ──────────────────────────────────────
+
+  onUnidadeFocus(): void {
+    this.movForm.unidade_demandante_id = null;
+    this.unidadesBuscadas = this.todasUnidades;
+    this.showUnidadeDropdown = this.todasUnidades.length > 0;
+    if (this.todasUnidades.length === 0) {
+      // fallback: busca no servidor se o cache ainda não carregou
+      this.unidadeSubject$.next('');
+    }
+  }
+
+  onUnidadeInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value.toLowerCase().trim();
+    this.movForm.unidade_demandante_id = null;
+
+    if (this.todasUnidades.length > 0) {
+      // Filtra localmente — sem chamada ao servidor
+      this.unidadesBuscadas = val
+        ? this.todasUnidades.filter(u =>
+            u.sigla?.toLowerCase().includes(val) ||
+            u.nome?.toLowerCase().includes(val)
+          )
+        : this.todasUnidades;
+      this.showUnidadeDropdown = true;
+    } else {
+      // Fallback para busca no servidor (cache ainda carregando)
+      if (val.length >= 1) {
+        this.unidadeSubject$.next(val);
+      } else {
+        this.unidadesBuscadas = [];
+        this.showUnidadeDropdown = false;
+      }
+    }
+  }
+
+  selecionarUnidade(u: any): void {
+    this.movForm.unidade_demandante_id = u.id;
+    this.unidadeBusca = `${u.sigla} — ${u.nome}`;
+    this.unidadesBuscadas = [];
+    this.showUnidadeDropdown = false;
+  }
+
+  limparUnidade(): void {
+    this.movForm.unidade_demandante_id = null;
+    this.unidadeBusca = '';
+    this.unidadesBuscadas = [];
+    this.showUnidadeDropdown = false;
+  }
+
+  fecharDropdownUnidade(): void {
+    setTimeout(() => { this.showUnidadeDropdown = false; }, 150);
+  }
+
+  // ── Autocomplete — Autoridade ──────────────────────────────────────────────
+
+  onAutoridadeInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.movForm.autoridade_id = null;
+    if (val.length >= 1) {
+      this.autoridadeSubject$.next(val);
+    } else {
+      this.autoridadesBuscadas = [];
+      this.showAutoridadeDropdown = false;
+    }
+  }
+
+  selecionarAutoridade(a: any): void {
+    this.movForm.autoridade_id = a.id;
+    this.autoritadeBusca = a.nome;
+    this.autoridadesBuscadas = [];
+    this.showAutoridadeDropdown = false;
+  }
+
+  limparAutoridade(): void {
+    this.movForm.autoridade_id = null;
+    this.autoritadeBusca = '';
+    this.autoridadesBuscadas = [];
+    this.showAutoridadeDropdown = false;
+  }
+
+  fecharDropdownAutoridade(): void {
+    setTimeout(() => { this.showAutoridadeDropdown = false; }, 150);
   }
 
   mudarTab(tab: Tab): void {
@@ -291,11 +427,27 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
 
   registrarMovimentacao(): void {
     if (!this.vestigio) return;
+
+    if (this.tipoMovimentacao === 'interna' && !this.movForm.servico_pericial_id) {
+      Swal.fire('Campo obrigatório', 'Selecione o serviço de destino para a transferência interna.', 'warning');
+      return;
+    }
+    if (this.tipoMovimentacao === 'externa' && !this.movForm.unidade_demandante_id) {
+      Swal.fire('Campo obrigatório', 'Selecione a unidade de destino para o envio externo.', 'warning');
+      return;
+    }
+
     this.isSaving = true;
 
+    // garante que apenas o campo relevante é enviado (interna → serviço, externa → unidade)
     const payload = {
-      ...this.movForm,
-      vestigio_id: this.vestigio.id
+      vestigio_id: this.vestigio.id,
+      lacre: this.movForm.lacre,
+      num_processo_sei: this.movForm.num_processo_sei,
+      descricao: this.movForm.descricao,
+      autoridade_id: this.movForm.autoridade_id,
+      servico_pericial_id: this.tipoMovimentacao === 'interna' ? this.movForm.servico_pericial_id : null,
+      unidade_demandante_id: this.tipoMovimentacao === 'externa' ? this.movForm.unidade_demandante_id : null,
     };
 
     this.custodiaService.criarMovimentacao(payload).subscribe({
@@ -303,13 +455,22 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
         this.movimentacoes.unshift(mov);
         this.showMovForm = false;
         this.resetMovForm();
-        // atualiza status na tela
         if (this.vestigio?.status === 'INICIAL') this.vestigio.status = 'ANDAMENTO';
-        this.showMessage('Movimentação registrada com sucesso.', 'success');
         this.isSaving = false;
+        Swal.fire({
+          title: 'Movimentação registrada!',
+          html: 'A movimentação foi enviada com sucesso.<br><br>' +
+                '<small style="color:#555">O destinatário deverá confirmar o recebimento ' +
+                'acessando a listagem de movimentações ou os detalhes deste vestígio.</small>',
+          icon: 'success',
+          timer: 4000,
+          showConfirmButton: true,
+          confirmButtonText: 'OK'
+        });
       },
-      error: () => {
-        this.showMessage('Erro ao registrar movimentação.', 'error');
+      error: (err: any) => {
+        const msg = err?.error?.detail || 'Erro ao registrar movimentação.';
+        Swal.fire('Erro', msg, 'error');
         this.isSaving = false;
       }
     });
@@ -347,8 +508,29 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit {
     });
   }
 
+  toggleMovForm(): void {
+    this.showMovForm = !this.showMovForm;
+    if (!this.showMovForm) this.resetMovForm();
+  }
+
+  setTipoMovimentacao(tipo: 'interna' | 'externa' | 'protocolo'): void {
+    if (this.tipoMovimentacao === tipo) return;
+    this.tipoMovimentacao = tipo;
+    // limpa campos do outro cenário ao trocar de tipo
+    this.movForm.servico_pericial_id = null;
+    this.limparUnidade();
+    this.limparAutoridade();
+  }
+
   resetMovForm(): void {
+    this.tipoMovimentacao = null;
     this.movForm = { lacre: '', num_processo_sei: '', descricao: '', unidade_demandante_id: null, servico_pericial_id: null, autoridade_id: null };
+    this.unidadeBusca = '';
+    this.unidadesBuscadas = [];
+    this.showUnidadeDropdown = false;
+    this.autoritadeBusca = '';
+    this.autoridadesBuscadas = [];
+    this.showAutoridadeDropdown = false;
   }
 
   // ── Ocorrências vinculadas ────────────────────────────────────────────────

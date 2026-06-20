@@ -106,8 +106,9 @@
   &:hover { color: var(--slate-dark); }
   &.active { color: var(--slate-dark); border-bottom-color: var(--primary); }
 
-  &.tab--pendente.active { border-bottom-color: var(--amber-dark); color: var(--amber-dark); }
-  &.tab--aceita.active   { border-bottom-color: var(--green-dark);  color: var(--green-dark);  }
+  &.tab--aguardando.active { border-bottom-color: #dc2626; color: #dc2626; }
+  &.tab--pendente.active   { border-bottom-color: var(--amber-dark); color: var(--amber-dark); }
+  &.tab--aceita.active     { border-bottom-color: var(--green-dark);  color: var(--green-dark);  }
 }
 
 // ── Tabela ────────────────────────────────────────────────────────────────────
@@ -148,7 +149,10 @@
   cursor: pointer;
   transition: background 0.12s;
   &:hover { background: #f1f5f9; }
-  &.row--pendente { background: #fffbeb; &:hover { background: #fef3c7; } }
+  // Aguardando MEU aceite → vermelho suave (preciso agir)
+  &.row--aguardando { background: #fff5f5; &:hover { background: #fee2e2; } }
+  // Enviado por mim, aguardando outro → âmbar neutro (informativo)
+  &.row--enviado    { background: #fffbeb; &:hover { background: #fef3c7; } }
 }
 
 .actions-col { width: 80px; text-align: center; }
@@ -165,8 +169,19 @@
   font-weight: 700;
   white-space: nowrap;
 
-  &.badge-aceita  { background: var(--green-light); color: var(--green-dark); border: 1px solid #bbf7d0; }
-  &.badge-pendente{ background: var(--amber-light); color: var(--amber-dark); border: 1px solid #fde68a; }
+  &.badge-aceita    { background: var(--green-light); color: var(--green-dark); border: 1px solid #bbf7d0; }
+  // Aguardando MEU aceite — vermelho urgente
+  &.badge-aguardando{
+    background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;
+    animation: pulse-red 2s ease-in-out infinite;
+  }
+  // Enviado, aguardando destinatário — âmbar neutro
+  &.badge-enviado   { background: var(--amber-light); color: var(--amber-dark); border: 1px solid #fde68a; }
+}
+
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+  50%       { box-shadow: 0 0 0 3px rgba(220,38,38,0.15); }
 }
 
 // ── Link para o vestígio ──────────────────────────────────────────────────────

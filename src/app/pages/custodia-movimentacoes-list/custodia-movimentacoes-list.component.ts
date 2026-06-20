@@ -14,7 +14,7 @@ import { ServicoPericialService } from '../../services/servico-pericial.service'
 import { UnidadeDemandanteService } from '../../services/unidade-demandante.service';
 import { PaginadorComponent } from '../../components/paginador/paginador.component';
 
-type TabMov = '' | 'pendentes' | 'aceitas';
+type TabMov = '' | 'aguardando' | 'pendentes' | 'aceitas';
 
 @Component({
   selector: 'app-custodia-movimentacoes-list',
@@ -85,8 +85,9 @@ export class CustodiaMovimentacoesListComponent implements OnInit {
       page_size: this.pageSize,
       ordering: '-created_at',
     };
-    if (this.tabAtiva === 'pendentes') f.aceito = false;
-    if (this.tabAtiva === 'aceitas')   f.aceito = true;
+    if (this.tabAtiva === 'aguardando') (f as any)['aguardando_meu_aceite'] = 'true';
+    if (this.tabAtiva === 'pendentes')  f.aceito = false;
+    if (this.tabAtiva === 'aceitas')    f.aceito = true;
     if (this.filtroSearch)  f.search              = this.filtroSearch;
     if (this.filtroServico !== '') f.servico_pericial   = +this.filtroServico;
     if (this.filtroUnidade !== '') f.unidade_demandante = +this.filtroUnidade;

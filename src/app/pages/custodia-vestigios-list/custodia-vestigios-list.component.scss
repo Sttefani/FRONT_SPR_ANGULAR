@@ -365,6 +365,20 @@
 .text-warning { color: var(--warning-color) !important; }
 .text-muted   { color: #cbd5e0 !important; }
 
+// ── Não-conformidade ──────────────────────────────────────────────────────────
+
+// Linha rosa na tabela quando vestígio não conforme
+tr.row--nao-conforme {
+  background: #fff5f5 !important;
+  &:hover { background: #fee2e2 !important; }
+}
+
+// Ícone vermelho sólido para não-conformidade (mais urgente que warning amarelo)
+.icon-nao-conforme {
+  color: #dc2626;
+  font-size: 1rem;
+}
+
 // ── Ações ─────────────────────────────────────────────────────────────────────
 
 .actions-cell {

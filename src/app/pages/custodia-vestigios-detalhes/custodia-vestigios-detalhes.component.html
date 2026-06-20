@@ -81,6 +81,27 @@
       </div>
     </div>
 
+    <!-- ── Banner de Não-Conformidade ───────────────────────────────────── -->
+    @if (!vestigio.conformidade) {
+      <div class="nao-conforme-banner">
+        <div class="nao-conforme-icon">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <div class="nao-conforme-body">
+          <strong>VESTÍGIO NÃO CONFORME</strong>
+          <p>
+            Este vestígio foi recebido em desacordo com o padrão de acondicionamento
+            e identificação por lacre.
+            @if (!vestigio.lacre) {
+              <span class="nao-conforme-detalhe">Sem lacre registrado.</span>
+            }
+            A FAV emitida para este vestígio registra a não-conformidade automaticamente.
+            <em>Art. 158-B, CPP — Lei n.º 13.964/2019.</em>
+          </p>
+        </div>
+      </div>
+    }
+
     <!-- ── Cards de informação ────────────────────────────────────────────── -->
     <div class="detail-grid">
 
@@ -322,9 +343,9 @@
     @if (tabAtiva === 'movimentacoes') {
       <div class="tab-content">
 
-        @if (isCustodiante && vestigio.status !== 'FINALIZADO') {
+        @if (vestigio.pode_movimentar) {
           <div class="tab-actions">
-            <button class="btn-primary" (click)="showMovForm = !showMovForm">
+            <button class="btn-primary" (click)="toggleMovForm()">
               <i class="bi" [ngClass]="showMovForm ? 'bi-x-circle' : 'bi-plus-circle'"></i>
               {{ showMovForm ? 'Cancelar' : 'Nova Movimentação' }}
             </button>
@@ -335,53 +356,211 @@
         @if (showMovForm) {
           <div class="sub-form">
             <h4>Registrar Movimentação</h4>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Lacre</label>
-                <input type="text" [(ngModel)]="movForm.lacre" placeholder="Lacre...">
-              </div>
-              <div class="form-group">
-                <label>Nº SEI</label>
-                <input type="text" [(ngModel)]="movForm.num_processo_sei" placeholder="Nº SEI...">
-              </div>
-              <div class="form-group">
-                <label>Destino — Unidade</label>
-                <select [(ngModel)]="movForm.unidade_demandante_id">
-                  <option [ngValue]="null">Selecione...</option>
-                  @for (u of unidades; track u.id) {
-                    <option [ngValue]="u.id">{{ u.sigla }} — {{ u.nome }}</option>
-                  }
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Destino — Serviço</label>
-                <select [(ngModel)]="movForm.servico_pericial_id">
-                  <option [ngValue]="null">Selecione...</option>
-                  @for (s of servicos; track s.id) {
-                    <option [ngValue]="s.id">{{ s.sigla }}</option>
-                  }
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Autoridade</label>
-                <select [(ngModel)]="movForm.autoridade_id">
-                  <option [ngValue]="null">Nenhuma</option>
-                  @for (a of autoridades; track a.id) {
-                    <option [ngValue]="a.id">{{ a.nome }}</option>
-                  }
-                </select>
-              </div>
-              <div class="form-group full-width">
-                <label>Descrição</label>
-                <textarea [(ngModel)]="movForm.descricao" rows="3" placeholder="Observações da movimentação..."></textarea>
-              </div>
-            </div>
-            <div class="sub-form-actions">
-              <button class="btn-salvar" (click)="registrarMovimentacao()" [disabled]="isSaving">
-                <i class="bi bi-check-circle"></i>
-                {{ isSaving ? 'Salvando...' : 'Registrar' }}
+
+            <!-- Seletor de tipo de movimentação -->
+            <div class="mov-tipo-selector">
+              <button type="button"
+                class="mov-tipo-btn"
+                [class.active]="tipoMovimentacao === 'interna'"
+                (click)="setTipoMovimentacao('interna')">
+                <i class="bi bi-arrow-left-right"></i>
+                <strong>Transferência Interna</strong>
+                <small>Entre seções forenses do ICPDA<br>(BAL → BIO, SETEC → PLT…)</small>
+              </button>
+              <button type="button"
+                class="mov-tipo-btn"
+                [class.active]="tipoMovimentacao === 'externa'"
+                (click)="setTipoMovimentacao('externa')">
+                <i class="bi bi-building-up"></i>
+                <strong>Envio a Unidade Externa</strong>
+                <small>Delegacia, vara judicial,<br>órgão solicitante da perícia</small>
+              </button>
+              <button type="button"
+                class="mov-tipo-btn mov-tipo-btn--protocolo"
+                [class.active]="tipoMovimentacao === 'protocolo'"
+                (click)="setTipoMovimentacao('protocolo')">
+                <i class="bi bi-file-earmark-check"></i>
+                <strong>Protocolo de Saída</strong>
+                <small>Entrega formal com<br>assinatura e registro</small>
               </button>
             </div>
+
+            <!-- Cenário 1: Transferência Interna -->
+            @if (tipoMovimentacao === 'interna') {
+              <div class="mov-tipo-info interna">
+                <i class="bi bi-info-circle"></i>
+                O vestígio será transferido para outra seção forense interna.
+                O recebimento deve ser confirmado por um perito ou custodiante da seção de destino.
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Lacre</label>
+                  <input type="text" [(ngModel)]="movForm.lacre" placeholder="Lacre da embalagem...">
+                </div>
+                <div class="form-group">
+                  <label>Nº SEI</label>
+                  <input type="text" [(ngModel)]="movForm.num_processo_sei" placeholder="Nº SEI...">
+                </div>
+                <div class="form-group full-width">
+                  <label>Serviço de Destino <span class="required">*</span></label>
+                  <select [(ngModel)]="movForm.servico_pericial_id">
+                    <option [ngValue]="null">Selecione o serviço de destino...</option>
+                    @for (s of servicos; track s.id) {
+                      <option [ngValue]="s.id">{{ s.sigla }} — {{ s.nome }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="form-group ac-wrapper full-width">
+                  <label>Autoridade <span class="optional">(opcional)</span></label>
+                  @if (movForm.autoridade_id) {
+                    <div class="ac-selected">
+                      <span>{{ autoritadeBusca }}</span>
+                      <button type="button" class="ac-clear" (click)="limparAutoridade()">×</button>
+                    </div>
+                  } @else {
+                    <input type="text"
+                      [(ngModel)]="autoritadeBusca"
+                      (input)="onAutoridadeInput($event)"
+                      (blur)="fecharDropdownAutoridade()"
+                      placeholder="Digite nome da autoridade (opcional)..."
+                      autocomplete="off">
+                    @if (showAutoridadeDropdown) {
+                      <ul class="ac-list">
+                        @for (a of autoridadesBuscadas; track a.id) {
+                          <li (mousedown)="selecionarAutoridade(a)">{{ a.nome }}</li>
+                        }
+                      </ul>
+                    }
+                  }
+                </div>
+                <div class="form-group full-width">
+                  <label>Observações</label>
+                  <textarea [(ngModel)]="movForm.descricao" rows="3" placeholder="Motivo da transferência, condições do material..."></textarea>
+                </div>
+              </div>
+              <div class="sub-form-actions">
+                <button class="btn-salvar" (click)="registrarMovimentacao()" [disabled]="isSaving || !movForm.servico_pericial_id">
+                  <i class="bi bi-check-circle"></i>
+                  {{ isSaving ? 'Registrando...' : 'Registrar Transferência' }}
+                </button>
+              </div>
+            }
+
+            <!-- Cenário 2: Envio Externo -->
+            @if (tipoMovimentacao === 'externa') {
+              <div class="mov-tipo-info externa">
+                <i class="bi bi-info-circle"></i>
+                O vestígio será enviado para uma unidade externa (delegacia, vara, etc.).
+                O recebimento deve ser confirmado pelo usuário EXTERNO da unidade de destino ou pelo custodiante.
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Lacre</label>
+                  <input type="text" [(ngModel)]="movForm.lacre" placeholder="Lacre da embalagem...">
+                </div>
+                <div class="form-group">
+                  <label>Nº SEI</label>
+                  <input type="text" [(ngModel)]="movForm.num_processo_sei" placeholder="Nº SEI...">
+                </div>
+                <div class="form-group ac-wrapper full-width">
+                  <label>Unidade de Destino <span class="required">*</span></label>
+                  @if (movForm.unidade_demandante_id) {
+                    <div class="ac-selected">
+                      <span>{{ unidadeBusca }}</span>
+                      <button type="button" class="ac-clear" (click)="limparUnidade()">×</button>
+                    </div>
+                  } @else {
+                    <input type="text"
+                      [(ngModel)]="unidadeBusca"
+                      (focus)="onUnidadeFocus()"
+                      (input)="onUnidadeInput($event)"
+                      (blur)="fecharDropdownUnidade()"
+                      placeholder="Clique ou digite para filtrar..."
+                      autocomplete="off">
+                    @if (showUnidadeDropdown && unidadesBuscadas.length > 0) {
+                      <ul class="ac-list">
+                        @for (u of unidadesBuscadas; track u.id) {
+                          <li (mousedown)="selecionarUnidade(u)">
+                            <strong>{{ u.sigla }}</strong> — {{ u.nome }}
+                          </li>
+                        }
+                        @if (unidadesBuscadas.length === 0) {
+                          <li class="ac-empty">Nenhuma unidade encontrada</li>
+                        }
+                      </ul>
+                    }
+                    @if (showUnidadeDropdown && unidadesBuscadas.length === 0) {
+                      <ul class="ac-list">
+                        <li class="ac-empty">Nenhuma unidade encontrada</li>
+                      </ul>
+                    }
+                  }
+                </div>
+                <div class="form-group ac-wrapper full-width">
+                  <label>Autoridade <span class="optional">(opcional)</span></label>
+                  @if (movForm.autoridade_id) {
+                    <div class="ac-selected">
+                      <span>{{ autoritadeBusca }}</span>
+                      <button type="button" class="ac-clear" (click)="limparAutoridade()">×</button>
+                    </div>
+                  } @else {
+                    <input type="text"
+                      [(ngModel)]="autoritadeBusca"
+                      (input)="onAutoridadeInput($event)"
+                      (blur)="fecharDropdownAutoridade()"
+                      placeholder="Digite nome da autoridade (opcional)..."
+                      autocomplete="off">
+                    @if (showAutoridadeDropdown) {
+                      <ul class="ac-list">
+                        @for (a of autoridadesBuscadas; track a.id) {
+                          <li (mousedown)="selecionarAutoridade(a)">{{ a.nome }}</li>
+                        }
+                      </ul>
+                    }
+                  }
+                </div>
+                <div class="form-group full-width">
+                  <label>Observações</label>
+                  <textarea [(ngModel)]="movForm.descricao" rows="3" placeholder="Motivo do envio, dados do receptor, condições..."></textarea>
+                </div>
+              </div>
+              <div class="sub-form-actions">
+                <button class="btn-salvar" (click)="registrarMovimentacao()" [disabled]="isSaving || !movForm.unidade_demandante_id">
+                  <i class="bi bi-check-circle"></i>
+                  {{ isSaving ? 'Registrando...' : 'Registrar Envio' }}
+                </button>
+              </div>
+            }
+
+            <!-- Cenário 3: Protocolo de Saída -->
+            @if (tipoMovimentacao === 'protocolo') {
+              <div class="protocolo-redirect-card">
+                <div class="protocolo-redirect-icon">
+                  <i class="bi bi-file-earmark-check-fill"></i>
+                </div>
+                <div class="protocolo-redirect-body">
+                  <strong>Protocolo de Entrega e Saída</strong>
+                  <p>
+                    Para entregas formais — com registro de quem recebeu, assinatura eletrônica
+                    e finalização automática da custódia — use o <strong>Protocolo de Saída</strong>.
+                  </p>
+                  <ul>
+                    <li>Gera documento PDF com QR code de autenticidade</li>
+                    <li>Registra assinatura eletrônica do recebedor</li>
+                    <li>Finaliza o vestígio automaticamente</li>
+                    <li>Garante rastreabilidade e validade jurídica</li>
+                  </ul>
+                </div>
+                <div class="protocolo-redirect-actions">
+                  <button class="btn-protocolo" (click)="emitirProtocolo()">
+                    <i class="bi bi-file-earmark-arrow-up"></i>
+                    Emitir Protocolo de Saída
+                  </button>
+                  <small>Requer perfil CUSTODIANTE ou ADMINISTRATIVO</small>
+                </div>
+              </div>
+            }
+
           </div>
         }
 
@@ -406,10 +585,12 @@
                     <span class="timeline-by">{{ mov.criado_por || 'Sistema' }}</span>
                     @if (mov.aceito) {
                       <span class="badge-aceito">✓ Aceito em {{ mov.data_hora_aceito | date:'dd/MM/yyyy HH:mm' }}</span>
-                    } @else if (isCustodiante) {
+                    } @else if (mov.pode_aceitar) {
                       <button class="btn-aceitar" (click)="aceitarMovimentacao(mov)">
                         <i class="bi bi-check2"></i> Confirmar recebimento
                       </button>
+                    } @else {
+                      <span class="badge-pendente">Aguardando aceite do destinatário</span>
                     }
                     <button class="btn-ver-mov" (click)="verMovimentacao(mov.id)">
                       <i class="bi bi-eye"></i> Detalhes

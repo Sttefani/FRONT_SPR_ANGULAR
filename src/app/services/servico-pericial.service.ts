@@ -33,11 +33,10 @@ export class ServicoPericialService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(search?: string): Observable<PaginatedResponse> {
+  getAll(search?: string, pageSize?: number): Observable<PaginatedResponse> {
     let params = new HttpParams();
-    if (search) {
-      params = params.set('search', search);
-    }
+    if (search) params = params.set('search', search);
+    if (pageSize) params = params.set('page_size', pageSize.toString());
     return this.http.get<PaginatedResponse>(`${this.baseUrl}/servicos-periciais/`, { params });
   }
 

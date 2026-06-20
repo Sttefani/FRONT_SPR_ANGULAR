@@ -57,8 +57,11 @@
     <button class="tab" [class.active]="tabAtiva === ''" (click)="mudarTab('')">
       <i class="bi bi-collection"></i> Todas
     </button>
+    <button class="tab tab--aguardando" [class.active]="tabAtiva === 'aguardando'" (click)="mudarTab('aguardando')">
+      <i class="bi bi-bell-fill"></i> Aguardando meu aceite
+    </button>
     <button class="tab tab--pendente" [class.active]="tabAtiva === 'pendentes'" (click)="mudarTab('pendentes')">
-      <i class="bi bi-hourglass-split"></i> Pendentes
+      <i class="bi bi-hourglass-split"></i> Todas as pendentes
     </button>
     <button class="tab tab--aceita" [class.active]="tabAtiva === 'aceitas'" (click)="mudarTab('aceitas')">
       <i class="bi bi-check-circle"></i> Aceitas
@@ -97,7 +100,10 @@
         </thead>
         <tbody>
           @for (mov of movimentacoes; track mov.id) {
-            <tr class="row-clickable" [class.row--pendente]="!mov.aceito" (click)="verDetalhes(mov.id)">
+            <tr class="row-clickable"
+                [class.row--aguardando]="!mov.aceito && mov.pode_aceitar"
+                [class.row--enviado]="!mov.aceito && !mov.pode_aceitar"
+                (click)="verDetalhes(mov.id)">
               <td data-label="#">{{ mov.id }}</td>
               <td data-label="Vestígio">
                 <button class="link-vestigio" (click)="verVestigio(mov.vestigio, $event)"
@@ -115,11 +121,15 @@
               <td data-label="Status" class="text-center">
                 @if (mov.aceito) {
                   <span class="badge-mov badge-aceita">
-                    <i class="bi bi-check-circle-fill"></i> Aceita
+                    <i class="bi bi-check-circle-fill"></i> Recebido
+                  </span>
+                } @else if (mov.pode_aceitar) {
+                  <span class="badge-mov badge-aguardando">
+                    <i class="bi bi-bell-fill"></i> Aguardando meu aceite
                   </span>
                 } @else {
-                  <span class="badge-mov badge-pendente">
-                    <i class="bi bi-hourglass-split"></i> Pendente
+                  <span class="badge-mov badge-enviado">
+                    <i class="bi bi-send-fill"></i> Enviado — ag. destinatário
                   </span>
                 }
               </td>
@@ -127,7 +137,7 @@
                 <button class="icon-btn view" title="Ver detalhes" (click)="verDetalhes(mov.id)">
                   <i class="bi bi-eye"></i>
                 </button>
-                @if (!mov.aceito && isCustodiante) {
+                @if (mov.pode_aceitar) {
                   <button class="icon-btn accept" title="Confirmar recebimento"
                           [disabled]="aceitandoId === mov.id"
                           (click)="aceitar(mov, $event)">

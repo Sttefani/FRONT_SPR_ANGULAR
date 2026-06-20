@@ -46,7 +46,7 @@
         <button class="v-btn v-btn--vestigio" (click)="verVestigio()">
           <i class="bi bi-shield-lock-fill"></i> Ver Vestígio
         </button>
-        @if (!mov.aceito && isCustodiante) {
+        @if (mov.pode_aceitar) {
           <button class="v-btn v-btn--aceitar" (click)="aceitar()" [disabled]="aceitando">
             @if (aceitando) {
               <i class="bi bi-hourglass-split spin"></i> Confirmando...
@@ -141,11 +141,18 @@
               <span class="detail-label">Recebido por</span>
               <span class="detail-value">{{ mov.user_destino?.nome_completo || '—' }}</span>
             </div>
-          } @else if (isCustodiante) {
+          } @else if (mov.pode_aceitar) {
             <div class="detail-row">
               <span class="detail-label hint">
                 <i class="bi bi-info-circle"></i>
                 Use o botão "Confirmar Recebimento" acima para registrar o aceite.
+              </span>
+            </div>
+          } @else {
+            <div class="detail-row">
+              <span class="detail-label hint">
+                <i class="bi bi-hourglass-split"></i>
+                Aguardando aceite pelo destinatário.
               </span>
             </div>
           }
