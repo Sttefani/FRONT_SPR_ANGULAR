@@ -18,6 +18,14 @@ export interface UsuarioSimples {
   perfil?: string;
 }
 
+export interface VestigioAutoComplete {
+  id: number;
+  lacre: string;
+  ocorrencia: string;
+  ano_ocorrencia: number | null;
+  status: 'INICIAL' | 'ANDAMENTO' | 'FINALIZADO';
+}
+
 export interface VestigioList {
   id: number;
   lacre: string | null;
@@ -71,6 +79,7 @@ export interface VestigioDetalhe extends VestigioList {
   atualizado_por: string | null;
   updated_at: string;
   pode_movimentar?: boolean;
+  pode_editar?: boolean;
 }
 
 export interface VestigioMovimentacao {
@@ -262,6 +271,11 @@ export class CustodiaService {
 
   getVestigio(id: number): Observable<VestigioDetalhe> {
     return this.http.get<VestigioDetalhe>(`${this.base}/custodia/vestigios/${id}/`);
+  }
+
+  autoCompleteVestigios(valor: string): Observable<VestigioAutoComplete[]> {
+    const params = new HttpParams().set('valor', valor);
+    return this.http.get<VestigioAutoComplete[]>(`${this.base}/custodia/vestigios/auto-complete/`, { params });
   }
 
   criarVestigio(data: any): Observable<VestigioDetalhe> {

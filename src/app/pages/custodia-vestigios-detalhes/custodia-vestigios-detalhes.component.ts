@@ -59,6 +59,7 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
   messageType: 'success' | 'error' = 'success';
 
   isCustodiante = false;
+  isExterno = false;
   isSuperAdmin = false;
   showTeia = false;
   podeVerTeia = false;
@@ -109,7 +110,8 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     this.isSuperAdmin = this.authService.isSuperAdmin();
-    this.isCustodiante = user?.perfil !== 'EXTERNO';
+    this.isExterno = user?.perfil === 'EXTERNO';
+    this.isCustodiante = !this.isExterno;
     const _PERFIS_TEIA = ['PERITO','OPERACIONAL','ADMINISTRATIVO','SUPER_ADMIN'];
     this.podeVerTeia = _PERFIS_TEIA.includes(user?.perfil) || !!user?.is_superuser;
 
@@ -510,7 +512,11 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
 
   toggleMovForm(): void {
     this.showMovForm = !this.showMovForm;
-    if (!this.showMovForm) this.resetMovForm();
+    if (!this.showMovForm) {
+      this.resetMovForm();
+    } else if (this.isExterno) {
+      this.tipoMovimentacao = 'interna';
+    }
   }
 
   setTipoMovimentacao(tipo: 'interna' | 'externa' | 'protocolo'): void {

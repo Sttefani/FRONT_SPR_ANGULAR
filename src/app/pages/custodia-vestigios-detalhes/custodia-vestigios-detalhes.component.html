@@ -57,9 +57,11 @@
           <i class="bi bi-file-earmark-pdf-fill"></i> Ficha PDF
         </button>
         @if (isCustodiante) {
-          <button class="v-btn v-btn--edit" (click)="editar()">
-            <i class="bi bi-pencil-fill"></i> Editar
-          </button>
+          @if (vestigio.pode_editar) {
+            <button class="v-btn v-btn--edit" (click)="editar()">
+              <i class="bi bi-pencil-fill"></i> Editar
+            </button>
+          }
           <button class="v-btn v-btn--dna" (click)="registrarDna()">
             <i class="bi bi-dna"></i> Registrar DNA
           </button>
@@ -72,11 +74,12 @@
             <button class="v-btn v-btn--finalizar" (click)="finalizar()">
               <i class="bi bi-check-circle-fill"></i> Finalizar
             </button>
-          } @else {
-            <button class="v-btn v-btn--reabrir" (click)="reabrir()">
-              <i class="bi bi-arrow-counterclockwise"></i> Reabrir
-            </button>
           }
+        }
+        @if (isSuperAdmin && vestigio.status === 'FINALIZADO') {
+          <button class="v-btn v-btn--reabrir" (click)="reabrir()">
+            <i class="bi bi-arrow-counterclockwise"></i> Reabrir
+          </button>
         }
       </div>
     </div>
@@ -358,32 +361,42 @@
             <h4>Registrar Movimentação</h4>
 
             <!-- Seletor de tipo de movimentação -->
-            <div class="mov-tipo-selector">
-              <button type="button"
-                class="mov-tipo-btn"
-                [class.active]="tipoMovimentacao === 'interna'"
-                (click)="setTipoMovimentacao('interna')">
-                <i class="bi bi-arrow-left-right"></i>
-                <strong>Transferência Interna</strong>
-                <small>Entre seções forenses do ICPDA<br>(BAL → BIO, SETEC → PLT…)</small>
-              </button>
-              <button type="button"
-                class="mov-tipo-btn"
-                [class.active]="tipoMovimentacao === 'externa'"
-                (click)="setTipoMovimentacao('externa')">
-                <i class="bi bi-building-up"></i>
-                <strong>Envio a Unidade Externa</strong>
-                <small>Delegacia, vara judicial,<br>órgão solicitante da perícia</small>
-              </button>
-              <button type="button"
-                class="mov-tipo-btn mov-tipo-btn--protocolo"
-                [class.active]="tipoMovimentacao === 'protocolo'"
-                (click)="setTipoMovimentacao('protocolo')">
-                <i class="bi bi-file-earmark-check"></i>
-                <strong>Protocolo de Saída</strong>
-                <small>Entrega formal com<br>assinatura e registro</small>
-              </button>
-            </div>
+            @if (!isExterno) {
+              <div class="mov-tipo-selector">
+                <button type="button"
+                  class="mov-tipo-btn"
+                  [class.active]="tipoMovimentacao === 'interna'"
+                  (click)="setTipoMovimentacao('interna')">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <strong>Transferência Interna</strong>
+                  <small>Entre seções forenses do ICPDA<br>(BAL → BIO, SETEC → PLT…)</small>
+                </button>
+                <button type="button"
+                  class="mov-tipo-btn"
+                  [class.active]="tipoMovimentacao === 'externa'"
+                  (click)="setTipoMovimentacao('externa')">
+                  <i class="bi bi-building-up"></i>
+                  <strong>Envio a Unidade Externa</strong>
+                  <small>Delegacia, vara judicial,<br>órgão solicitante da perícia</small>
+                </button>
+                <button type="button"
+                  class="mov-tipo-btn mov-tipo-btn--protocolo"
+                  [class.active]="tipoMovimentacao === 'protocolo'"
+                  (click)="setTipoMovimentacao('protocolo')">
+                  <i class="bi bi-file-earmark-check"></i>
+                  <strong>Protocolo de Saída</strong>
+                  <small>Entrega formal com<br>assinatura e registro</small>
+                </button>
+              </div>
+            } @else {
+              <div class="mov-tipo-info interna">
+                <i class="bi bi-arrow-up-right-square-fill"></i>
+                <div>
+                  <strong>Envio para Custódia Forense</strong><br>
+                  <small>Selecione o Serviço Pericial de destino para registrar a entrega do material apreendido.</small>
+                </div>
+              </div>
+            }
 
             <!-- Cenário 1: Transferência Interna -->
             @if (tipoMovimentacao === 'interna') {
@@ -447,7 +460,7 @@
             }
 
             <!-- Cenário 2: Envio Externo -->
-            @if (tipoMovimentacao === 'externa') {
+            @if (!isExterno && tipoMovimentacao === 'externa') {
               <div class="mov-tipo-info externa">
                 <i class="bi bi-info-circle"></i>
                 O vestígio será enviado para uma unidade externa (delegacia, vara, etc.).
@@ -533,7 +546,7 @@
             }
 
             <!-- Cenário 3: Protocolo de Saída -->
-            @if (tipoMovimentacao === 'protocolo') {
+            @if (!isExterno && tipoMovimentacao === 'protocolo') {
               <div class="protocolo-redirect-card">
                 <div class="protocolo-redirect-icon">
                   <i class="bi bi-file-earmark-check-fill"></i>
