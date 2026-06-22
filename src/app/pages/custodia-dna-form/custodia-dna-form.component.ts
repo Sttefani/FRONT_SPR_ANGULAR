@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import { CustodiaService, VestigioList } from '../../services/custodia.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { AuthService } from '../../services/auth.service';
+import { cpfValidator, formatarCpf, dataMaxHojeValidator } from '../../shared/validators';
 
 @Component({
   selector: 'app-custodia-dna-form',
@@ -35,6 +36,12 @@ export class CustodiaDnaFormComponent implements OnInit {
 
   // Perfil
   isExterno = false;
+
+  // Data máxima para campos de data (hoje em formato YYYY-MM-DD local)
+  readonly hoje: string = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
 
   // ── Busca e seleção de vestígio ──────────────────────────────────────────
   buscaVestigio = '';
@@ -93,6 +100,10 @@ export class CustodiaDnaFormComponent implements OnInit {
 
     this.carregarUsuarios();
     this.preencherPerito();
+
+    // Validators condicionais baseados em situacao e estrangeiro
+    this.form.get('situacao')?.valueChanges.subscribe(v => this.atualizarValidadoresApenado(v));
+    this.form.get('estrangeiro')?.valueChanges.subscribe(v => this.atualizarValidadoresEstrangeiro(v));
   }
 
   get isApenado(): boolean {
@@ -133,14 +144,14 @@ export class CustodiaDnaFormComponent implements OnInit {
     this.form = this.fb.group({
       // Identificação pessoal
       nome:         ['', [Validators.required, Validators.maxLength(255)]],
-      nascimento:   ['', Validators.required],
+      nascimento:   ['', [Validators.required, dataMaxHojeValidator()]],
       naturalidade: ['', [Validators.required, Validators.maxLength(255)]],
       estrangeiro:  [false],
       uf:           ['RR'],
       pais:         ['BRASIL', Validators.maxLength(100)],
       mae:          ['', [Validators.required, Validators.maxLength(255)]],
       pai:          ['', Validators.maxLength(255)],
-      cpf:          ['', [Validators.required, Validators.maxLength(14)]],
+      cpf:          ['', [Validators.required, cpfValidator()]],
       rg:           ['', [Validators.required, Validators.maxLength(30)]],
 
       // Informações clínicas / legais
@@ -154,7 +165,7 @@ export class CustodiaDnaFormComponent implements OnInit {
 
       // Coleta
       finalidade_coleta: ['LEI', Validators.required],
-      data_da_coleta:    ['', Validators.required],
+      data_da_coleta:    ['', [Validators.required, dataMaxHojeValidator()]],
       codigo_barras:     ['', Validators.maxLength(100)],
       lacres:            ['', Validators.maxLength(255)],
       testemunha:        ['', Validators.maxLength(255)],
@@ -212,7 +223,7 @@ export class CustodiaDnaFormComponent implements OnInit {
           pais: d.pais,
           mae: d.mae,
           pai: d.pai,
-          cpf: d.cpf,
+          cpf: formatarCpf(d.cpf ?? ''),
           rg: d.rg,
           gemeo: this.normSimNao(d.gemeo),
           transfusao: this.normSimNao(d.transfusao),
@@ -302,6 +313,37 @@ export class CustodiaDnaFormComponent implements OnInit {
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      const cpfErros = this.form.get('cpf')?.errors;
+      const camposObrigatorios: Record<string, string> = {
+        nome: 'Nome completo',
+        nascimento: this.form.get('nascimento')?.errors?.['dataFutura']
+          ? 'Data de Nascimento (data futura)' : 'Data de Nascimento',
+        naturalidade: 'Naturalidade',
+        mae: 'Nome da Mãe',
+        cpf: cpfErros?.['cpfInvalido']
+          ? 'CPF (número inválido)'
+          : (this.estrangeiro ? 'Documento de Identidade' : 'CPF'),
+        rg: 'RG',
+        finalidade_coleta: 'Finalidade da Coleta',
+        data_da_coleta: this.form.get('data_da_coleta')?.errors?.['dataFutura']
+          ? 'Data da Coleta (data futura)' : 'Data da Coleta',
+        ...(this.isApenado ? {
+          unidade_prisional: 'Unidade Prisional',
+          tipo_penal: 'Tipo Penal',
+        } : {}),
+      };
+      const faltando = Object.entries(camposObrigatorios)
+        .filter(([ctrl]) => this.form.get(ctrl)?.invalid)
+        .map(([, label]) => `• ${label}`)
+        .join('<br>');
+      Swal.fire({
+        title: 'Campos obrigatórios',
+        html: faltando
+          ? `Preencha os campos antes de salvar:<br><br>${faltando}`
+          : 'Verifique os campos destacados em vermelho e tente novamente.',
+        icon: 'warning',
+        confirmButtonText: 'Ok',
+      });
       return;
     }
     this.isSaving = true;
@@ -309,6 +351,10 @@ export class CustodiaDnaFormComponent implements OnInit {
     const raw = { ...this.form.getRawValue() };   // getRawValue inclui campos disabled
     if (raw.nascimento)     raw.nascimento     = raw.nascimento     + 'T00:00:00';
     if (raw.data_da_coleta) raw.data_da_coleta = raw.data_da_coleta + 'T00:00:00';
+    // Envia CPF sem formatação; documento estrangeiro mantém o valor original
+    if (!raw.estrangeiro) {
+      raw.cpf = (raw.cpf ?? '').replace(/\D/g, '');
+    }
 
     // Se há arquivo de foto, usa FormData (multipart); caso contrário, JSON normal
     let payload: FormData | Record<string, any>;
@@ -415,11 +461,43 @@ export class CustodiaDnaFormComponent implements OnInit {
         if (this.vestigioId) {
           this.router.navigate(['/gabinete-virtual/custodia/vestigios', this.vestigioId]);
         } else {
-          this.router.navigate(['/gabinete-virtual/custodia/vestigios']);
+          this.router.navigate(['/gabinete-virtual/custodia/dnas']);
         }
       }
     });
   }
 
   get estrangeiro() { return this.form.get('estrangeiro')?.value; }
+
+  private atualizarValidadoresApenado(situacao: string): void {
+    const campos = ['unidade_prisional', 'tipo_penal'];
+    campos.forEach(campo => {
+      const ctrl = this.form.get(campo);
+      if (situacao === 'APENADO') {
+        ctrl?.setValidators([Validators.required, Validators.maxLength(255)]);
+      } else {
+        ctrl?.setValidators(Validators.maxLength(255));
+        ctrl?.setValue('', { emitEvent: false });
+      }
+      ctrl?.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
+  private atualizarValidadoresEstrangeiro(estrangeiro: boolean): void {
+    const cpfCtrl = this.form.get('cpf');
+    if (estrangeiro) {
+      cpfCtrl?.setValidators(Validators.maxLength(30));
+    } else {
+      cpfCtrl?.setValidators([Validators.required, cpfValidator()]);
+    }
+    cpfCtrl?.updateValueAndValidity({ emitEvent: false });
+  }
+
+  onCpfInput(event: Event): void {
+    if (this.estrangeiro) return; // documento estrangeiro não recebe máscara de CPF
+    const input = event.target as HTMLInputElement;
+    const formatado = formatarCpf(input.value);
+    input.value = formatado;
+    this.form.get('cpf')?.setValue(formatado, { emitEvent: false });
+  }
 }

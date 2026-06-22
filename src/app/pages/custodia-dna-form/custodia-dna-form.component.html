@@ -46,26 +46,51 @@
           }
         </div>
 
-        <div class="form-group required">
-          <label>CPF</label>
-          <input type="text" formControlName="cpf" placeholder="000.000.000-00"
+        <div class="form-group" [class.required]="!estrangeiro">
+          <label>{{ estrangeiro ? 'Documento de Identidade' : 'CPF' }}</label>
+          <input type="text" formControlName="cpf"
+                 [placeholder]="estrangeiro ? 'Passaporte, RNE ou doc. estrangeiro' : '000.000.000-00'"
+                 [attr.maxlength]="estrangeiro ? 30 : 14"
+                 (input)="onCpfInput($event)"
                  [class.is-invalid]="form.get('cpf')?.invalid && form.get('cpf')?.touched">
+          @if (form.get('cpf')?.touched) {
+            @if (form.get('cpf')?.errors?.['required']) {
+              <span class="field-error">Obrigatório</span>
+            } @else if (form.get('cpf')?.errors?.['cpfInvalido']) {
+              <span class="field-error">CPF inválido</span>
+            }
+          }
         </div>
 
         <div class="form-group required">
           <label>RG</label>
-          <input type="text" formControlName="rg" placeholder="Nº do documento">
+          <input type="text" formControlName="rg" placeholder="Nº do documento"
+                 [class.is-invalid]="form.get('rg')?.invalid && form.get('rg')?.touched">
+          @if (form.get('rg')?.invalid && form.get('rg')?.touched) {
+            <span class="field-error">Obrigatório</span>
+          }
         </div>
 
         <div class="form-group required">
           <label>Data de Nascimento</label>
-          <input type="date" formControlName="nascimento"
+          <input type="date" formControlName="nascimento" [max]="hoje"
                  [class.is-invalid]="form.get('nascimento')?.invalid && form.get('nascimento')?.touched">
+          @if (form.get('nascimento')?.touched) {
+            @if (form.get('nascimento')?.errors?.['required']) {
+              <span class="field-error">Obrigatório</span>
+            } @else if (form.get('nascimento')?.errors?.['dataFutura']) {
+              <span class="field-error">Data não pode ser futura</span>
+            }
+          }
         </div>
 
         <div class="form-group required">
           <label>Naturalidade (cidade)</label>
-          <input type="text" formControlName="naturalidade" placeholder="Cidade de nascimento">
+          <input type="text" formControlName="naturalidade" placeholder="Cidade de nascimento"
+                 [class.is-invalid]="form.get('naturalidade')?.invalid && form.get('naturalidade')?.touched">
+          @if (form.get('naturalidade')?.invalid && form.get('naturalidade')?.touched) {
+            <span class="field-error">Obrigatório</span>
+          }
         </div>
 
         <div class="form-group">
@@ -100,6 +125,9 @@
           <label>Nome da Mãe</label>
           <input type="text" formControlName="mae" placeholder="Nome completo da mãe"
                  [class.is-invalid]="form.get('mae')?.invalid && form.get('mae')?.touched">
+          @if (form.get('mae')?.invalid && form.get('mae')?.touched) {
+            <span class="field-error">Obrigatório</span>
+          }
         </div>
         <div class="form-group">
           <label>Nome do Pai</label>
@@ -198,12 +226,20 @@
           <div class="form-group required">
             <label>Unidade Prisional</label>
             <input type="text" formControlName="unidade_prisional"
-                   placeholder="Nome da unidade prisional" required>
+                   placeholder="Nome da unidade prisional"
+                   [class.is-invalid]="form.get('unidade_prisional')?.invalid && form.get('unidade_prisional')?.touched">
+            @if (form.get('unidade_prisional')?.invalid && form.get('unidade_prisional')?.touched) {
+              <span class="field-error">Obrigatório</span>
+            }
           </div>
           <div class="form-group required">
             <label>Tipo Penal</label>
             <input type="text" formControlName="tipo_penal"
-                   placeholder="Ex: Homicídio qualificado (Art. 121 §2º CP)">
+                   placeholder="Ex: Homicídio qualificado (Art. 121 §2º CP)"
+                   [class.is-invalid]="form.get('tipo_penal')?.invalid && form.get('tipo_penal')?.touched">
+            @if (form.get('tipo_penal')?.invalid && form.get('tipo_penal')?.touched) {
+              <span class="field-error">Obrigatório</span>
+            }
           </div>
         }
 
@@ -225,8 +261,15 @@
 
         <div class="form-group required">
           <label>Data da Coleta</label>
-          <input type="date" formControlName="data_da_coleta"
+          <input type="date" formControlName="data_da_coleta" [max]="hoje"
                  [class.is-invalid]="form.get('data_da_coleta')?.invalid && form.get('data_da_coleta')?.touched">
+          @if (form.get('data_da_coleta')?.touched) {
+            @if (form.get('data_da_coleta')?.errors?.['required']) {
+              <span class="field-error">Obrigatório</span>
+            } @else if (form.get('data_da_coleta')?.errors?.['dataFutura']) {
+              <span class="field-error">Data não pode ser futura</span>
+            }
+          }
         </div>
 
         <div class="form-group">
