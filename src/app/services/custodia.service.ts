@@ -189,6 +189,7 @@ export interface VestigioFiltros {
   lacre?: string;
   num_processo_sei?: string;
   ocorrencia?: string;
+  comigo?: boolean;   // vestígios sob a guarda física atual do usuário (CRM do perito)
   search?: string;
   page?: number;
   page_size?: number;

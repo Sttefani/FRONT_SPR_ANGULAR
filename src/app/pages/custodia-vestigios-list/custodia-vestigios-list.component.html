@@ -78,6 +78,12 @@
     <button class="tab" [class.active]="tabAtiva === ''" (click)="mudarTab('')">
       <i class="bi bi-collection"></i> Todos
     </button>
+    @if (isCustodiante) {
+      <button class="tab tab--comigo" [class.active]="tabAtiva === 'COMIGO'" (click)="mudarTab('COMIGO')"
+              title="Vestígios sob sua guarda física — recebidos e ainda não movimentados">
+        <i class="bi bi-person-badge"></i> Comigo
+      </button>
+    }
     <button class="tab" [class.active]="tabAtiva === 'INICIAL'" (click)="mudarTab('INICIAL')">
       <i class="bi bi-hourglass"></i> Inicial
     </button>

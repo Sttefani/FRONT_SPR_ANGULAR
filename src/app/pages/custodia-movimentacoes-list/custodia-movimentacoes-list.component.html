@@ -58,7 +58,7 @@
       <i class="bi bi-collection"></i> Todas
     </button>
     <button class="tab tab--aguardando" [class.active]="tabAtiva === 'aguardando'" (click)="mudarTab('aguardando')">
-      <i class="bi bi-bell-fill"></i> Aguardando meu aceite
+      <i class="bi bi-bell-fill"></i> Aguardando aceite
     </button>
     <button class="tab tab--pendente" [class.active]="tabAtiva === 'pendentes'" (click)="mudarTab('pendentes')">
       <i class="bi bi-hourglass-split"></i> Todas as pendentes
@@ -125,7 +125,7 @@
                   </span>
                 } @else if (mov.pode_aceitar) {
                   <span class="badge-mov badge-aguardando">
-                    <i class="bi bi-bell-fill"></i> Aguardando meu aceite
+                    <i class="bi bi-bell-fill"></i> Aguardando aceite
                   </span>
                 } @else {
                   <span class="badge-mov badge-enviado">

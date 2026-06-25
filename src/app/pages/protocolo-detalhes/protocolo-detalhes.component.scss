@@ -231,53 +231,27 @@
 // ── Detail cards ───────────────────────────────────────────────────────────
 .detail-card {
   background: #fff;
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .06);
 
+  // Cabeçalho de seção sóbrio e UNIFICADO — sem gradientes coloridos por seção
   h3 {
-    color: #fff;
-    font-size: .82rem;
+    background: var(--slate-light);
+    color: var(--slate-med);
+    font-size: .72rem;
     font-weight: 700;
-    padding: .6rem 1rem;
+    padding: .6rem .95rem;
     margin: 0;
     display: flex;
     align-items: center;
-    gap: .4rem;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, .2);
-  }
+    gap: .45rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    border-bottom: 1px solid var(--border);
 
-  &.card--vestigio h3 {
-    background: linear-gradient(120deg, #4c1d95, #6b21a8, #7c3aed);
-  }
-
-  &.card--dest h3 {
-    background: linear-gradient(120deg, #0c4a6e, #0369a1, #0891b2);
-  }
-
-  &.card--entregador h3 {
-    background: linear-gradient(120deg, #14532d, #15803d, #16a34a);
-  }
-
-  &.card--recebedor h3 {
-    background: linear-gradient(120deg, var(--amber-dark), #b45309, #d97706);
-  }
-
-  &.card--desc h3 {
-    background: linear-gradient(120deg, #92400e, #b45309, #d97706);
-  }
-
-  &.card--proc h3 {
-    background: linear-gradient(120deg, #1e3a5f, #1e40af, #2563eb);
-  }
-
-  &.card--obs h3 {
-    background: linear-gradient(120deg, #374151, #4b5563, #6b7280);
-  }
-
-  &.card--auth h3 {
-    background: linear-gradient(120deg, #14532d, #166534, #15803d);
+    i { color: #94a3b8; }
   }
 
   &.card--pendente {

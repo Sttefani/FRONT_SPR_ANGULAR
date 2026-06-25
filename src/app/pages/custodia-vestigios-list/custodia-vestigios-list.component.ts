@@ -41,8 +41,8 @@ export class CustodiaVestigiosListComponent implements OnInit {
   filtroUnidade: number | '' = '';
   filtroBiologico: boolean | '' = '';
 
-  // Tab de status
-  tabAtiva: '' | 'INICIAL' | 'ANDAMENTO' | 'FINALIZADO' = '';
+  // Tab de status (+ 'COMIGO' = guarda física do usuário, ortogonal ao status)
+  tabAtiva: '' | 'INICIAL' | 'ANDAMENTO' | 'FINALIZADO' | 'COMIGO' = '';
 
   // Dados para selects
   servicos: ServicoPericial[] = [];
@@ -87,7 +87,11 @@ export class CustodiaVestigiosListComponent implements OnInit {
 
   get filtros(): VestigioFiltros {
     const f: VestigioFiltros = { page: this.currentPage, page_size: this.pageSize };
-    if (this.tabAtiva) f.status = this.tabAtiva;
+    if (this.tabAtiva === 'COMIGO') {
+      f.comigo = true;
+    } else if (this.tabAtiva) {
+      f.status = this.tabAtiva;
+    }
     if (this.filtroLacre) f.lacre = this.filtroLacre;
     if (this.filtroSei) f.num_processo_sei = this.filtroSei;
     if (this.filtroOcorrencia) f.ocorrencia = this.filtroOcorrencia;
@@ -135,7 +139,7 @@ export class CustodiaVestigiosListComponent implements OnInit {
     this.buscarVestigios(false);
   }
 
-  mudarTab(tab: '' | 'INICIAL' | 'ANDAMENTO' | 'FINALIZADO'): void {
+  mudarTab(tab: '' | 'INICIAL' | 'ANDAMENTO' | 'FINALIZADO' | 'COMIGO'): void {
     this.tabAtiva = tab;
     this.buscarVestigios();
   }

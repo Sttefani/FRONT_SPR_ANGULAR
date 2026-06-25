@@ -226,6 +226,21 @@
       background: rgba(218,165,32,.05);
     }
   }
+
+  // "Comigo" — destaque sutil de mesa de trabalho do perito (CRM)
+  .tab--comigo {
+    color: #0f766e;
+
+    i { color: #0f766e; }
+
+    &:hover { color: #115e59; }
+
+    &.active {
+      color: #0f766e;
+      border-bottom-color: #0f766e;
+      background: rgba(15, 118, 110, .07);
+    }
+  }
 }
 
 // ── Mensagem ─────────────────────────────────────────────────────────────────
