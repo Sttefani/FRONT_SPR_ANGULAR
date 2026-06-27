@@ -24,6 +24,7 @@ export interface OrdemServico {
   data_primeira_visualizacao: string | null;
   data_ciencia: string | null;
   ip_ciencia: string | null;
+  ciencia_automatica: boolean;
   created_at: string;
   updated_at: string;
   numero_reiteracao: number;

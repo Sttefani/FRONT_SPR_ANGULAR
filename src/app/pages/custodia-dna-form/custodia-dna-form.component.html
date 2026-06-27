@@ -1,8 +1,19 @@
 <div class="container">
 
-  <div class="header-row">
-    <div>
-      <h1>{{ isEditMode ? '✏️ Editar Coleta de DNA' : '🧬 Nova Coleta de DNA' }}</h1>
+  <!-- ── Navegação ──────────────────────────────────────────────────────────── -->
+  <div class="nav-top">
+    <button class="btn-back" type="button" (click)="voltar()">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </button>
+  </div>
+
+  <!-- ── Cabeçalho (hero — mesmo padrão do form de vestígio) ───────────────────── -->
+  <div class="form-hero">
+    <div class="form-hero-icon">
+      <i class="bi bi-droplet-fill"></i>
+    </div>
+    <div class="form-hero-text">
+      <h1>{{ isEditMode ? 'Editar Coleta de DNA' : 'Nova Coleta de DNA' }}</h1>
       <p class="subtitle">Registro de coleta para o Banco de Perfis Genéticos — Lei 12.654/2012 e Decreto 7.950/2013</p>
     </div>
   </div>

@@ -144,45 +144,44 @@
 
 .form-card {
   background: var(--white);
-  border: 1px solid var(--border);
+  border: 1.5px solid #cbd5e1;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
-// Header com gradiente dourado (padrão do design system)
+// Cabeçalho sóbrio e unificado (sem arco-íris) — padrão de formulário.
+// As classes por seção (.card-header--id, --origem, …) permanecem no HTML mas
+// não recebem mais cor: todas as seções usam este mesmo cabeçalho neutro,
+// diferenciadas só pelo ícone/rótulo. Acento dourado discreto na faixa superior.
 .card-header {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   padding: 0.7rem 1.25rem;
-  color: var(--white);
+  background: #f8fafc;
+  color: #475569;
   font-size: 0.875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  border-bottom: 1.5px solid #cbd5e1;
+  border-top: 2px solid var(--primary);
 
-  i { font-size: 1rem; opacity: 0.9; }
+  i { font-size: 1rem; color: #94a3b8; }
 
   .header-badge {
     margin-left: auto;
     font-size: 0.65rem;
     font-weight: 500;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: var(--white);
+    border: 1px solid #cbd5e1;
+    color: #64748b;
     border-radius: 20px;
     padding: 0.15rem 0.55rem;
     text-transform: none;
     letter-spacing: 0;
   }
-
-  // Variantes de cor por seção
-  &--id      { background: linear-gradient(120deg, #1e3a5f, #1d4ed8, #3b82f6); }
-  &--origem  { background: linear-gradient(120deg, #14532d, #15803d, #22c55e); }
-  &--caract  { background: linear-gradient(120deg, #4c1d95, #6d28d9, #8b5cf6); }
-  &--desc    { background: linear-gradient(120deg, #92400e, #b45309, #d97706); }
-  &--oc      { background: linear-gradient(120deg, #0c4a6e, #0369a1, #0ea5e9); }
-  &--contra  { background: linear-gradient(120deg, #1e3a5f, #374151, #64748b); }
 }
 
 .card-body {
@@ -273,6 +272,28 @@
   font-size: 0.75rem;
   color: var(--danger);
   font-weight: 600;
+}
+
+// Campo de destino travado (EXTERNO → custódia central do IC)
+.campo-travado {
+  width: 100%;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
+  color: #0e7490;
+  font-weight: 600;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.field-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: #0e7490;
+
+  i { color: #0891b2; }
 }
 
 // ── Campo pré-preenchido da ocorrência vinculada ───────────────────────────────
@@ -440,6 +461,14 @@
   }
 
   &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.search-loading {
+  display: inline-flex;
+  align-items: center;
+  color: var(--primary);
+  font-size: 1.05rem;
+  padding: 0 0.3rem;
 }
 
 .btn-buscar {

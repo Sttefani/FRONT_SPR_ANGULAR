@@ -68,6 +68,10 @@ export interface VestigioDetalhe extends VestigioList {
   descricao: string | null;
   motivo_finalizacao: string | null;
   autoridade: { id: number; nome: string; cargo_nome: string } | null;
+  servico_pericial_origem: LookupSimples | null;   // serviço de cadastro (imutável)
+  servico_origem_nome: string | null;              // origem p/ exibição (explícita ou inferida)
+  servico_origem_inferido: boolean;                // true = inferido do serviço do registrante
+  localizacao_atual: { tipo: 'servico' | 'unidade'; sigla: string; nome: string } | null;
   user_destino: UsuarioSimples | null;
   procedimentos: { id: number; numero: string; ano: number; numero_completo: string }[];
   ocorrencias_vinculadas: OcorrenciaVinculada[];
@@ -76,6 +80,7 @@ export interface VestigioDetalhe extends VestigioList {
   created_by: UsuarioSimples | null;
   updated_by: UsuarioSimples | null;
   registrado_por: string | null;
+  registrado_por_servico: string | null;   // serviço(s) do registrante (created_by)
   atualizado_por: string | null;
   updated_at: string;
   pode_movimentar?: boolean;
@@ -97,6 +102,7 @@ export interface VestigioMovimentacao {
   criado_por: string | null;
   created_at: string;
   pode_aceitar?: boolean;
+  pode_editar?: boolean;
   sou_o_emissor?: boolean;
 }
 
@@ -339,6 +345,14 @@ export class CustodiaService {
     );
   }
 
+  /** Typeahead de ocorrências por número (parcial) — para vincular ao vestígio. */
+  autoCompleteOcorrencias(valor: string): Observable<{ id: number; numero_ocorrencia: string }[]> {
+    const params = new HttpParams().set('valor', valor);
+    return this.http.get<{ id: number; numero_ocorrencia: string }[]>(
+      `${this.base}/custodia/vestigios/ocorrencias-autocomplete/`, { params }
+    );
+  }
+
   getDashboard(): Observable<DashboardCustodia> {
     return this.http.get<DashboardCustodia>(`${this.base}/custodia/vestigios/dashboard/`);
   }
@@ -378,6 +392,11 @@ export class CustodiaService {
 
   criarMovimentacao(data: any): Observable<VestigioMovimentacao> {
     return this.http.post<VestigioMovimentacao>(`${this.base}/custodia/movimentacoes/`, data);
+  }
+
+  /** Edita uma movimentação ainda não aceita (backend bloqueia após o aceite). */
+  editarMovimentacao(id: number, data: any): Observable<VestigioMovimentacao> {
+    return this.http.patch<VestigioMovimentacao>(`${this.base}/custodia/movimentacoes/${id}/`, data);
   }
 
   aceitarMovimentacao(id: number): Observable<VestigioMovimentacao> {

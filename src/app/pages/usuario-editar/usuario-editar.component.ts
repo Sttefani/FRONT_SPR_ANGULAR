@@ -62,6 +62,7 @@ export class UsuarioEditarComponent implements OnInit {
       status:                 ['', Validators.required],
       perfil:                 ['', Validators.required],
       telefone_celular:       [''],
+      matricula:              [''],
       nome_completo:          [''],
       servicos_periciais_ids: [[]],
       unidade_demandante_id:  [null],   // obrigatório apenas para EXTERNO
@@ -100,6 +101,7 @@ export class UsuarioEditarComponent implements OnInit {
         this.user = user;
         this.editForm.patchValue({
           telefone_celular:      user.telefone_celular || '',
+          matricula:             user.matricula || '',
           status:                user.status,
           perfil:                user.perfil,
           servicos_periciais_ids: user.servicos_periciais?.map(s => s.id) || [],

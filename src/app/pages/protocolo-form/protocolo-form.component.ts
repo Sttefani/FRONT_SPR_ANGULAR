@@ -490,10 +490,11 @@ export class ProtocoloFormComponent implements OnInit {
   // ── Validação do Formulário Completo ───────────────────────────────────────
 
   get formularioValido(): boolean {
+    // descricaoMaterial NÃO entra na validação: é a descrição imutável do vestígio
+    // (read-only, derivada no backend). Eventos vão em "Observações".
     return !!(
       this.vestigioId &&
       this.ocorrenciaId &&
-      this.descricaoMaterial.trim() &&
       this.autoridadeId &&
       this.unidadeId &&
       this.recebidoPorNome.trim() &&

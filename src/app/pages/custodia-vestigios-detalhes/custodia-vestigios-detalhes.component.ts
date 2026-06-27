@@ -67,6 +67,8 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
   // Form de nova movimentação
   showMovForm = false;
   tipoMovimentacao: 'interna' | 'externa' | 'protocolo' | null = null;
+  novoLacre = false;                    // toggle "Novo lacre? SIM/NÃO" — SIM exibe o campo de lacre
+  editandoMovId: number | null = null;  // id da movimentação em edição (null = nova)
   movForm = {
     lacre: '',
     num_processo_sei: '',
@@ -117,12 +119,32 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
 
     this.podeEmitirProtocolo = ['CUSTODIANTE', 'ADMINISTRATIVO', 'SUPER_ADMIN'].includes(user?.perfil || '') || !!user?.is_superuser;
 
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.carregarVestigio(id);
-    this.carregarMovimentacoes(id);
-    this.carregarContraProvas(id);
     this.carregarDropdowns();
     this.configurarAutocompletes();
+
+    // Reage à mudança do :id — navegar entre vestígios (contraprova ↔ original)
+    // reutiliza este componente na mesma rota, então o snapshot não bastava:
+    // recarregamos os dados a cada novo id em vez de só na 1ª montagem.
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const id = Number(params.get('id'));
+      if (!id) { return; }
+      this.resetEstadoVestigio();
+      this.carregarVestigio(id);
+      this.carregarMovimentacoes(id);
+      this.carregarContraProvas(id);
+    });
+  }
+
+  /** Reseta o estado da tela ao alternar entre vestígios na mesma rota. */
+  private resetEstadoVestigio(): void {
+    this.tabAtiva = 'movimentacoes';
+    this.showMovForm = false;
+    this.showDnaSearch = false;
+    this.dnas = [];
+    this.protocolos = [];
+    this.contraProvas = [];
+    this.message = '';
+    this.resetMovForm();
   }
 
   ngOnDestroy(): void {
@@ -440,30 +462,53 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
     }
 
     this.isSaving = true;
+    const editando = this.editandoMovId !== null;
+
+    // "Novo lacre? NÃO" → lacre vazio = lacre mantido (a FAV herda o lacre vigente).
+    // "Novo lacre? SIM" → envia o número informado.
+    const lacre = this.novoLacre ? (this.movForm.lacre || '').trim() : '';
 
     // garante que apenas o campo relevante é enviado (interna → serviço, externa → unidade)
-    const payload = {
+    const payload: any = {
       vestigio_id: this.vestigio.id,
-      lacre: this.movForm.lacre,
+      lacre,
       num_processo_sei: this.movForm.num_processo_sei,
       descricao: this.movForm.descricao,
-      autoridade_id: this.movForm.autoridade_id,
       servico_pericial_id: this.tipoMovimentacao === 'interna' ? this.movForm.servico_pericial_id : null,
       unidade_demandante_id: this.tipoMovimentacao === 'externa' ? this.movForm.unidade_demandante_id : null,
     };
 
-    this.custodiaService.criarMovimentacao(payload).subscribe({
+    // Autoridade: na edição o serializer de listagem não traz o id (só o nome),
+    // então só enviamos quando o usuário selecionar uma — evita apagar a autoridade
+    // existente da movimentação. Na criação enviamos sempre (null ou selecionada).
+    if (!editando || this.movForm.autoridade_id) {
+      payload.autoridade_id = this.movForm.autoridade_id;
+    }
+
+    const req = editando
+      ? this.custodiaService.editarMovimentacao(this.editandoMovId!, payload)
+      : this.custodiaService.criarMovimentacao(payload);
+
+    req.subscribe({
       next: (mov) => {
-        this.movimentacoes.unshift(mov);
+        if (editando) {
+          const idx = this.movimentacoes.findIndex(x => x.id === mov.id);
+          if (idx >= 0) this.movimentacoes[idx] = mov;
+        } else {
+          this.movimentacoes.unshift(mov);
+          if (this.vestigio?.status === 'INICIAL') this.vestigio.status = 'ANDAMENTO';
+        }
         this.showMovForm = false;
         this.resetMovForm();
-        if (this.vestigio?.status === 'INICIAL') this.vestigio.status = 'ANDAMENTO';
         this.isSaving = false;
         Swal.fire({
-          title: 'Movimentação registrada!',
-          html: 'A movimentação foi enviada com sucesso.<br><br>' +
-                '<small style="color:#555">O destinatário deverá confirmar o recebimento ' +
-                'acessando a listagem de movimentações ou os detalhes deste vestígio.</small>',
+          title: editando ? 'Movimentação atualizada!' : 'Movimentação registrada!',
+          html: editando
+            ? 'As alterações foram salvas.<br><br>' +
+              '<small style="color:#555">A edição só é possível enquanto o recebimento não for confirmado.</small>'
+            : 'A movimentação foi enviada com sucesso.<br><br>' +
+              '<small style="color:#555">O destinatário deverá confirmar o recebimento ' +
+              'acessando a listagem de movimentações ou os detalhes deste vestígio.</small>',
           icon: 'success',
           timer: 4000,
           showConfirmButton: true,
@@ -471,11 +516,40 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
         });
       },
       error: (err: any) => {
-        const msg = err?.error?.detail || 'Erro ao registrar movimentação.';
+        const msg = err?.error?.detail || 'Erro ao salvar movimentação.';
         Swal.fire('Erro', msg, 'error');
         this.isSaving = false;
       }
     });
+  }
+
+  /**
+   * Abre o formulário de movimentação em modo EDIÇÃO, pré-preenchido com os
+   * dados de uma movimentação ainda não aceita. O backend bloqueia a edição
+   * após o aceite (perform_update) — o botão só aparece quando pode_editar=true.
+   */
+  editarMovimentacaoInline(mov: VestigioMovimentacao): void {
+    this.editandoMovId = mov.id;
+    this.showMovForm = true;
+    // cenário derivado do destino atual da movimentação
+    this.tipoMovimentacao = mov.unidade_demandante ? 'externa' : 'interna';
+    this.novoLacre = !!mov.lacre;
+    this.movForm = {
+      lacre: mov.lacre || '',
+      num_processo_sei: mov.num_processo_sei || '',
+      descricao: mov.descricao || '',
+      unidade_demandante_id: mov.unidade_demandante?.id ?? null,
+      servico_pericial_id: mov.servico_pericial?.id ?? null,
+      autoridade_id: null,
+    };
+    // rótulos dos autocompletes (autoridade não vem com id na listagem → fica em branco)
+    this.unidadeBusca = mov.unidade_demandante
+      ? `${mov.unidade_demandante.sigla} — ${mov.unidade_demandante.nome}` : '';
+    this.autoritadeBusca = '';
+    this.unidadesBuscadas = [];
+    this.autoridadesBuscadas = [];
+    this.showUnidadeDropdown = false;
+    this.showAutoridadeDropdown = false;
   }
 
   aceitarMovimentacao(mov: VestigioMovimentacao): void {
@@ -530,6 +604,8 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
 
   resetMovForm(): void {
     this.tipoMovimentacao = null;
+    this.novoLacre = false;
+    this.editandoMovId = null;
     this.movForm = { lacre: '', num_processo_sei: '', descricao: '', unidade_demandante_id: null, servico_pericial_id: null, autoridade_id: null };
     this.unidadeBusca = '';
     this.unidadesBuscadas = [];
@@ -537,6 +613,17 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
     this.autoritadeBusca = '';
     this.autoridadesBuscadas = [];
     this.showAutoridadeDropdown = false;
+  }
+
+  /**
+   * Lacre atualmente vigente: o da movimentação mais recente que informou um
+   * número, ou o lacre de cadastro do vestígio. Usado no hint de "Novo lacre? Não"
+   * para mostrar qual lacre será mantido (a FAV aplica a mesma herança).
+   * `movimentacoes` vem ordenada por -created_at (mais recente primeiro).
+   */
+  get lacreVigente(): string {
+    const comLacre = this.movimentacoes.find(m => !!(m.lacre && m.lacre.trim()));
+    return (comLacre?.lacre || this.vestigio?.lacre || '').trim();
   }
 
   // ── Ocorrências vinculadas ────────────────────────────────────────────────

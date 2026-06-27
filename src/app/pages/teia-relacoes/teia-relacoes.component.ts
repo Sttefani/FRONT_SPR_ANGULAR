@@ -561,7 +561,7 @@ export class TeiaRelacoesComponent implements OnInit, AfterViewInit, OnDestroy {
       contraprova:           'bi-arrow-repeat',
       ocorrencia:            'bi-file-earmark-text-fill',
       procedimento:          'bi-folder2-open',
-      dna:                   'bi-dna',
+      dna:                   'bi-droplet-fill',
       movimentacao_aceita:   'bi-check-circle-fill',
       movimentacao_pendente: 'bi-arrow-right-circle',
     })[tipo] ?? 'bi-circle-fill';

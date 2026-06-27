@@ -12,10 +12,51 @@
 
 .container { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
 
-.header-row {
-  margin-bottom: 1.5rem;
-  h1 { font-size: 1.75rem; font-weight: 600; color: var(--text-color-dark); margin-bottom: 0.3rem; }
-  .subtitle { color: var(--text-color-light); font-size: 0.88rem; margin: 0; font-style: italic; }
+// ── Navegação + Cabeçalho (hero) — mesmo padrão do form de vestígio ──────────
+.nav-top { margin-bottom: 1.2rem; }
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #1e293b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { background: #334155; transform: translateX(-3px); }
+}
+
+.form-hero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.form-hero-icon {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #92640a, #daa520);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  i { font-size: 1.5rem; color: #fff; }
+}
+
+.form-hero-text {
+  h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-color-dark); margin: 0 0 0.2rem; }
+  .subtitle { font-size: 0.875rem; color: var(--text-color-light); margin: 0; }
 }
 
 .message {
@@ -35,27 +76,42 @@
 
 @keyframes pulse { 0%,100% { opacity:.7; } 50% { opacity:.3; } }
 
-// ── Form card ──────────────────────────────────────────────────────────────
+// ── Form: container + cards de seção (mesmo padrão do form de vestígio) ──────
 
 .form-card {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+// Cada seção é um CARD próprio (equivalente ao .form-card do form de vestígio).
+.form-section {
   background: var(--card-background-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,.06);
   overflow: hidden;
-}
-
-.form-section {
   padding: 1.3rem 1.6rem;
-  border-bottom: 1px solid var(--border-color);
-  &:last-of-type { border-bottom: none; }
+  margin-bottom: 1.25rem;
+  &:last-of-type { margin-bottom: 0; }
 }
 
+// Título vira a barra de cabeçalho sóbria, sangrando até as bordas do card
+// (negative margin compensa o padding do .form-section). Acento dourado no topo.
 .section-title {
-  font-size: 0.92rem; font-weight: 700; color: var(--text-color-dark);
-  margin: 0 0 1rem 0; padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--primary-color);
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: -1.3rem -1.6rem 1.3rem;
+  padding: 0.7rem 1.2rem;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1.5px solid #cbd5e1;
+  border-top: 2px solid var(--primary-color);
 }
 
 // ── Grids ──────────────────────────────────────────────────────────────────

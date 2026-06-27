@@ -125,6 +125,18 @@
   &--bio  { background: #faf5ff; color: #7e22ce; border: 1.5px solid #d8b4fe; }
   &--saiu { background: #eff6ff; color: #1e40af; border: 1.5px solid #bfdbfe; }
   &--conf { background: #f0fdf4; color: #166534; border: 1.5px solid #bbf7d0; }
+
+  // Contraprova: selo clicável que leva ao vestígio original
+  &--contraprova {
+    font-family: inherit;
+    cursor: pointer;
+    background: #fff7ed;
+    color: #9a3412;
+    border: 1.5px solid #fed7aa;
+    transition: background 0.15s ease, border-color 0.15s ease;
+
+    &:hover { background: #ffedd5; border-color: #fdba74; }
+  }
 }
 
 // ── Botões de ação (todos sólidos) ────────────────────────────────────────────
@@ -427,6 +439,17 @@
   font-size: 0.88rem; color: var(--text-color-dark); text-align: right; word-break: break-word;
   &--strong { font-weight: 700; }
 }
+
+.info-inferido {
+  display: inline-block;
+  margin-left: 0.3rem;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: #94a3b8;
+  cursor: help;
+}
+
+.audit-servico { color: var(--text-color-light); }
 
 .info-desc {
   font-size: 0.9rem; color: var(--text-color-dark); line-height: 1.7; margin: 0.45rem 0 0; white-space: pre-wrap;
@@ -836,6 +859,73 @@
   flex-shrink: 0;
 
   &:hover { background: #1d4ed8; color: #fff; }
+}
+
+.btn-editar-mov {
+  background: transparent;
+  border: 1.5px solid #b45309;
+  color: #b45309;
+  padding: 0.2rem 0.65rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.18s;
+  flex-shrink: 0;
+
+  &:hover { background: #b45309; color: #fff; }
+}
+
+// Toggle "Novo lacre? SIM/NÃO" no formulário de movimentação
+.lacre-toggle {
+  display: inline-flex;
+  gap: 0.4rem;
+  margin: 0.1rem 0 0.45rem;
+
+  .lacre-opt {
+    padding: 0.3rem 0.95rem;
+    border: 1.5px solid #cbd5e1;
+    background: #fff;
+    color: #475569;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover { border-color: #94a3b8; }
+    &.active { background: #b45309; border-color: #b45309; color: #fff; }
+  }
+}
+
+.lacre-novo-input { width: 100%; margin-top: 0.1rem; }
+
+.lacre-mantido-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: #15803d;
+
+  i { color: #15803d; }
+}
+
+.mov-edit-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 0.9rem;
+
+  i { font-size: 1rem; }
 }
 
 .timeline-body {

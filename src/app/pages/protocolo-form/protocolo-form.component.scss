@@ -57,16 +57,17 @@
 // ── Seção de formulário ────────────────────────────────────────────────────
 .form-section {
   background: #fff;
-  border: 1px solid var(--border);
+  border: 1.5px solid #cbd5e1;
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 1.25rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
 }
 
+// Cabeçalho sóbrio unificado (mesmo padrão do cadastro de vestígio) — sem cor cheia.
 .section-title {
-  background: linear-gradient(120deg, #92640a 0%, #b8860b 45%, #daa520 100%);
-  color: #fff;
+  background: #f8fafc;
+  color: #475569;
   margin: 0;
   padding: .7rem 1.2rem;
   font-size: .875rem;
@@ -74,7 +75,10 @@
   display: flex;
   align-items: center;
   gap: .4rem;
-  text-shadow: 0 1px 2px rgba(0,0,0,.2);
+  border-bottom: 1.5px solid #cbd5e1;
+  border-top: 2px solid var(--primary);
+
+  i { color: #94a3b8; }
 }
 
 .field-group {
@@ -96,6 +100,29 @@
   color: var(--slate-med);
   margin-bottom: 4px;
   &.required::after { content: ' *'; color: var(--red); }
+}
+
+.campo-lock {
+  font-weight: 500;
+  font-size: .72rem;
+  color: var(--slate-med);
+  font-style: italic;
+}
+
+.campo-readonly {
+  background: #f1f5f9;
+  color: var(--slate-med);
+  cursor: not-allowed;
+}
+
+.field-hint {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: 4px;
+  font-size: .72rem;
+  color: var(--slate-med);
+  i { color: var(--teal); }
 }
 
 .form-control {

@@ -16,6 +16,7 @@ export interface User {
   email: string;
   cpf: string;
   telefone_celular?: string;
+  matricula?: string;
   data_nascimento?: string;
   status: 'PENDENTE' | 'ATIVO' | 'INATIVO';
   perfil: string;

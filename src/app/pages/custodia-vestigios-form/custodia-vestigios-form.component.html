@@ -53,40 +53,18 @@
         <div class="card-body">
           <div class="form-grid">
 
-            <div class="form-group">
+            <div class="form-group required">
               <label for="lacre">Lacre</label>
-              <input id="lacre" type="text" formControlName="lacre" placeholder="Número do lacre de segurança">
+              <input id="lacre" type="text" formControlName="lacre" placeholder="Número do lacre de segurança"
+                     [class.is-invalid]="form.get('lacre')?.invalid && form.get('lacre')?.touched">
+              @if (form.get('lacre')?.invalid && form.get('lacre')?.touched) {
+                <span class="field-error"><i class="bi bi-exclamation-circle"></i> Campo obrigatório</span>
+              }
             </div>
 
             <div class="form-group">
               <label for="sei">Nº Processo SEI</label>
               <input id="sei" type="text" formControlName="num_processo_sei" placeholder="000000.000000/0000-00">
-            </div>
-
-            <div class="form-group" [class.auto-preenchido]="origemOcorrenciaId">
-              <label for="ocorrencia">
-                Ocorrência
-                @if (origemOcorrenciaId) {
-                  <i class="bi bi-lock-fill auto-lock-icon"></i>
-                }
-              </label>
-              <input id="ocorrencia" type="text" formControlName="ocorrencia" placeholder="Ex: 2405001/BAL">
-              @if (origemOcorrenciaId) {
-                <small class="hint-auto"><i class="bi bi-link-45deg"></i> preenchido da ocorrência vinculada</small>
-              }
-            </div>
-
-            <div class="form-group" [class.auto-preenchido]="origemOcorrenciaId">
-              <label for="ano">
-                Ano da Ocorrência
-                @if (origemOcorrenciaId) {
-                  <i class="bi bi-lock-fill auto-lock-icon"></i>
-                }
-              </label>
-              <input id="ano" type="number" formControlName="ano_ocorrencia" placeholder="2025" min="2000" max="2099">
-              @if (origemOcorrenciaId) {
-                <small class="hint-auto"><i class="bi bi-link-45deg"></i> preenchido da ocorrência vinculada</small>
-              }
             </div>
 
           </div>
@@ -117,16 +95,25 @@
             </div>
 
             <div class="form-group required">
-              <label for="servico">Serviço Pericial</label>
-              <select id="servico" formControlName="servico_pericial_id"
-                      [class.is-invalid]="form.get('servico_pericial_id')?.invalid && form.get('servico_pericial_id')?.touched">
-                <option [ngValue]="null">Selecione o serviço...</option>
-                @for (s of servicos; track s.id) {
-                  <option [ngValue]="s.id">{{ s.sigla }} — {{ s.nome }}</option>
+              <label for="servico">{{ isExterno ? 'Destino (custódia do IC)' : 'Serviço Pericial' }}</label>
+              @if (isExterno) {
+                <input type="text" class="campo-travado"
+                       value="CUSTÓDIA ICPDA — entrega à custódia central do IC" disabled>
+                <span class="field-hint">
+                  <i class="bi bi-lock-fill"></i>
+                  Vestígios cadastrados por usuário externo são sempre entregues à custódia central do IC.
+                </span>
+              } @else {
+                <select id="servico" formControlName="servico_pericial_id"
+                        [class.is-invalid]="form.get('servico_pericial_id')?.invalid && form.get('servico_pericial_id')?.touched">
+                  <option [ngValue]="null">Selecione o serviço...</option>
+                  @for (s of servicos; track s.id) {
+                    <option [ngValue]="s.id">{{ s.sigla }} — {{ s.nome }}</option>
+                  }
+                </select>
+                @if (form.get('servico_pericial_id')?.invalid && form.get('servico_pericial_id')?.touched) {
+                  <span class="field-error"><i class="bi bi-exclamation-circle"></i> Campo obrigatório</span>
                 }
-              </select>
-              @if (form.get('servico_pericial_id')?.invalid && form.get('servico_pericial_id')?.touched) {
-                <span class="field-error"><i class="bi bi-exclamation-circle"></i> Campo obrigatório</span>
               }
             </div>
 
@@ -216,10 +203,14 @@
           <span>Descrição</span>
         </div>
         <div class="card-body">
-          <div class="form-group">
+          <div class="form-group required">
             <label for="descricao">Descrição do Vestígio</label>
             <textarea id="descricao" formControlName="descricao" rows="5"
-                      placeholder="Descreva o vestígio: aparência, condições de armazenamento, observações relevantes..."></textarea>
+                      placeholder="Descreva o vestígio: aparência, condições de armazenamento, observações relevantes..."
+                      [class.is-invalid]="form.get('descricao')?.invalid && form.get('descricao')?.touched"></textarea>
+            @if (form.get('descricao')?.invalid && form.get('descricao')?.touched) {
+              <span class="field-error"><i class="bi bi-exclamation-circle"></i> Campo obrigatório</span>
+            }
           </div>
         </div>
       </div>
@@ -239,22 +230,24 @@
                 type="text"
                 class="search-input"
                 [value]="searchOcorrenciaNr"
-                (input)="searchOcorrenciaNr = $any($event.target).value"
-                placeholder="Número da ocorrência (ex: 2405001/BAL)"
-                (keyup.enter)="buscarOcorrenciaInline()"
-                [disabled]="isSearchingOcorrencia">
-              <button
-                type="button"
-                class="btn-buscar"
-                (click)="buscarOcorrenciaInline()"
-                [disabled]="isSearchingOcorrencia || !searchOcorrenciaNr.trim()">
-                @if (isSearchingOcorrencia) {
-                  <i class="bi bi-hourglass-split"></i> Buscando…
-                } @else {
-                  <i class="bi bi-search"></i> Buscar
-                }
-              </button>
+                (input)="onOcorrenciaInput($any($event.target).value)"
+                placeholder="Digite o número da ocorrência (ex: 2405001)..."
+                autocomplete="off">
+              @if (isSearchingOcorrencia) {
+                <span class="search-loading"><i class="bi bi-hourglass-split"></i></span>
+              }
             </div>
+
+            @if (resultadosOcorrencia.length > 0) {
+              <ul class="resultados-lista">
+                @for (o of resultadosOcorrencia; track o.id) {
+                  <li class="resultado-item" (click)="selecionarOcorrencia(o)">
+                    <strong>{{ o.numero_ocorrencia }}</strong>
+                  </li>
+                }
+              </ul>
+            }
+
             @if (ocorrenciaErro) {
               <p class="search-erro"><i class="bi bi-x-circle"></i> {{ ocorrenciaErro }}</p>
             }
@@ -303,26 +296,13 @@
                 type="text"
                 class="search-input"
                 [value]="searchContraProvaTermo"
-                (input)="searchContraProvaTermo = $any($event.target).value"
-                placeholder="Buscar por lacre, nº SEI ou ocorrência..."
-                (keyup.enter)="buscarContraProva()"
-                [disabled]="isSearchingContraProva">
-              <button
-                type="button"
-                class="btn-buscar"
-                (click)="buscarContraProva()"
-                [disabled]="isSearchingContraProva || !searchContraProvaTermo.trim()">
-                @if (isSearchingContraProva) {
-                  <i class="bi bi-hourglass-split"></i> Buscando…
-                } @else {
-                  <i class="bi bi-search"></i> Buscar
-                }
-              </button>
+                (input)="onContraProvaInput($any($event.target).value)"
+                placeholder="Digite lacre, nº SEI ou número da ocorrência..."
+                autocomplete="off">
+              @if (isSearchingContraProva) {
+                <span class="search-loading"><i class="bi bi-hourglass-split"></i></span>
+              }
             </div>
-
-            @if (contraProvaErro) {
-              <p class="search-erro"><i class="bi bi-x-circle"></i> {{ contraProvaErro }}</p>
-            }
 
             @if (resultadosContraProva.length > 0) {
               <ul class="resultados-lista">
@@ -330,15 +310,18 @@
                   <li class="resultado-item" (click)="selecionarContraProva(v)">
                     <strong>{{ v.lacre || '#' + v.id }}</strong>
                     <span class="resultado-meta">
-                      {{ v.servico_pericial?.sigla || '—' }} · {{ v.unidade_demandante?.sigla || '—' }}
-                      @if (v.ocorrencia) { · Oc. {{ v.ocorrencia }} }
+                      @if (v.ocorrencia) { Oc. {{ v.ocorrencia }}{{ v.ano_ocorrencia ? '/' + v.ano_ocorrencia : '' }} }
                     </span>
-                    <span class="badge-mini badge-mini--{{ v.status.toLowerCase() }}">
-                      {{ v.status }}
-                    </span>
+                    @if (v.status) {
+                      <span class="badge-mini badge-mini--{{ v.status.toLowerCase() }}">{{ v.status }}</span>
+                    }
                   </li>
                 }
               </ul>
+            }
+
+            @if (contraProvaErro) {
+              <p class="search-erro"><i class="bi bi-x-circle"></i> {{ contraProvaErro }}</p>
             }
           }
 

@@ -1,15 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Subject, of } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 
 import { CustodiaService, OcorrenciaVinculada } from '../../services/custodia.service';
 import { ServicoPericialService } from '../../services/servico-pericial.service';
 import { UnidadeDemandanteService } from '../../services/unidade-demandante.service';
 import { AutoridadeService } from '../../services/autoridade.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-custodia-vestigios-form',
@@ -18,7 +19,7 @@ import { AutoridadeService } from '../../services/autoridade.service';
   templateUrl: './custodia-vestigios-form.component.html',
   styleUrls: ['./custodia-vestigios-form.component.scss']
 })
-export class CustodiaVestigiosFormComponent implements OnInit {
+export class CustodiaVestigiosFormComponent implements OnInit, OnDestroy {
   form!: FormGroup;
   isEditMode = false;
   vestigioId: number | null = null;
@@ -31,21 +32,30 @@ export class CustodiaVestigiosFormComponent implements OnInit {
   unidades: any[] = [];
   autoridades: any[] = [];
 
-  // ── Vinculação de Ocorrência no momento do cadastro ──────────────────────
+  // EXTERNO: destino do cadastro travado na custódia central do IC (sigla CUST)
+  isExterno = false;
+  private readonly SIGLA_CUSTODIA_IC = 'CUST';
+
+  // ── Vinculação de Ocorrência no momento do cadastro (typeahead) ──────────
   ocorrenciaSelecionada: OcorrenciaVinculada | null = null;
   searchOcorrenciaNr    = '';
   isSearchingOcorrencia = false;
   ocorrenciaErro        = '';
+  resultadosOcorrencia: { id: number; numero_ocorrencia: string }[] = [];
+  private ocorrenciaSubject$ = new Subject<string>();
 
   // ── Origem: veio dos detalhes de uma ocorrência ──────────────────────────
   origemOcorrenciaId: number | null = null;
 
-  // ── Contraprova ───────────────────────────────────────────────────────────
+  // ── Contraprova (typeahead) ──────────────────────────────────────────────
   contraProvaSelecionada: any = null;
   searchContraProvaTermo  = '';
   isSearchingContraProva  = false;
   resultadosContraProva: any[] = [];
   contraProvaErro         = '';
+  private contraProvaSubject$ = new Subject<string>();
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -54,40 +64,32 @@ export class CustodiaVestigiosFormComponent implements OnInit {
     private custodiaService: CustodiaService,
     private servicoPericialService: ServicoPericialService,
     private unidadeDemandanteService: UnidadeDemandanteService,
-    private autoridadeService: AutoridadeService
+    private autoridadeService: AutoridadeService,
+    private authService: AuthService
   ) {
     this.initForm();
   }
 
   ngOnInit(): void {
+    this.isExterno = this.authService.getCurrentUser()?.perfil === 'EXTERNO';
+    this.configurarTypeaheads();
     const id = this.route.snapshot.paramMap.get('id');
 
     if (id) {
-      // MODO EDIÇÃO — carrega dropdowns + vestígio em paralelo com forkJoin.
-      // catchError em cada observable garante que um erro em qualquer dropdown
-      // não mate o carregamento do restante.
+      // MODO EDIÇÃO — carrega o VESTÍGIO primeiro (rápido) e já renderiza o form;
+      // os dropdowns carregam em paralelo, SEM bloquear. Antes um forkJoin esperava
+      // serviços + unidades + autoridades + vestígio juntos, causando o delay
+      // reclamado ao abrir a edição. Os selects preenchem assim que as listas chegam.
       this.isEditMode = true;
       this.vestigioId = Number(id);
       this.isLoading = true;
+      this.carregarDropdowns();
 
-      forkJoin({
-        // Usa endpoints /dropdown/ (sem paginação) para garantir que TODOS
-        // os registros sejam carregados, independente do total.
-        servicos:    this.servicoPericialService.getAllForDropdown().pipe(catchError(() => of([]))),
-        unidades:    this.unidadeDemandanteService.getAllForDropdown().pipe(catchError(() => of([]))),
-        autoridades: this.autoridadeService.getAllForDropdown().pipe(catchError(() => of([]))),
-        vestigio:    this.custodiaService.getVestigio(this.vestigioId),
-      }).subscribe({
-        next: ({ servicos, unidades, autoridades, vestigio }) => {
-          this.servicos    = servicos    as any[];
-          this.unidades    = unidades    as any[];
-          this.autoridades = autoridades as any[];
-
+      this.custodiaService.getVestigio(this.vestigioId).subscribe({
+        next: (vestigio) => {
           this.form.patchValue({
             lacre:                    vestigio.lacre                 ?? '',
             num_processo_sei:         vestigio.num_processo_sei      ?? '',
-            ocorrencia:               vestigio.ocorrencia            ?? '',
-            ano_ocorrencia:           vestigio.ano_ocorrencia        ?? null,
             descricao:                vestigio.descricao             ?? '',
             conformidade:             vestigio.conformidade          ?? false,
             biologico:                vestigio.biologico             ?? false,
@@ -124,13 +126,9 @@ export class CustodiaVestigiosFormComponent implements OnInit {
         this.origemOcorrenciaId = Number(ocId);
         this.custodiaService.getOcorrenciaParaVestigio(this.origemOcorrenciaId).subscribe({
           next: (oc) => {
+            // Vincula a ocorrência (M2M) — os campos livres de ocorrência/ano foram
+            // removidos do cadastro por serem redundantes com esta vinculação.
             this.ocorrenciaSelecionada = oc;
-            this.form.patchValue({
-              ocorrencia: oc.numero_ocorrencia,
-              ano_ocorrencia: oc.ano_fato ?? null,
-            });
-            this.form.get('ocorrencia')?.disable();
-            this.form.get('ano_ocorrencia')?.disable();
           },
           error: () => { /* usuário pode buscar manualmente se falhar */ },
         });
@@ -138,13 +136,47 @@ export class CustodiaVestigiosFormComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /** Configura os typeaheads (debounce 300ms) de ocorrência e contraprova. */
+  private configurarTypeaheads(): void {
+    this.ocorrenciaSubject$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(termo => termo.trim()
+        ? this.custodiaService.autoCompleteOcorrencias(termo.trim()).pipe(catchError(() => of([])))
+        : of([])),
+      takeUntil(this.destroy$),
+    ).subscribe(res => {
+      this.resultadosOcorrencia = res;
+      this.isSearchingOcorrencia = false;
+      this.ocorrenciaErro = (this.searchOcorrenciaNr.trim() && res.length === 0)
+        ? 'Nenhuma ocorrência encontrada.' : '';
+    });
+
+    this.contraProvaSubject$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(termo => termo.trim()
+        ? this.custodiaService.autoCompleteVestigios(termo.trim()).pipe(catchError(() => of([])))
+        : of([])),
+      takeUntil(this.destroy$),
+    ).subscribe((res: any[]) => {
+      this.resultadosContraProva = (res || []).filter(v => v.id !== this.vestigioId);
+      this.isSearchingContraProva = false;
+      this.contraProvaErro = (this.searchContraProvaTermo.trim() && this.resultadosContraProva.length === 0)
+        ? 'Nenhum vestígio encontrado.' : '';
+    });
+  }
+
   initForm(): void {
     this.form = this.fb.group({
-      lacre:                      ['', Validators.maxLength(255)],
+      lacre:                      ['', [Validators.required, Validators.maxLength(255)]],
       num_processo_sei:           ['', Validators.maxLength(255)],
-      ocorrencia:                 ['', Validators.maxLength(255)],
-      ano_ocorrencia:             [null],
-      descricao:                  [''],
+      descricao:                  ['', Validators.required],
       conformidade:               [false],
       biologico:                  [false],
       unidade_demandante_id:      [null, Validators.required],
@@ -156,7 +188,7 @@ export class CustodiaVestigiosFormComponent implements OnInit {
 
   carregarDropdowns(): void {
     this.servicoPericialService.getAllForDropdown().subscribe({
-      next: (res) => this.servicos    = res,
+      next: (res) => { this.servicos = res; this.aplicarTravaExternoNoServico(); },
       error: () => {},
     });
     this.unidadeDemandanteService.getAllForDropdown().subscribe({
@@ -167,6 +199,22 @@ export class CustodiaVestigiosFormComponent implements OnInit {
       next: (res) => this.autoridades = res,
       error: () => {},
     });
+  }
+
+  /**
+   * EXTERNO: trava o destino do cadastro na custódia central do IC (sigla CUST).
+   * Pré-seleciona e desabilita o controle — getRawValue() ainda envia o valor, e o
+   * backend re-força em perform_create (defesa em profundidade).
+   */
+  private aplicarTravaExternoNoServico(): void {
+    if (!this.isExterno) return;
+    const custodia = this.servicos.find(
+      s => (s.sigla || '').toUpperCase() === this.SIGLA_CUSTODIA_IC
+    );
+    if (custodia) {
+      this.form.patchValue({ servico_pericial_id: custodia.id });
+      this.form.get('servico_pericial_id')?.disable();
+    }
   }
 
   get voltarUrl(): string {
@@ -200,6 +248,11 @@ export class CustodiaVestigiosFormComponent implements OnInit {
       payload['ocorrencias_vinculadas_ids'] = [this.ocorrenciaSelecionada.id];
     }
 
+    // Contraprova: usa a SELEÇÃO como fonte de verdade (mesmo padrão da ocorrência),
+    // garantindo que o vínculo vá no payload mesmo que o form control não o reflita.
+    // null quando não há contraprova → o backend limpa/não vincula.
+    payload['vestigio_contra_prova_id'] = this.contraProvaSelecionada?.id ?? null;
+
     const req = this.isEditMode
       ? this.custodiaService.editarVestigio(this.vestigioId!, payload)
       : this.custodiaService.criarVestigio(payload);
@@ -232,31 +285,13 @@ export class CustodiaVestigiosFormComponent implements OnInit {
     });
   }
 
-  // ── Busca inline de contraprova ──────────────────────────────────────────
+  // ── Typeahead de contraprova (auto-complete por lacre/SEI/ocorrência) ──────
 
-  buscarContraProva(): void {
-    const termo = this.searchContraProvaTermo.trim();
-    if (!termo) return;
-
-    this.isSearchingContraProva = true;
+  onContraProvaInput(valor: string): void {
+    this.searchContraProvaTermo = valor;
     this.contraProvaErro = '';
-    this.resultadosContraProva = [];
-
-    this.custodiaService.getVestigios({ search: termo, page_size: 10 }).subscribe({
-      next: (resp) => {
-        this.isSearchingContraProva = false;
-        const lista = resp.results.filter(v => v.id !== this.vestigioId);
-        if (lista.length === 0) {
-          this.contraProvaErro = `Nenhum vestígio encontrado para "${termo}".`;
-        } else {
-          this.resultadosContraProva = lista;
-        }
-      },
-      error: () => {
-        this.isSearchingContraProva = false;
-        this.contraProvaErro = 'Erro ao buscar. Tente novamente.';
-      },
-    });
+    this.isSearchingContraProva = !!valor.trim();
+    this.contraProvaSubject$.next(valor);
   }
 
   selecionarContraProva(v: any): void {
@@ -275,28 +310,25 @@ export class CustodiaVestigiosFormComponent implements OnInit {
     this.resultadosContraProva = [];
   }
 
-  // ── Busca inline de ocorrência no formulário ────────────────────────────
+  // ── Typeahead de ocorrência (auto-complete por número) ───────────────────
 
-  buscarOcorrenciaInline(): void {
-    const nr = this.searchOcorrenciaNr.trim().toUpperCase();
-    if (!nr) return;
-
-    this.isSearchingOcorrencia = true;
+  onOcorrenciaInput(valor: string): void {
+    this.searchOcorrenciaNr = valor;
     this.ocorrenciaErro = '';
-    this.ocorrenciaSelecionada = null;
+    this.isSearchingOcorrencia = !!valor.trim();
+    this.ocorrenciaSubject$.next(valor);
+  }
 
-    this.custodiaService.buscarOcorrenciaPorNumero(nr).subscribe({
-      next: (resp) => {
-        this.isSearchingOcorrencia = false;
-        if (resp.exists && resp.ocorrencia) {
-          this.ocorrenciaSelecionada = resp.ocorrencia;
-        } else {
-          this.ocorrenciaErro = `Ocorrência "${nr}" não encontrada.`;
-        }
-      },
+  selecionarOcorrencia(o: { id: number; numero_ocorrencia: string }): void {
+    this.resultadosOcorrencia = [];
+    this.searchOcorrenciaNr = '';
+    this.isSearchingOcorrencia = true;
+    // Busca os dados completos da ocorrência para montar o card de seleção.
+    this.custodiaService.getOcorrenciaParaVestigio(o.id).subscribe({
+      next: (oc) => { this.ocorrenciaSelecionada = oc; this.isSearchingOcorrencia = false; },
       error: () => {
         this.isSearchingOcorrencia = false;
-        this.ocorrenciaErro = 'Erro ao buscar. Tente novamente.';
+        this.ocorrenciaErro = 'Erro ao carregar a ocorrência selecionada.';
       },
     });
   }

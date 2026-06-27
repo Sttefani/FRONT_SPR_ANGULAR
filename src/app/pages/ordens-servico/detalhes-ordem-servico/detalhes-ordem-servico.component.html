@@ -531,6 +531,9 @@
                 }
                 @if (ordemServico.ciente_por) {
                   <p><strong>Ciente por:</strong> {{ ordemServico.ciente_por.nome_completo }}</p>
+                } @else if (ordemServico.ciencia_automatica) {
+                  <p class="text-info mb-1"><strong>🤖 Ciência automática por inércia</strong></p>
+                  <p><small class="text-muted">O servidor não deu ciência no prazo regulamentar; o sistema registrou automaticamente e o prazo passou a contar.</small></p>
                 } @else {
                   <p class="text-warning"><strong>⚠️ Pendente de ciência</strong></p>
                 }

@@ -448,6 +448,14 @@ export class CustodiaDnaFormComponent implements OnInit {
     );
   }
 
+  voltar(): void {
+    if (this.vestigioId) {
+      this.router.navigate(['/gabinete-virtual/custodia/vestigios', this.vestigioId]);
+    } else {
+      this.router.navigate(['/gabinete-virtual/custodia/dnas']);
+    }
+  }
+
   cancelar(): void {
     Swal.fire({
       title: 'Cancelar?',

@@ -36,6 +36,13 @@
           <span class="badge-status" [ngClass]="badgeStatus(vestigio.status)">
             {{ vestigio.status_display }}
           </span>
+          @if (vestigio.vestigio_contra_prova) {
+            <button class="v-badge v-badge--contraprova" (click)="irParaOriginal()"
+                    title="Abrir o vestígio original">
+              <i class="bi bi-arrow-repeat"></i>
+              Contraprova de {{ vestigio.vestigio_contra_prova_lacre || ('#' + vestigio.vestigio_contra_prova) }}
+            </button>
+          }
           @if (vestigio.biologico) {
             <span class="v-badge v-badge--bio"><i class="bi bi-virus"></i> Biológico</span>
           }
@@ -63,7 +70,7 @@
             </button>
           }
           <button class="v-btn v-btn--dna" (click)="registrarDna()">
-            <i class="bi bi-dna"></i> Registrar DNA
+            <i class="bi bi-droplet-fill"></i> Registrar DNA
           </button>
           @if (podeEmitirProtocolo) {
             <button class="v-btn v-btn--protocolo" (click)="emitirProtocolo()">
@@ -118,10 +125,10 @@
             @if (vestigio.atualizado_por) { · finalizado por {{ vestigio.atualizado_por }} }
           } @else if (vestigio.user_destino) {
             Em poder de {{ vestigio.user_destino.nome_completo }}
-            @if (vestigio.servico_pericial) { · serviço {{ vestigio.servico_pericial.sigla }} }
+            @if (vestigio.localizacao_atual) { · {{ vestigio.localizacao_atual.tipo === 'unidade' ? 'unidade' : 'serviço' }} {{ vestigio.localizacao_atual.sigla }} }
           } @else {
             Aguardando primeira movimentação
-            @if (vestigio.servico_pericial) { · serviço {{ vestigio.servico_pericial.sigla }} }
+            @if (vestigio.localizacao_atual) { · {{ vestigio.localizacao_atual.tipo === 'unidade' ? 'unidade' : 'serviço' }} {{ vestigio.localizacao_atual.sigla }} }
           }
         </span>
       </div>
@@ -155,12 +162,31 @@
         <div class="info-group">
           <div class="info-group-title"><i class="bi bi-building-bank"></i> Origem e autoridade</div>
           <div class="info-row">
+            <span class="info-k">Registrado por</span>
+            <span class="info-v info-v--strong">
+              {{ vestigio.registrado_por || '—' }}@if (vestigio.registrado_por_servico) {<span class="audit-servico"> — {{ vestigio.registrado_por_servico }}</span>}
+            </span>
+          </div>
+          <div class="info-row">
             <span class="info-k">Unidade</span>
             <span class="info-v">{{ vestigio.unidade_demandante?.nome || '—' }}</span>
           </div>
           <div class="info-row">
-            <span class="info-k">Serviço</span>
-            <span class="info-v">{{ vestigio.servico_pericial?.nome || '—' }}</span>
+            <span class="info-k">Serviço de origem</span>
+            <span class="info-v">
+              {{ vestigio.servico_origem_nome || '—' }}
+              @if (vestigio.servico_origem_inferido) {
+                <small class="info-inferido" title="Origem não registrada explicitamente; inferida do serviço de lotação de quem registrou.">(serviço do registrante)</small>
+              }
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="info-k">Localização atual</span>
+            <span class="info-v info-v--strong">
+              @if (vestigio.localizacao_atual) {
+                {{ vestigio.localizacao_atual.sigla }} — {{ vestigio.localizacao_atual.nome }}
+              } @else { — }
+            </span>
           </div>
           <div class="info-row">
             <span class="info-k">Autoridade</span>
@@ -178,7 +204,7 @@
       }
 
       <div class="info-audit">
-        <span><i class="bi bi-person-check"></i> Registrado por <strong>{{ vestigio.registrado_por || '—' }}</strong> em {{ vestigio.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+        <span><i class="bi bi-person-check"></i> Registrado por <strong>{{ vestigio.registrado_por || '—' }}</strong>@if (vestigio.registrado_por_servico) { <span class="audit-servico">— {{ vestigio.registrado_por_servico }}</span> } em {{ vestigio.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
         @if (vestigio.atualizado_por) {
           <span><i class="bi bi-person-gear"></i> Atualizado por <strong>{{ vestigio.atualizado_por }}</strong> em {{ vestigio.updated_at | date:'dd/MM/yyyy HH:mm' }}</span>
         }
@@ -308,7 +334,7 @@
         <span class="tab-count">{{ movimentacoes.length }}</span>
       </button>
       <button class="tab" [class.active]="tabAtiva === 'dnas'" (click)="mudarTab('dnas')">
-        <i class="bi bi-dna"></i>
+        <i class="bi bi-droplet-fill"></i>
         DNAs
         <span class="tab-count">{{ dnas.length }}</span>
       </button>
@@ -348,7 +374,14 @@
         <!-- Form de nova movimentação -->
         @if (showMovForm) {
           <div class="sub-form">
-            <h4>Registrar Movimentação</h4>
+            <h4>{{ editandoMovId ? 'Editar Movimentação' : 'Registrar Movimentação' }}</h4>
+            @if (editandoMovId) {
+              <div class="mov-edit-banner">
+                <i class="bi bi-pencil-square"></i>
+                Editando uma movimentação ainda não aceita. Após o aceite do destinatário, o registro
+                torna-se imutável.
+              </div>
+            }
 
             <!-- Seletor de tipo de movimentação -->
             @if (!isExterno) {
@@ -369,14 +402,16 @@
                   <strong>Envio a Unidade Externa</strong>
                   <small>Delegacia, vara judicial,<br>órgão solicitante da perícia</small>
                 </button>
-                <button type="button"
-                  class="mov-tipo-btn mov-tipo-btn--protocolo"
-                  [class.active]="tipoMovimentacao === 'protocolo'"
-                  (click)="setTipoMovimentacao('protocolo')">
-                  <i class="bi bi-file-earmark-check"></i>
-                  <strong>Protocolo de Saída</strong>
-                  <small>Entrega formal com<br>assinatura e registro</small>
-                </button>
+                @if (!editandoMovId) {
+                  <button type="button"
+                    class="mov-tipo-btn mov-tipo-btn--protocolo"
+                    [class.active]="tipoMovimentacao === 'protocolo'"
+                    (click)="setTipoMovimentacao('protocolo')">
+                    <i class="bi bi-file-earmark-check"></i>
+                    <strong>Protocolo de Saída</strong>
+                    <small>Entrega formal com<br>assinatura e registro</small>
+                  </button>
+                }
               </div>
             } @else {
               <div class="mov-tipo-info interna">
@@ -397,8 +432,26 @@
               </div>
               <div class="form-grid">
                 <div class="form-group">
-                  <label>Lacre</label>
-                  <input type="text" [(ngModel)]="movForm.lacre" placeholder="Lacre da embalagem...">
+                  <label>Novo lacre?</label>
+                  <div class="lacre-toggle">
+                    <button type="button" class="lacre-opt" [class.active]="novoLacre"
+                            (click)="novoLacre = true">Sim</button>
+                    <button type="button" class="lacre-opt" [class.active]="!novoLacre"
+                            (click)="novoLacre = false">Não</button>
+                  </div>
+                  @if (novoLacre) {
+                    <input type="text" [(ngModel)]="movForm.lacre" class="lacre-novo-input"
+                           placeholder="Número do novo lacre...">
+                  } @else {
+                    <small class="lacre-mantido-hint">
+                      <i class="bi bi-shield-check"></i>
+                      @if (lacreVigente) {
+                        Lacre vigente mantido: <strong>{{ lacreVigente }}</strong>
+                      } @else {
+                        Lacre vigente mantido na cadeia de custódia.
+                      }
+                    </small>
+                  }
                 </div>
                 <div class="form-group">
                   <label>Nº SEI</label>
@@ -444,7 +497,7 @@
               <div class="sub-form-actions">
                 <button class="btn-salvar" (click)="registrarMovimentacao()" [disabled]="isSaving || !movForm.servico_pericial_id">
                   <i class="bi bi-check-circle"></i>
-                  {{ isSaving ? 'Registrando...' : 'Registrar Transferência' }}
+                  {{ isSaving ? 'Salvando...' : (editandoMovId ? 'Salvar Alterações' : 'Registrar Transferência') }}
                 </button>
               </div>
             }
@@ -458,8 +511,26 @@
               </div>
               <div class="form-grid">
                 <div class="form-group">
-                  <label>Lacre</label>
-                  <input type="text" [(ngModel)]="movForm.lacre" placeholder="Lacre da embalagem...">
+                  <label>Novo lacre?</label>
+                  <div class="lacre-toggle">
+                    <button type="button" class="lacre-opt" [class.active]="novoLacre"
+                            (click)="novoLacre = true">Sim</button>
+                    <button type="button" class="lacre-opt" [class.active]="!novoLacre"
+                            (click)="novoLacre = false">Não</button>
+                  </div>
+                  @if (novoLacre) {
+                    <input type="text" [(ngModel)]="movForm.lacre" class="lacre-novo-input"
+                           placeholder="Número do novo lacre...">
+                  } @else {
+                    <small class="lacre-mantido-hint">
+                      <i class="bi bi-shield-check"></i>
+                      @if (lacreVigente) {
+                        Lacre vigente mantido: <strong>{{ lacreVigente }}</strong>
+                      } @else {
+                        Lacre vigente mantido na cadeia de custódia.
+                      }
+                    </small>
+                  }
                 </div>
                 <div class="form-group">
                   <label>Nº SEI</label>
@@ -530,7 +601,7 @@
               <div class="sub-form-actions">
                 <button class="btn-salvar" (click)="registrarMovimentacao()" [disabled]="isSaving || !movForm.unidade_demandante_id">
                   <i class="bi bi-check-circle"></i>
-                  {{ isSaving ? 'Registrando...' : 'Registrar Envio' }}
+                  {{ isSaving ? 'Salvando...' : (editandoMovId ? 'Salvar Alterações' : 'Registrar Envio') }}
                 </button>
               </div>
             }
@@ -594,6 +665,11 @@
                       </button>
                     } @else {
                       <span class="badge-pendente">Aguardando aceite do destinatário</span>
+                    }
+                    @if (mov.pode_editar) {
+                      <button class="btn-editar-mov" (click)="editarMovimentacaoInline(mov)">
+                        <i class="bi bi-pencil"></i> Editar
+                      </button>
                     }
                     <button class="btn-ver-mov" (click)="verMovimentacao(mov.id)">
                       <i class="bi bi-eye"></i> Detalhes
@@ -694,7 +770,7 @@
           <div class="loading-indicator"><i class="bi bi-hourglass-split"></i><p>Carregando...</p></div>
         }
         @if (!isLoadingDnas && dnas.length === 0) {
-          <div class="empty-state"><i class="bi bi-dna"></i><p>Nenhuma coleta de DNA registrada</p></div>
+          <div class="empty-state"><i class="bi bi-droplet-fill"></i><p>Nenhuma coleta de DNA registrada</p></div>
         }
         @if (!isLoadingDnas && dnas.length > 0) {
           <div class="table-container">

@@ -93,9 +93,13 @@
       </div>
 
       <div class="field-group">
-        <label class="field-label required">Descrição do Material</label>
-        <textarea [(ngModel)]="descricaoMaterial" class="form-control textarea" rows="3"
-          placeholder="Descreva o material que está sendo entregue..."></textarea>
+        <label class="field-label">Descrição do Material <span class="campo-lock">(do vestígio — não editável)</span></label>
+        <textarea [(ngModel)]="descricaoMaterial" class="form-control textarea campo-readonly" rows="3"
+          readonly placeholder="(vestígio sem descrição cadastrada)"></textarea>
+        <small class="field-hint">
+          <i class="bi bi-lock-fill"></i>
+          A descrição do vestígio é imutável. Registre qualquer evento no campo <strong>Observações</strong>.
+        </small>
       </div>
 
       <!-- Toggle procedimento -->

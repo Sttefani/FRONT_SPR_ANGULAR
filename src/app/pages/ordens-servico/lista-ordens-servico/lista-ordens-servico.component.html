@@ -232,6 +232,10 @@
               <span class="badge bg-info ms-1" *ngIf="os.numero_reiteracao > 0">
                 {{ os.numero_reiteracao }}ª Reit.
               </span>
+              <span class="badge bg-warning text-dark ms-1" *ngIf="os.ciencia_automatica"
+                    title="Ciência registrada automaticamente por inércia do servidor">
+                🤖 Ciência auto.
+              </span>
             </td>
 
             <td>
