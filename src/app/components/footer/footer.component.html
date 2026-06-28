@@ -2,8 +2,13 @@
   <div class="footer-container">
     <div class="footer-left">
       <span class="copyright">
-        © {{ year }} <strong>{{ systemName }}</strong> - Desenvolvido por: {{ developer }}
+        © {{ year }} <strong>{{ systemName }}</strong> — Desenvolvido por {{ developerTitle }}
+        <strong class="developer-name">{{ developer }}</strong> — Todos os direitos reservados.
       </span>
+      <button type="button" class="aviso-legal-link" (click)="abrirAvisoLegal()"
+              title="Aviso legal, registro no INPI e direitos autorais">
+        <i class="bi bi-shield-lock-fill"></i> Aviso legal e direitos autorais
+      </button>
     </div>
 
     <div class="footer-right">
