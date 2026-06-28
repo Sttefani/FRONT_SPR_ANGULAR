@@ -28,7 +28,7 @@ export class FooterComponent implements OnInit {
         <div style="text-align:left; font-size:0.9rem; line-height:1.65; color:#334155;">
           <p>O sistema <strong>SPR-Criminalística</strong> é obra autoral protegida, registrada no
           <strong>INPI — Instituto Nacional da Propriedade Industrial</strong>
-          (Registro de Programa de Computador — Lei n.º 9.609/1998 e Lei n.º 9.610/1998).</p>
+          (Registro de Programa de Computador — Lei n.º 9.609/1998).</p>
           <ul style="margin:0.6rem 0 0; padding-left:1.2rem;">
             <li>Os <strong>direitos autorais</strong> do autor são <strong>irrenunciáveis e inalienáveis</strong>,
             não podendo ser removidos, ocultados ou suprimidos.</li>
