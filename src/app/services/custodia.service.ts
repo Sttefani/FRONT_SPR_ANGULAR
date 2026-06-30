@@ -91,6 +91,10 @@ export interface VestigioMovimentacao {
   id: number;
   vestigio: number;
   lacre: string | null;
+  // Lacre vigente nesta movimentação: o novo (se informado) ou o herdado da
+  // movimentação anterior / lacre inicial. Toda movimentação referencia um lacre.
+  lacre_efetivo?: string | null;
+  lacre_mantido?: boolean;   // true quando herdado (não houve troca de lacre aqui)
   num_processo_sei: string | null;
   descricao: string | null;
   aceito: boolean;

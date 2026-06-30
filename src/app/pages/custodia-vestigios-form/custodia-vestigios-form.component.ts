@@ -9,7 +9,6 @@ import Swal from 'sweetalert2';
 import { CustodiaService, OcorrenciaVinculada } from '../../services/custodia.service';
 import { ServicoPericialService } from '../../services/servico-pericial.service';
 import { UnidadeDemandanteService } from '../../services/unidade-demandante.service';
-import { AutoridadeService } from '../../services/autoridade.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -30,7 +29,6 @@ export class CustodiaVestigiosFormComponent implements OnInit, OnDestroy {
 
   servicos: any[] = [];
   unidades: any[] = [];
-  autoridades: any[] = [];
 
   // EXTERNO: destino do cadastro travado na custódia central do IC (sigla CUST)
   isExterno = false;
@@ -64,7 +62,6 @@ export class CustodiaVestigiosFormComponent implements OnInit, OnDestroy {
     private custodiaService: CustodiaService,
     private servicoPericialService: ServicoPericialService,
     private unidadeDemandanteService: UnidadeDemandanteService,
-    private autoridadeService: AutoridadeService,
     private authService: AuthService
   ) {
     this.initForm();
@@ -95,7 +92,6 @@ export class CustodiaVestigiosFormComponent implements OnInit, OnDestroy {
             biologico:                vestigio.biologico             ?? false,
             unidade_demandante_id:    vestigio.unidade_demandante?.id ?? null,
             servico_pericial_id:      vestigio.servico_pericial?.id   ?? null,
-            autoridade_id:            vestigio.autoridade?.id         ?? null,
             vestigio_contra_prova_id: vestigio.vestigio_contra_prova  ?? null,
           });
 
@@ -181,7 +177,6 @@ export class CustodiaVestigiosFormComponent implements OnInit, OnDestroy {
       biologico:                  [false],
       unidade_demandante_id:      [null, Validators.required],
       servico_pericial_id:        [null, Validators.required],
-      autoridade_id:              [null],
       vestigio_contra_prova_id:   [null],
     });
   }
@@ -193,10 +188,6 @@ export class CustodiaVestigiosFormComponent implements OnInit, OnDestroy {
     });
     this.unidadeDemandanteService.getAllForDropdown().subscribe({
       next: (res: any) => this.unidades = Array.isArray(res) ? res : (res.results ?? []),
-      error: () => {},
-    });
-    this.autoridadeService.getAllForDropdown().subscribe({
-      next: (res) => this.autoridades = res,
       error: () => {},
     });
   }

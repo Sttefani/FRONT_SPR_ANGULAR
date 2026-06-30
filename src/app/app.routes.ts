@@ -182,6 +182,12 @@ export const routes: Routes = [
         data: { requiredPerfis: ['ADMINISTRATIVO', 'SUPERUSER'] }
       },
       {
+        path: 'operacional/ordens-servico/:id/editar',
+        loadComponent: () => import('./pages/ordens-servico/form-ordem-servico/form-ordem-servico.component').then(m => m.FormOrdemServicoComponent),
+        canActivate: [perfilGuard],
+        data: { requiredPerfis: ['ADMINISTRATIVO', 'SUPERUSER'] }
+      },
+      {
         path: 'operacional/ordens-servico/:id',
         loadComponent: () => import('./pages/ordens-servico/detalhes-ordem-servico/detalhes-ordem-servico.component').then(m => m.DetalhesOrdemServicoComponent),
         canActivate: [AuthGuard]

@@ -4,10 +4,12 @@
   <!-- CABEÇALHO -->
   <div class="mb-4">
     <h2>
-      <i class="bi bi-file-earmark-plus"></i>
-      Nova Ordem de Serviço
+      <i class="bi" [ngClass]="isEdit ? 'bi-pencil-square' : 'bi-file-earmark-plus'"></i>
+      {{ isEdit ? 'Editar Ordem de Serviço' : 'Nova Ordem de Serviço' }}
     </h2>
-    <p class="text-muted">Preencha os dados abaixo para emitir uma nova OS</p>
+    <p class="text-muted">
+      {{ isEdit ? 'Ajuste os dados da OS (permitido enquanto não houver ciência)' : 'Preencha os dados abaixo para emitir uma nova OS' }}
+    </p>
   </div>
 
   <!-- MENSAGENS DE ERRO -->
@@ -24,13 +26,13 @@
     <div class="card mb-4 card-busca">
       <div class="card-header bg-primary">
         <h5 class="card-title mb-0">
-          <i class="bi bi-search"></i>
-          Passo 1: Selecionar Ocorrência
+          <i class="bi" [ngClass]="isEdit ? 'bi-folder' : 'bi-search'"></i>
+          {{ isEdit ? 'Ocorrência da OS' : 'Passo 1: Selecionar Ocorrência' }}
         </h5>
       </div>
       <div class="card-body">
         <div class="row g-3">
-          <div class="col-12">
+          <div class="col-12" *ngIf="!isEdit">
             <label class="form-label">
               🔍 Buscar Ocorrência
               <span class="text-danger">*</span>
@@ -83,7 +85,7 @@
                 <strong>Serviço:</strong> {{ ocorrenciaEncontrada.servico_pericial.nome }}
               </p>
               <hr>
-              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="limparBusca()">
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="limparBusca()" *ngIf="!isEdit">
                 <i class="bi bi-x-circle"></i> Buscar outra ocorrência
               </button>
             </div>
@@ -241,11 +243,23 @@
       </button>
 
       <button
+        *ngIf="!isEdit"
         type="button"
         class="btn btn-success btn-lg"
         (click)="prepararAssinatura()">
         <i class="bi bi-arrow-right"></i>
         Próximo: Assinar Digitalmente
+      </button>
+
+      <button
+        *ngIf="isEdit"
+        type="button"
+        class="btn btn-success btn-lg"
+        (click)="salvarEdicao()"
+        [disabled]="loading">
+        <span class="spinner-border spinner-border-sm" *ngIf="loading"></span>
+        <i class="bi bi-check-circle" *ngIf="!loading"></i>
+        Salvar Alterações
       </button>
     </div>
 

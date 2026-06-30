@@ -256,6 +256,14 @@
     &::placeholder { color: #94a3b8; }
   }
 
+  // Lacre: exibido em CAIXA ALTA enquanto o usuário digita (o backend também
+  // normaliza no save — esta regra é só o reflexo visual). Placeholder mantém
+  // a caixa normal para continuar legível.
+  input.input-uppercase {
+    text-transform: uppercase;
+    &::placeholder { text-transform: none; }
+  }
+
   textarea {
     resize: vertical;
     min-height: 110px;

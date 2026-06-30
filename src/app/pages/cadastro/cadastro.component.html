@@ -108,6 +108,29 @@
 
         <div class="form-row">
           <div class="form-group">
+            <label for="matricula">
+              <span class="label-icon">🪪</span>
+              Matrícula Funcional *
+            </label>
+            <input
+              type="text"
+              id="matricula"
+              formControlName="matricula"
+              class="form-control"
+              [class.error]="cadastroForm.get('matricula')?.invalid && cadastroForm.get('matricula')?.touched"
+              placeholder="Sua matrícula funcional">
+            @if (cadastroForm.get('matricula')?.invalid && cadastroForm.get('matricula')?.touched) {
+              <div class="error-message">
+                @if (cadastroForm.get('matricula')?.errors?.['required']) {
+                  <small>⚠️ Matrícula é obrigatória</small>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
             <label for="telefone_celular">
               <span class="label-icon">📱</span>
               Telefone Celular

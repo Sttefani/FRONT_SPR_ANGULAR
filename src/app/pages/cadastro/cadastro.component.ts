@@ -30,6 +30,7 @@ export class CadastroComponent {
       nome_completo: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       cpf: ['', [Validators.required, Validators.minLength(11), Validators.maxLength(11)]],
+      matricula: ['', [Validators.required]], // Matrícula funcional — usada no protocolo de saída
       data_nascimento: [''], // Campo opcional
       telefone_celular: [''], // Campo opcional
       password: ['', [Validators.required, Validators.minLength(6)]],
@@ -129,6 +130,8 @@ export class CadastroComponent {
               this.errorMessage = errors.telefone_celular[0]; // Exibe a mensagem de telefone duplicado
             // ===========================================
 
+            } else if (errors.matricula) {
+              this.errorMessage = errors.matricula[0];
             } else {
               this.errorMessage = 'Dados inválidos. Por favor, verifique as informações e tente novamente.';
             }

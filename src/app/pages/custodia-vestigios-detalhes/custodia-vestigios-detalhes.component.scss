@@ -901,7 +901,30 @@
   }
 }
 
-.lacre-novo-input { width: 100%; margin-top: 0.1rem; }
+.lacre-novo-input {
+  width: 100%;
+  margin-top: 0.1rem;
+  // Novo lacre exibido em CAIXA ALTA enquanto digita (o backend também normaliza
+  // no save). Placeholder mantém a caixa normal para continuar legível.
+  text-transform: uppercase;
+  &::placeholder { text-transform: none; }
+}
+
+// Selo discreto quando o lacre é herdado (não houve troca nesta movimentação)
+.lacre-mantido-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  vertical-align: middle;
+}
 
 .lacre-mantido-hint {
   display: flex;

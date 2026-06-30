@@ -18,7 +18,6 @@ import {
 import { AuthService } from '../../services/auth.service';
 import { ServicoPericialService } from '../../services/servico-pericial.service';
 import { UnidadeDemandanteService } from '../../services/unidade-demandante.service';
-import { AutoridadeService } from '../../services/autoridade.service';
 import { ProcedimentoCadastradoService } from '../../services/procedimento-cadastrado.service';
 import { ProtocoloService, ProtocoloList } from '../../services/protocolo.service';
 
@@ -71,11 +70,9 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
   editandoMovId: number | null = null;  // id da movimentação em edição (null = nova)
   movForm = {
     lacre: '',
-    num_processo_sei: '',
     descricao: '',
     unidade_demandante_id: null as number | null,
     servico_pericial_id: null as number | null,
-    autoridade_id: null as number | null,
   };
 
   servicos: any[] = [];
@@ -86,12 +83,6 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
   unidadesBuscadas: any[] = [];
   showUnidadeDropdown = false;
   private unidadeSubject$ = new Subject<string>();
-
-  // Autocomplete — Autoridade
-  autoritadeBusca = '';
-  autoridadesBuscadas: any[] = [];
-  showAutoridadeDropdown = false;
-  private autoridadeSubject$ = new Subject<string>();
 
   private destroy$ = new Subject<void>();
 
@@ -104,7 +95,6 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private servicoPericialService: ServicoPericialService,
     private unidadeDemandanteService: UnidadeDemandanteService,
-    private autoridadeService: AutoridadeService,
     private procedimentoService: ProcedimentoCadastradoService,
     private protocoloService: ProtocoloService,
   ) {}
@@ -161,16 +151,6 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
     ).subscribe(res => {
       this.unidadesBuscadas = res.results ?? [];
       this.showUnidadeDropdown = this.unidadesBuscadas.length > 0;
-    });
-
-    this.autoridadeSubject$.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap(q => this.autoridadeService.getAll(q || undefined)),
-      takeUntil(this.destroy$)
-    ).subscribe(res => {
-      this.autoridadesBuscadas = res.results ?? [];
-      this.showAutoridadeDropdown = this.autoridadesBuscadas.length > 0;
     });
   }
 
@@ -296,37 +276,6 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
 
   fecharDropdownUnidade(): void {
     setTimeout(() => { this.showUnidadeDropdown = false; }, 150);
-  }
-
-  // ── Autocomplete — Autoridade ──────────────────────────────────────────────
-
-  onAutoridadeInput(event: Event): void {
-    const val = (event.target as HTMLInputElement).value;
-    this.movForm.autoridade_id = null;
-    if (val.length >= 1) {
-      this.autoridadeSubject$.next(val);
-    } else {
-      this.autoridadesBuscadas = [];
-      this.showAutoridadeDropdown = false;
-    }
-  }
-
-  selecionarAutoridade(a: any): void {
-    this.movForm.autoridade_id = a.id;
-    this.autoritadeBusca = a.nome;
-    this.autoridadesBuscadas = [];
-    this.showAutoridadeDropdown = false;
-  }
-
-  limparAutoridade(): void {
-    this.movForm.autoridade_id = null;
-    this.autoritadeBusca = '';
-    this.autoridadesBuscadas = [];
-    this.showAutoridadeDropdown = false;
-  }
-
-  fecharDropdownAutoridade(): void {
-    setTimeout(() => { this.showAutoridadeDropdown = false; }, 150);
   }
 
   mudarTab(tab: Tab): void {
@@ -472,18 +421,10 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
     const payload: any = {
       vestigio_id: this.vestigio.id,
       lacre,
-      num_processo_sei: this.movForm.num_processo_sei,
       descricao: this.movForm.descricao,
       servico_pericial_id: this.tipoMovimentacao === 'interna' ? this.movForm.servico_pericial_id : null,
       unidade_demandante_id: this.tipoMovimentacao === 'externa' ? this.movForm.unidade_demandante_id : null,
     };
-
-    // Autoridade: na edição o serializer de listagem não traz o id (só o nome),
-    // então só enviamos quando o usuário selecionar uma — evita apagar a autoridade
-    // existente da movimentação. Na criação enviamos sempre (null ou selecionada).
-    if (!editando || this.movForm.autoridade_id) {
-      payload.autoridade_id = this.movForm.autoridade_id;
-    }
 
     const req = editando
       ? this.custodiaService.editarMovimentacao(this.editandoMovId!, payload)
@@ -536,20 +477,15 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
     this.novoLacre = !!mov.lacre;
     this.movForm = {
       lacre: mov.lacre || '',
-      num_processo_sei: mov.num_processo_sei || '',
       descricao: mov.descricao || '',
       unidade_demandante_id: mov.unidade_demandante?.id ?? null,
       servico_pericial_id: mov.servico_pericial?.id ?? null,
-      autoridade_id: null,
     };
-    // rótulos dos autocompletes (autoridade não vem com id na listagem → fica em branco)
+    // rótulo do autocomplete de unidade
     this.unidadeBusca = mov.unidade_demandante
       ? `${mov.unidade_demandante.sigla} — ${mov.unidade_demandante.nome}` : '';
-    this.autoritadeBusca = '';
     this.unidadesBuscadas = [];
-    this.autoridadesBuscadas = [];
     this.showUnidadeDropdown = false;
-    this.showAutoridadeDropdown = false;
   }
 
   aceitarMovimentacao(mov: VestigioMovimentacao): void {
@@ -599,20 +535,16 @@ export class CustodiaVestigiosDetalhesComponent implements OnInit, OnDestroy {
     // limpa campos do outro cenário ao trocar de tipo
     this.movForm.servico_pericial_id = null;
     this.limparUnidade();
-    this.limparAutoridade();
   }
 
   resetMovForm(): void {
     this.tipoMovimentacao = null;
     this.novoLacre = false;
     this.editandoMovId = null;
-    this.movForm = { lacre: '', num_processo_sei: '', descricao: '', unidade_demandante_id: null, servico_pericial_id: null, autoridade_id: null };
+    this.movForm = { lacre: '', descricao: '', unidade_demandante_id: null, servico_pericial_id: null };
     this.unidadeBusca = '';
     this.unidadesBuscadas = [];
     this.showUnidadeDropdown = false;
-    this.autoritadeBusca = '';
-    this.autoridadesBuscadas = [];
-    this.showAutoridadeDropdown = false;
   }
 
   /**

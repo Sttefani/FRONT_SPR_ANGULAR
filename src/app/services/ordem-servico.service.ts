@@ -109,6 +109,7 @@ export interface OrdemServico {
   } | null;
   detalhes_ocultos?: boolean;
   mensagem?: string;
+  pode_editar?: boolean;   // admin pode editar enquanto o perito não tomou ciência
 }
 
 export interface PaginatedResponse<T> {

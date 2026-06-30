@@ -1,7 +1,7 @@
 // src/app/pages/ordens-servico/form-ordem-servico/form-ordem-servico.component.ts
 
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { OrdemServicoService, CriarOrdemServicoPayload } from '../../../services/ordem-servico.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -48,15 +48,104 @@ export class FormOrdemServicoComponent implements OnInit {
   // Controles
   mostrarAssinatura = false;
 
+  // Modo edição (admin corrige a OS enquanto o perito não tomou ciência)
+  isEdit = false;
+  ordemId: number | null = null;
+  carregandoOrdem = false;
+
   constructor(
     private ordemServicoService: OrdemServicoService,
     private usuarioService: UsuarioService,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.carregarDadosIniciais();
+
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEdit = true;
+      this.ordemId = Number(id);
+      this.carregarOrdemParaEdicao(this.ordemId);
+    }
+  }
+
+  carregarOrdemParaEdicao(id: number): void {
+    this.carregandoOrdem = true;
+    this.ordemServicoService.buscarPorId(id).subscribe({
+      next: (os) => {
+        // Guard de segurança: o backend já bloqueia, mas evitamos abrir o form à toa
+        if (os.pode_editar === false) {
+          Swal.fire({
+            title: 'Edição bloqueada',
+            text: 'Esta OS não pode mais ser editada porque já houve ciência (do perito ou automática por inércia).',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+          }).then(() => this.router.navigate(['/gabinete-virtual/operacional/ordens-servico', id]));
+          return;
+        }
+        // Pré-preenche os campos editáveis
+        this.form = {
+          ocorrencia_id: os.ocorrencia?.id,
+          prazo_dias: os.prazo_dias,
+          ordenada_por_id: os.ordenada_por?.id,
+          observacoes_administrativo: os.observacoes_administrativo || '',
+          tipo_documento_referencia_id: os.tipo_documento_referencia?.id,
+          numero_documento_referencia: os.numero_documento_referencia || '',
+          processo_sei_referencia: os.processo_sei_referencia || '',
+          processo_judicial_referencia: os.processo_judicial_referencia || ''
+        };
+        // Reaproveita o card "Passo 2" exibindo a ocorrência fixa (sem busca)
+        this.ocorrenciaEncontrada = {
+          numero_ocorrencia: os.ocorrencia?.numero_ocorrencia,
+          perito_atribuido: os.perito_destinatario,
+          servico_pericial: os.ocorrencia?.servico_pericial
+        };
+        this.carregandoOrdem = false;
+      },
+      error: () => {
+        this.error = 'Não foi possível carregar a OS para edição.';
+        this.carregandoOrdem = false;
+      }
+    });
+  }
+
+  salvarEdicao(): void {
+    if (!this.validarFormularioPrincipal() || !this.ordemId) {
+      return;
+    }
+    this.loading = true;
+    this.error = null;
+
+    // Envia apenas os campos editáveis (PATCH parcial)
+    const payload: any = {
+      prazo_dias: this.form.prazo_dias,
+      ordenada_por_id: this.form.ordenada_por_id,
+      observacoes_administrativo: this.form.observacoes_administrativo,
+      tipo_documento_referencia_id: this.form.tipo_documento_referencia_id ?? null,
+      numero_documento_referencia: this.form.numero_documento_referencia,
+      processo_sei_referencia: this.form.processo_sei_referencia,
+      processo_judicial_referencia: this.form.processo_judicial_referencia
+    };
+
+    this.ordemServicoService.atualizar(this.ordemId, payload).subscribe({
+      next: () => {
+        Swal.fire({
+          title: 'Alterações salvas!',
+          text: 'A Ordem de Serviço foi atualizada.',
+          icon: 'success',
+          confirmButtonText: 'Ver Detalhes'
+        }).then(() => {
+          this.router.navigate(['/gabinete-virtual/operacional/ordens-servico', this.ordemId]);
+        });
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err.error?.detail || err.error?.error || 'Erro ao salvar as alterações. Tente novamente.';
+      }
+    });
   }
 
   // ===========================================================================
@@ -247,6 +336,10 @@ export class FormOrdemServicoComponent implements OnInit {
   }
 
   cancelar(): void {
+    if (this.isEdit && this.ordemId) {
+      this.router.navigate(['/gabinete-virtual/operacional/ordens-servico', this.ordemId]);
+      return;
+    }
     if (confirm('Deseja cancelar a criação da OS? Os dados serão perdidos.')) {
       this.router.navigate(['/gabinete-virtual/operacional/ordens-servico']);
     }

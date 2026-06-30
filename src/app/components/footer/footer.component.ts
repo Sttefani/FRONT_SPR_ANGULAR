@@ -33,8 +33,7 @@ export class FooterComponent implements OnInit {
             <li>Os <strong>direitos autorais</strong> do autor são <strong>irrenunciáveis e inalienáveis</strong>,
             não podendo ser removidos, ocultados ou suprimidos.</li>
             <li style="margin-top:0.5rem;">A <strong>manutenção da denominação “SPR-Criminalística”</strong>
-            é <strong>obrigatória</strong> em qualquer cópia, versão ou derivação, sob pena de
-            <strong>multa de 300 (trezentos) salários mínimos</strong>.</li>
+            é <strong>obrigatória</strong> em qualquer cópia, versão ou derivação.</li>
             <li style="margin-top:0.5rem;">A <strong>cessão, distribuição ou qualquer alteração</strong> do
             sistema fica condicionada à <strong>consulta e autorização prévia do autor</strong>.</li>
           </ul>

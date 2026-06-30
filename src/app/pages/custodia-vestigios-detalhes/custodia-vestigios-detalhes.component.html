@@ -453,10 +453,6 @@
                     </small>
                   }
                 </div>
-                <div class="form-group">
-                  <label>Nº SEI</label>
-                  <input type="text" [(ngModel)]="movForm.num_processo_sei" placeholder="Nº SEI...">
-                </div>
                 <div class="form-group full-width">
                   <label>Serviço de Destino <span class="required">*</span></label>
                   <select [(ngModel)]="movForm.servico_pericial_id">
@@ -465,29 +461,6 @@
                       <option [ngValue]="s.id">{{ s.sigla }} — {{ s.nome }}</option>
                     }
                   </select>
-                </div>
-                <div class="form-group ac-wrapper full-width">
-                  <label>Autoridade <span class="optional">(opcional)</span></label>
-                  @if (movForm.autoridade_id) {
-                    <div class="ac-selected">
-                      <span>{{ autoritadeBusca }}</span>
-                      <button type="button" class="ac-clear" (click)="limparAutoridade()">×</button>
-                    </div>
-                  } @else {
-                    <input type="text"
-                      [(ngModel)]="autoritadeBusca"
-                      (input)="onAutoridadeInput($event)"
-                      (blur)="fecharDropdownAutoridade()"
-                      placeholder="Digite nome da autoridade (opcional)..."
-                      autocomplete="off">
-                    @if (showAutoridadeDropdown) {
-                      <ul class="ac-list">
-                        @for (a of autoridadesBuscadas; track a.id) {
-                          <li (mousedown)="selecionarAutoridade(a)">{{ a.nome }}</li>
-                        }
-                      </ul>
-                    }
-                  }
                 </div>
                 <div class="form-group full-width">
                   <label>Observações</label>
@@ -532,10 +505,6 @@
                     </small>
                   }
                 </div>
-                <div class="form-group">
-                  <label>Nº SEI</label>
-                  <input type="text" [(ngModel)]="movForm.num_processo_sei" placeholder="Nº SEI...">
-                </div>
                 <div class="form-group ac-wrapper full-width">
                   <label>Unidade de Destino <span class="required">*</span></label>
                   @if (movForm.unidade_demandante_id) {
@@ -566,29 +535,6 @@
                     @if (showUnidadeDropdown && unidadesBuscadas.length === 0) {
                       <ul class="ac-list">
                         <li class="ac-empty">Nenhuma unidade encontrada</li>
-                      </ul>
-                    }
-                  }
-                </div>
-                <div class="form-group ac-wrapper full-width">
-                  <label>Autoridade <span class="optional">(opcional)</span></label>
-                  @if (movForm.autoridade_id) {
-                    <div class="ac-selected">
-                      <span>{{ autoritadeBusca }}</span>
-                      <button type="button" class="ac-clear" (click)="limparAutoridade()">×</button>
-                    </div>
-                  } @else {
-                    <input type="text"
-                      [(ngModel)]="autoritadeBusca"
-                      (input)="onAutoridadeInput($event)"
-                      (blur)="fecharDropdownAutoridade()"
-                      placeholder="Digite nome da autoridade (opcional)..."
-                      autocomplete="off">
-                    @if (showAutoridadeDropdown) {
-                      <ul class="ac-list">
-                        @for (a of autoridadesBuscadas; track a.id) {
-                          <li (mousedown)="selecionarAutoridade(a)">{{ a.nome }}</li>
-                        }
                       </ul>
                     }
                   }
@@ -676,7 +622,9 @@
                     </button>
                   </div>
                   <div class="timeline-body">
-                    @if (mov.lacre) { <p><strong>Lacre:</strong> {{ mov.lacre }}</p> }
+                    @if (mov.lacre_efetivo) {
+                      <p><strong>Lacre:</strong> {{ mov.lacre_efetivo }}@if (mov.lacre_mantido) { <span class="lacre-mantido-badge">mantido</span> }</p>
+                    }
                     @if (mov.num_processo_sei) { <p><strong>SEI:</strong> {{ mov.num_processo_sei }}</p> }
                     @if (mov.unidade_demandante) { <p><strong>Destino:</strong> {{ mov.unidade_demandante.sigla }} — {{ mov.unidade_demandante.nome }}</p> }
                     @if (mov.servico_pericial) { <p><strong>Serviço:</strong> {{ mov.servico_pericial.sigla }}</p> }

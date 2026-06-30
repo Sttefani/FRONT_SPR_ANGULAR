@@ -27,6 +27,7 @@ export interface CadastroRequest {
   data_nascimento: string;
   cpf: string;
   telefone_celular: string;
+  matricula: string;
   password: string;
 }
 

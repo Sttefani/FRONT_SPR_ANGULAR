@@ -40,6 +40,13 @@
 
       <div class="d-flex gap-2 align-items-center">
         @if (isAdministrativo()) {
+          @if (ordemServico.pode_editar) {
+            <button
+              class="btn btn-warning"
+              (click)="editarOrdem()">
+              <i class="bi bi-pencil-square"></i> Editar
+            </button>
+          }
           <button
             class="btn btn-info"
             (click)="baixarPdf(false)">

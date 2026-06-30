@@ -466,6 +466,11 @@ export class DetalhesOrdemServicoComponent implements OnInit {
     this.router.navigate(['/gabinete-virtual/operacional/ordens-servico']);
   }
 
+  editarOrdem(): void {
+    if (!this.ordemServico) return;
+    this.router.navigate(['/gabinete-virtual/operacional/ordens-servico', this.ordemServico.id, 'editar']);
+  }
+
   concluirOS(): void {
     if (!this.ordemServico) return;
 
